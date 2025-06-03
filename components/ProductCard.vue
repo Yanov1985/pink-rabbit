@@ -1,37 +1,47 @@
 <template>
-  <div class="product-card">
+  <div
+    class="product-card"
+    @mouseenter="startSlider"
+    @mouseleave="stopSlider"
+    itemscope
+    itemtype="https://schema.org/Product"
+  >
     <!-- Контейнер изображения -->
-    <div
-      class="image-container"
-      @mouseenter="startSlider"
-      @mouseleave="stopSlider"
-    >
+    <div class="image-container" itemprop="image">
       <!-- Прелоадер -->
       <div v-if="imageLoading" class="image-loader">
         <div class="spinner"></div>
       </div>
 
-      <!-- Изображение товара -->
-      <img
-        :src="currentImage"
-        :alt="product.name"
-        class="product-image"
-        :class="{ loaded: !imageLoading }"
-        @load="handleImageLoad"
-        @error="handleImageError"
-        loading="lazy"
-      />
+      <!-- Слайдер изображений с плавными переходами -->
+      <div class="image-slider">
+        <img
+          v-for="(image, index) in displayImages"
+          :key="`slide-${index}`"
+          :src="image"
+          :alt="`${product.name} - изображение ${index + 1}`"
+          class="slider-image"
+          :class="{
+            active: index === currentImageIndex,
+            loaded: !imageLoading,
+          }"
+          @load="handleImageLoad"
+          @error="handleImageError"
+          loading="lazy"
+          itemprop="image"
+        />
+      </div>
 
-      <!-- Индикаторы слайдера -->
-      <div
-        v-if="product.images && product.images.length > 1"
-        class="slider-indicators"
-      >
+      <!-- Индикаторы слайдера - показываем всегда для демонстрации -->
+      <div class="slider-indicators">
         <div
-          v-for="(_, index) in product.images"
-          :key="index"
+          v-for="(_, index) in displayImages"
+          :key="`indicator-${index}`"
           class="indicator"
           :class="{ active: index === currentImageIndex }"
+          @click="goToSlide(index)"
+          @mouseenter="pauseSlider"
+          @mouseleave="resumeSlider"
         ></div>
       </div>
 
@@ -78,7 +88,12 @@
     <!-- Информация о товаре -->
     <div class="product-info">
       <!-- Рейтинг -->
-      <div class="rating">
+      <div
+        class="rating"
+        itemprop="aggregateRating"
+        itemscope
+        itemtype="https://schema.org/AggregateRating"
+      >
         <div class="stars">
           <StarIcon
             v-for="i in 5"
@@ -87,25 +102,65 @@
             :class="{ filled: i <= product.rating }"
           />
         </div>
-        <span class="reviews">({{ product.reviews }})</span>
+        <span class="reviews">
+          (<span itemprop="ratingValue">{{ product.rating }}</span
+          >/5 -
+          <span itemprop="reviewCount">{{ product.reviews }}</span> отзывов)
+        </span>
+        <!-- Скрытые микроданные для лучшего SEO -->
+        <meta itemprop="bestRating" content="5" />
+        <meta itemprop="worstRating" content="1" />
       </div>
 
       <!-- Название -->
-      <h3 class="product-title">{{ product.name }}</h3>
+      <h3 class="product-title" itemprop="name">{{ product.name }}</h3>
 
       <!-- Характеристики -->
       <div class="product-specs">
-        <div>Бренд: {{ product.brand }}</div>
-        <div>Материал: {{ product.material }}</div>
-        <div>Цвет: {{ product.color }}</div>
+        <div>
+          Бренд:
+          <span itemprop="brand" itemscope itemtype="https://schema.org/Brand">
+            <span itemprop="name">{{ product.brand }}</span>
+          </span>
+        </div>
+        <div>
+          Материал: <span itemprop="material">{{ product.material }}</span>
+        </div>
+        <div>
+          Цвет: <span itemprop="color">{{ product.color }}</span>
+        </div>
       </div>
 
       <!-- Цена -->
-      <div class="price-section">
-        <span class="current-price">{{ formatPrice(product.price) }} ₽</span>
+      <div
+        class="price-section"
+        itemprop="offers"
+        itemscope
+        itemtype="https://schema.org/Offer"
+      >
+        <span class="current-price" itemprop="price" :content="product.price">
+          {{ formatPrice(product.price) }} ₽
+        </span>
         <span v-if="product.oldPrice" class="old-price">
           {{ formatPrice(product.oldPrice) }} ₽
         </span>
+
+        <!-- Скрытые микроданные для цены -->
+        <meta itemprop="priceCurrency" content="RUB" />
+        <meta itemprop="priceValidUntil" :content="priceValidUntil" />
+        <meta
+          itemprop="availability"
+          :content="
+            product.inStock
+              ? 'https://schema.org/InStock'
+              : 'https://schema.org/OutOfStock'
+          "
+        />
+        <meta
+          itemprop="itemCondition"
+          content="https://schema.org/NewCondition"
+        />
+        <meta itemprop="url" :content="productUrl" />
       </div>
 
       <!-- Нижние кнопки действий -->
@@ -113,6 +168,8 @@
         <!-- Кнопка подробнее (компактная иконка) -->
         <button
           @click="openDetails"
+          @mouseenter="handleButtonHover('details', true)"
+          @mouseleave="handleButtonHover('details', false)"
           class="action-button detail-btn"
           title="Подробная информация"
         >
@@ -133,6 +190,8 @@
         <button
           v-if="product.inStock"
           @click="addToCart"
+          @mouseenter="handleButtonHover('cart', true)"
+          @mouseleave="handleButtonHover('cart', false)"
           class="action-button cart-btn"
           title="Добавить в корзину"
         >
@@ -182,7 +241,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onUnmounted } from "vue";
+import { ref, computed, onUnmounted, watch } from "vue";
 import {
   HeartIcon,
   EyeIcon,
@@ -217,34 +276,214 @@ const currentImageIndex = ref(0);
 const imageLoading = ref(true);
 const sliderInterval = ref(null);
 
-// Computed
-const currentImage = computed(() => {
-  if (props.product.images && props.product.images.length > 0) {
-    return props.product.images[currentImageIndex.value];
-  }
-  return props.product.image || "/placeholder-image.jpg";
+// Computed - убираем currentImage, теперь используем прямо массив изображений
+const hasMultipleImages = computed(() => {
+  return props.product.images && props.product.images.length > 1;
 });
+
+// Computed для отображаемых изображений - решает проблему с template
+const displayImages = computed(() => {
+  const images = props.product.images || [props.product.image];
+  // Если у товара только одно изображение, дублируем его для демонстрации слайдера
+  if (images.length === 1) {
+    return [images[0], images[0]];
+  }
+  return images;
+});
+
+// Computed для количества слайдов
+const totalSlides = computed(() => {
+  return displayImages.value.length;
+});
+
+// Computed для SEO - URL товара
+const productUrl = computed(() => {
+  const slug = props.product.name
+    .toLowerCase()
+    .replace(/[^a-zа-я0-9\s]/gi, "")
+    .replace(/\s+/g, "-");
+
+  // Проверяем доступность window объекта (для SSR)
+  const baseUrl =
+    typeof window !== "undefined"
+      ? window.location.origin
+      : "https://pink-rabbit.ru"; // Замените на ваш домен
+
+  return `${baseUrl}/product/${props.product.id}-${slug}`;
+});
+
+// Computed для SEO - срок действия цены (через 30 дней)
+const priceValidUntil = computed(() => {
+  const date = new Date();
+  date.setDate(date.getDate() + 30);
+  return date.toISOString().split("T")[0];
+});
+
+// JSON-LD структурированные данные для SEO
+const generateJsonLd = () => {
+  const jsonLd = {
+    "@context": "https://schema.org/",
+    "@type": "Product",
+    name: props.product.name,
+    description: `${props.product.brand} ${props.product.name} - ${props.product.material}, цвет: ${props.product.color}`,
+    image: displayImages.value,
+    brand: {
+      "@type": "Brand",
+      name: props.product.brand,
+    },
+    color: props.product.color,
+    material: props.product.material,
+    category: "Товары для взрослых",
+    sku: `SKU-${props.product.id}`,
+    mpn: `MPN-${props.product.id}`,
+    offers: {
+      "@type": "Offer",
+      url: productUrl.value,
+      priceCurrency: "RUB",
+      price: props.product.price,
+      priceValidUntil: priceValidUntil.value,
+      availability: props.product.inStock
+        ? "https://schema.org/InStock"
+        : "https://schema.org/OutOfStock",
+      itemCondition: "https://schema.org/NewCondition",
+      seller: {
+        "@type": "Organization",
+        name: "Pink Rabbit",
+        url:
+          typeof window !== "undefined"
+            ? window.location.origin
+            : "https://pink-rabbit.ru",
+      },
+    },
+    aggregateRating: {
+      "@type": "AggregateRating",
+      ratingValue: props.product.rating,
+      reviewCount: props.product.reviews,
+      bestRating: 5,
+      worstRating: 1,
+    },
+  };
+
+  // Добавляем старую цену если есть скидка
+  if (props.product.oldPrice && props.product.oldPrice > props.product.price) {
+    jsonLd.offers.priceSpecification = {
+      "@type": "UnitPriceSpecification",
+      price: props.product.price,
+      priceCurrency: "RUB",
+      validFrom: new Date().toISOString(),
+      validThrough: priceValidUntil.value,
+    };
+  }
+
+  // Добавляем дополнительные свойства если товар новый или хит
+  if (props.product.isNew) {
+    jsonLd.additionalProperty = jsonLd.additionalProperty || [];
+    jsonLd.additionalProperty.push({
+      "@type": "PropertyValue",
+      name: "Новинка",
+      value: "true",
+    });
+  }
+
+  if (props.product.isHit) {
+    jsonLd.additionalProperty = jsonLd.additionalProperty || [];
+    jsonLd.additionalProperty.push({
+      "@type": "PropertyValue",
+      name: "Хит продаж",
+      value: "true",
+    });
+  }
+
+  return jsonLd;
+};
 
 // Методы
 const formatPrice = (price) => {
   return new Intl.NumberFormat("ru-RU").format(price);
 };
 
+// Предварительная загрузка изображений для плавности
+const preloadImages = () => {
+  const images = props.product.images || [props.product.image];
+  console.log("📦 Предзагружаем изображения:", images.length);
+
+  images.forEach((imageSrc, index) => {
+    if (imageSrc) {
+      const img = new Image();
+      img.src = imageSrc;
+      console.log(`🖼️ Загружаем изображение ${index + 1}:`, imageSrc);
+    }
+  });
+};
+
 const startSlider = () => {
-  if (props.product.images && props.product.images.length > 1) {
+  // Защита от повторных вызовов
+  if (sliderInterval.value) {
+    console.log("🔄 Слайдер уже запущен, пропускаем повторный запуск");
+    return;
+  }
+
+  console.log("🎯 HOVER IN: Запускаем слайдер для товара:", props.product.name);
+  console.log(
+    "📸 Исходное количество изображений:",
+    props.product.images?.length || 1
+  );
+  console.log("🔢 Общее количество слайдов для показа:", totalSlides.value);
+  console.log("🖼️ Массив для отображения:", displayImages.value);
+
+  // Предварительно загружаем все изображения
+  preloadImages();
+
+  // Сбрасываем индекс в начало для новой сессии
+  currentImageIndex.value = 0;
+  console.log("🔄 Сброс индекса на:", currentImageIndex.value);
+
+  // Запускаем слайдер только если есть изображения для показа
+  if (totalSlides.value > 1) {
+    console.log("▶️ Создаем интервал слайдера с периодом 1200ms");
+
     sliderInterval.value = setInterval(() => {
-      currentImageIndex.value =
-        (currentImageIndex.value + 1) % props.product.images.length;
-    }, 1000);
+      const oldIndex = currentImageIndex.value;
+      const nextIndex = (currentImageIndex.value + 1) % totalSlides.value;
+
+      console.log(
+        `📱 TICK: переключаем слайд ${oldIndex} → ${nextIndex} (из ${totalSlides.value})`
+      );
+      console.log(`🕐 Время тика: ${new Date().toLocaleTimeString()}`);
+
+      currentImageIndex.value = nextIndex;
+
+      console.log(`✅ Индекс успешно обновлен на: ${currentImageIndex.value}`);
+    }, 1200); // Чуть быстрее для лучшего UX
+
+    console.log("✅ Интервал слайдера создан ID:", sliderInterval.value);
+  } else {
+    console.warn(
+      "⚠️ Слайдер не запускается - недостаточно слайдов:",
+      totalSlides.value
+    );
   }
 };
 
 const stopSlider = () => {
+  console.log(
+    "🛑 HOVER OUT: Останавливаем слайдер для товара:",
+    props.product.name
+  );
+
   if (sliderInterval.value) {
+    console.log("⏹️ Очищаем интервал с ID:", sliderInterval.value);
     clearInterval(sliderInterval.value);
     sliderInterval.value = null;
+    console.log("✅ Интервал успешно очищен");
+  } else {
+    console.log("⚠️ Интервал уже был null");
   }
+
+  // Возвращаем слайдер в начальное положение
+  console.log("🔄 Возвращаем индекс в начальное положение");
   currentImageIndex.value = 0;
+  console.log("✅ Индекс сброшен на:", currentImageIndex.value);
 };
 
 const handleImageLoad = () => {
@@ -253,21 +492,75 @@ const handleImageLoad = () => {
 
 const handleImageError = () => {
   imageLoading.value = false;
-  console.warn("Ошибка загрузки изображения:", currentImage.value);
+  console.warn("Ошибка загрузки изображения");
+};
+
+// Дополнительные методы для улучшения UX
+const pauseSlider = () => {
+  console.log("⏸️ ПАУЗА слайдера (hover на индикатор)");
+
+  if (sliderInterval.value) {
+    clearInterval(sliderInterval.value);
+    sliderInterval.value = null;
+    console.log("✅ Слайдер приостановлен для взаимодействия с индикатором");
+  }
+};
+
+const resumeSlider = () => {
+  console.log("▶️ ВОЗОБНОВЛЯЕМ слайдер после индикатора");
+
+  // Возобновляем слайдер только если мышь все еще над карточкой
+  if (!sliderInterval.value) {
+    console.log("🔄 Перезапускаем слайдер после паузы");
+
+    // Небольшая задержка для плавности UX
+    setTimeout(() => {
+      if (!sliderInterval.value && totalSlides.value > 1) {
+        sliderInterval.value = setInterval(() => {
+          const oldIndex = currentImageIndex.value;
+          const nextIndex = (currentImageIndex.value + 1) % totalSlides.value;
+
+          console.log(`📱 RESUMED TICK: ${oldIndex} → ${nextIndex}`);
+          currentImageIndex.value = nextIndex;
+        }, 1200);
+
+        console.log("✅ Слайдер возобновлен после паузы");
+      }
+    }, 200);
+  }
+};
+
+// Ручное переключение по клику на индикатор
+const goToSlide = (index) => {
+  console.log(`👆 КЛИК на индикатор ${index} для товара:`, props.product.name);
+
+  currentImageIndex.value = index;
+
+  // Перезапускаем слайдер с новой позиции
+  console.log("🔄 Перезапускаем слайдер с новой позиции");
+  pauseSlider();
+  setTimeout(() => {
+    resumeSlider();
+  }, 100);
 };
 
 const logHover = (buttonType) => {
   console.log(`Навели на кнопку: ${buttonType}`);
 };
 
+const handleButtonHover = (buttonType, isEntering) => {
+  console.log(`🎯 ${isEntering ? "HOVER IN" : "HOVER OUT"}: ${buttonType}`);
+};
+
 // Обработчики событий
 const addToCart = () => {
-  console.log("Добавляем в корзину:", props.product.name);
+  console.log("🛒 КЛИК: Добавляем в корзину:", props.product.name);
+  console.log("🛒 Товар в наличии:", props.product.inStock);
   emit("add-to-cart", props.product);
 };
 
 const openDetails = () => {
-  console.log("Открываем детали:", props.product.name);
+  console.log("ℹ️ КЛИК: Открываем детали:", props.product.name);
   emit("open-details", props.product);
 };
 
@@ -297,10 +590,56 @@ const shareProduct = () => {
   emit("share-product", props.product);
 };
 
-// Cleanup
+// Очистка при размонтировании компонента
 onUnmounted(() => {
-  stopSlider();
+  // Останавливаем слайдер
+  if (sliderInterval.value) {
+    console.log("🧹 Очистка: остановка слайдера при размонтировании");
+    clearInterval(sliderInterval.value);
+    sliderInterval.value = null;
+  }
+
+  // Удаляем JSON-LD скрипт
+  if (typeof window !== "undefined") {
+    const existingScript = document.querySelector(
+      `script[data-product-id="${props.product.id}"]`
+    );
+    if (existingScript) {
+      existingScript.remove();
+      console.log(
+        "🧹 Очистка: JSON-LD скрипт удален для товара:",
+        props.product.id
+      );
+    }
+  }
 });
+
+// Используем useHead для добавления JSON-LD в head (только на клиенте)
+if (typeof window !== "undefined") {
+  // Динамически добавляем JSON-LD через DOM API
+  watch(
+    () => props.product,
+    () => {
+      // Удаляем старый JSON-LD если есть
+      const existingScript = document.querySelector(
+        `script[data-product-id="${props.product.id}"]`
+      );
+      if (existingScript) {
+        existingScript.remove();
+      }
+
+      // Добавляем новый JSON-LD
+      const script = document.createElement("script");
+      script.type = "application/ld+json";
+      script.setAttribute("data-product-id", props.product.id);
+      script.textContent = JSON.stringify(generateJsonLd(), null, 2);
+      document.head.appendChild(script);
+
+      console.log("🔍 SEO: JSON-LD добавлен для товара:", props.product.name);
+    },
+    { immediate: true }
+  );
+}
 </script>
 
 <style scoped>
@@ -328,8 +667,131 @@ onUnmounted(() => {
   aspect-ratio: 1;
   background: linear-gradient(135deg, #f9fafb, #f3f4f6);
   overflow: hidden;
+  cursor: pointer;
 }
 
+.image-container:hover {
+  /* Дополнительные эффекты при hover */
+  box-shadow: inset 0 0 20px rgba(255, 107, 157, 0.1);
+}
+
+.image-container:hover .slider-indicators {
+  /* Индикаторы становятся более заметными при hover */
+  background: rgba(0, 0, 0, 0.2);
+  transform: translateX(-50%) translateY(-2px);
+}
+
+/* === СЛАЙДЕР ИЗОБРАЖЕНИЙ === */
+.image-slider {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+  background: #f8f8f8;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.image-slider img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.5s ease-in-out;
+  border-radius: 8px;
+}
+
+.image-slider img.active {
+  opacity: 1;
+}
+
+/* Индикаторы слайдера */
+.slider-indicators {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+  z-index: 10;
+  /* Стильный темный фон с размытием */
+  padding: 6px 10px;
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 16px;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  /* Плавная анимация появления */
+  opacity: 0.8;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Усиливаем эффект при ховере на карточку */
+.product-card:hover .slider-indicators {
+  background: rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(12px);
+  opacity: 1;
+  transform: translateX(-50%) translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.indicator.active {
+  background: linear-gradient(135deg, #ff6b9d, #ff8fb3);
+  transform: scale(1.2);
+  box-shadow: 0 2px 8px rgba(255, 107, 157, 0.4);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.indicator:hover {
+  background: rgba(255, 107, 157, 0.8);
+  transform: scale(1.1);
+  box-shadow: 0 2px 6px rgba(255, 107, 157, 0.3);
+}
+
+/* Анимация пульсации для активного индикатора */
+.indicator.active::before {
+  content: "";
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ff6b9d, #ff8fb3);
+  opacity: 0.3;
+  animation: indicatorPulse 2s infinite;
+  z-index: -1;
+}
+
+@keyframes indicatorPulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.3;
+  }
+  50% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+/* Удаляем старые стили product-image */
 .product-image {
   width: 100%;
   height: 100%;
@@ -364,30 +826,6 @@ onUnmounted(() => {
   to {
     transform: rotate(360deg);
   }
-}
-
-/* === ИНДИКАТОРЫ СЛАЙДЕРА === */
-.slider-indicators {
-  position: absolute;
-  bottom: 12px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 4px;
-  z-index: 10;
-}
-
-.indicator {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.5);
-  transition: all 0.3s ease;
-}
-
-.indicator.active {
-  background: white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 /* === БЕЙДЖИ === */
@@ -558,6 +996,25 @@ onUnmounted(() => {
   text-decoration: line-through;
 }
 
+/* === OVERLAY ДЛЯ ТОВАРОВ НЕ В НАЛИЧИИ === */
+.out-of-stock-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  color: #6b7280;
+  z-index: 5;
+  /* НЕ перекрываем нижние кнопки */
+  pointer-events: none;
+}
+
 /* === НИЖНИЕ КНОПКИ ДЕЙСТВИЙ === */
 .bottom-actions {
   display: flex;
@@ -567,6 +1024,9 @@ onUnmounted(() => {
   margin-top: auto;
   /* Фиксированная высота для одинакового расположения на всех карточках */
   min-height: 42px;
+  /* ВЫСОКИЙ Z-INDEX для кликабельности */
+  position: relative;
+  z-index: 25;
 }
 
 /* Базовые стили для всех нижних кнопок */
@@ -586,6 +1046,9 @@ onUnmounted(() => {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
   position: relative;
   overflow: hidden;
+  /* УБЕЖДАЕМСЯ что кнопки кликабельны */
+  pointer-events: auto;
+  z-index: 30;
 }
 
 /* Анимация при hover для всех кнопок - с повышенной специфичностью */
