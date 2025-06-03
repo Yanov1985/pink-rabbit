@@ -385,154 +385,20 @@
             :class="viewMode === 4 ? 'product-grid-4' : 'product-grid-3'"
             ref="productsGridRef"
           >
-            <div
+            <ProductCard
               v-for="(product, index) in paginatedProducts"
               :key="product.id"
-              :data-product-id="product.id"
-              class="product-card bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden relative group hover:shadow-xl transition-all duration-300"
+              :product="product"
               :ref="(el) => setProductCardRef(el, index)"
-              @mouseenter="onProductHover"
-              @mouseleave="onProductLeave"
-            >
-              <!-- Изображение товара -->
-              <div
-                class="relative aspect-square bg-gradient-to-br from-gray-50 to-gray-100 product-image-container"
-              >
-                <!-- Улучшенный прелоадер -->
-                <div
-                  v-show="imageLoadingStates[product.id]"
-                  class="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-pink-50 to-purple-50 image-loader"
-                >
-                  <div class="relative">
-                    <div
-                      class="w-10 h-10 border-3 border-pink-200 border-t-pink-500 rounded-full animate-spin loading-spinner"
-                    ></div>
-                    <div
-                      class="absolute inset-0 w-10 h-10 border-3 border-transparent border-r-purple-300 rounded-full animate-ping"
-                    ></div>
-                  </div>
-                </div>
-
-                <!-- Изображение -->
-                <img
-                  :src="product.image"
-                  :alt="product.name"
-                  class="w-full h-full object-cover product-image"
-                  :class="{
-                    'opacity-0': imageLoadingStates[product.id],
-                    'opacity-100': !imageLoadingStates[product.id],
-                  }"
-                  @load="handleImageLoad(product.id)"
-                  @error="handleImageError(product.id)"
-                  loading="lazy"
-                />
-
-                <!-- Бейджи -->
-                <div
-                  class="absolute top-3 left-3 flex flex-col gap-2 product-badges"
-                >
-                  <span v-if="product.isNew" class="badge badge-new">NEW</span>
-                  <span v-if="product.discount > 0" class="badge badge-discount"
-                    >-{{ product.discount }}%</span
-                  >
-                  <span v-if="product.isHit" class="badge badge-hit">ХИТ</span>
-                </div>
-
-                <!-- Кнопки действий -->
-                <div class="product-actions">
-                  <button
-                    @click="toggleWishlist(product)"
-                    class="action-button"
-                    :class="{ 'text-pink-500 bg-pink-50': product.inWishlist }"
-                  >
-                    <HeartIcon class="w-4 h-4" />
-                  </button>
-                  <button class="action-button">
-                    <EyeIcon class="w-4 h-4" />
-                  </button>
-                  <button
-                    @click="toggleCompare(product)"
-                    class="action-button"
-                    :class="{ 'text-pink-500 bg-pink-50': product.inCompare }"
-                  >
-                    <ArrowsRightLeftIcon class="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-
-              <!-- Информация о товаре -->
-              <div class="p-4">
-                <!-- Рейтинг -->
-                <div class="flex items-center gap-1 mb-2">
-                  <div class="flex rating-stars">
-                    <StarIcon
-                      v-for="i in 5"
-                      :key="i"
-                      class="w-3 h-3 star"
-                      :class="
-                        i <= product.rating
-                          ? 'text-yellow-400 fill-current'
-                          : 'text-gray-200'
-                      "
-                    />
-                  </div>
-                  <span class="text-xs text-gray-500"
-                    >({{ product.reviews }})</span
-                  >
-                </div>
-
-                <!-- Название товара -->
-                <h3 class="font-medium text-sm text-gray-900 mb-2 line-clamp-2">
-                  {{ product.name }}
-                </h3>
-
-                <!-- Характеристики -->
-                <div class="text-xs text-gray-600 mb-3 space-y-1">
-                  <div>Бренд: {{ product.brand }}</div>
-                  <div>Материал: {{ product.material }}</div>
-                  <div>Цвет: {{ product.color }}</div>
-                </div>
-
-                <!-- Цена -->
-                <div class="flex items-center gap-2 mb-3">
-                  <span class="text-lg font-bold text-gray-900"
-                    >{{ formatPrice(product.price) }} ₽</span
-                  >
-                  <span
-                    v-if="product.oldPrice"
-                    class="text-sm text-gray-500 line-through"
-                  >
-                    {{ formatPrice(product.oldPrice) }} ₽
-                  </span>
-                </div>
-
-                <!-- Кнопка добавления в корзину -->
-                <button
-                  v-if="product.inStock"
-                  @click="addToCart(product)"
-                  class="w-full cart-button py-2 px-4 rounded-lg text-sm font-medium transition-all duration-300"
-                >
-                  В корзину
-                </button>
-                <button
-                  v-else
-                  disabled
-                  class="w-full bg-gray-300 text-gray-500 py-2 px-4 rounded-lg text-sm font-medium cursor-not-allowed"
-                >
-                  Нет в наличии
-                </button>
-              </div>
-
-              <!-- Overlay для товаров не в наличии -->
-              <div
-                v-if="!product.inStock"
-                class="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center backdrop-blur-sm"
-              >
-                <span class="text-white font-medium text-lg"
-                  >Нет в наличии</span
-                >
-              </div>
-            </div>
+              @add-to-cart="addToCart"
+              @add-to-favorites="toggleWishlist"
+              @remove-from-favorites="toggleWishlist"
+              @add-to-compare="toggleCompare"
+              @remove-from-compare="toggleCompare"
+              @quick-view="openQuickView"
+              @open-details="openProductDetails"
+              @share-product="shareProduct"
+            />
           </div>
 
           <!-- Пустое состояние -->
@@ -713,6 +579,12 @@ const products = ref([
     brand: "Lelo",
     price: 12000,
     oldPrice: 15000,
+    images: [
+      placeholderImages[0],
+      placeholderImages[1],
+      placeholderImages[2],
+      placeholderImages[3],
+    ],
     image: placeholderImages[0],
     rating: 5,
     reviews: 127,
@@ -732,6 +604,12 @@ const products = ref([
     brand: "Fleshlight",
     price: 8500,
     oldPrice: null,
+    images: [
+      placeholderImages[1],
+      placeholderImages[5],
+      placeholderImages[8],
+      placeholderImages[11],
+    ],
     image: placeholderImages[1],
     rating: 4,
     reviews: 89,
@@ -751,6 +629,12 @@ const products = ref([
     brand: "We-Vibe",
     price: 18000,
     oldPrice: 22000,
+    images: [
+      placeholderImages[2],
+      placeholderImages[6],
+      placeholderImages[9],
+      placeholderImages[12],
+    ],
     image: placeholderImages[2],
     rating: 5,
     reviews: 203,
@@ -770,6 +654,12 @@ const products = ref([
     brand: "NJOY",
     price: 6500,
     oldPrice: null,
+    images: [
+      placeholderImages[3],
+      placeholderImages[7],
+      placeholderImages[10],
+      placeholderImages[13],
+    ],
     image: placeholderImages[3],
     rating: 4,
     reviews: 56,
@@ -789,6 +679,12 @@ const products = ref([
     brand: "Satisfyer",
     price: 3500,
     oldPrice: 4200,
+    images: [
+      placeholderImages[4],
+      placeholderImages[8],
+      placeholderImages[11],
+      placeholderImages[14],
+    ],
     image: placeholderImages[4],
     rating: 4,
     reviews: 34,
@@ -808,6 +704,12 @@ const products = ref([
     brand: "Magic Motion",
     price: 2800,
     oldPrice: null,
+    images: [
+      placeholderImages[5],
+      placeholderImages[9],
+      placeholderImages[12],
+      placeholderImages[15],
+    ],
     image: placeholderImages[5],
     rating: 3,
     reviews: 67,
@@ -827,6 +729,12 @@ const products = ref([
     brand: "Doc Johnson",
     price: 4200,
     oldPrice: 5000,
+    images: [
+      placeholderImages[6],
+      placeholderImages[10],
+      placeholderImages[13],
+      placeholderImages[16],
+    ],
     image: placeholderImages[6],
     rating: 4,
     reviews: 45,
@@ -846,6 +754,12 @@ const products = ref([
     brand: "Aneros",
     price: 9500,
     oldPrice: null,
+    images: [
+      placeholderImages[7],
+      placeholderImages[11],
+      placeholderImages[14],
+      placeholderImages[17],
+    ],
     image: placeholderImages[7],
     rating: 5,
     reviews: 78,
@@ -865,6 +779,12 @@ const products = ref([
     brand: "Lovense",
     price: 11000,
     oldPrice: 13500,
+    images: [
+      placeholderImages[8],
+      placeholderImages[12],
+      placeholderImages[15],
+      placeholderImages[18],
+    ],
     image: placeholderImages[8],
     rating: 5,
     reviews: 156,
@@ -884,6 +804,12 @@ const products = ref([
     brand: "Tantus",
     price: 14000,
     oldPrice: null,
+    images: [
+      placeholderImages[9],
+      placeholderImages[13],
+      placeholderImages[16],
+      placeholderImages[19],
+    ],
     image: placeholderImages[9],
     rating: 4,
     reviews: 92,
@@ -903,6 +829,12 @@ const products = ref([
     brand: "Womanizer",
     price: 16500,
     oldPrice: 19000,
+    images: [
+      placeholderImages[10],
+      placeholderImages[14],
+      placeholderImages[17],
+      placeholderImages[0],
+    ],
     image: placeholderImages[10],
     rating: 5,
     reviews: 234,
@@ -922,6 +854,12 @@ const products = ref([
     brand: "Tenga",
     price: 7200,
     oldPrice: null,
+    images: [
+      placeholderImages[11],
+      placeholderImages[15],
+      placeholderImages[18],
+      placeholderImages[1],
+    ],
     image: placeholderImages[11],
     rating: 4,
     reviews: 67,
@@ -934,6 +872,332 @@ const products = ref([
     inWishlist: false,
     inCompare: false,
     category: "men",
+  },
+  // Добавляем недостающие 13 товаров для достижения 25
+  {
+    id: 13,
+    name: "Вибратор точки G PinkCherry",
+    brand: "PinkCherry",
+    price: 5500,
+    oldPrice: 7000,
+    images: [
+      placeholderImages[12],
+      placeholderImages[16],
+      placeholderImages[19],
+      placeholderImages[2],
+    ],
+    image: placeholderImages[12],
+    rating: 4,
+    reviews: 89,
+    material: "Силикон",
+    color: "Розовый",
+    isNew: true,
+    isHit: false,
+    discount: 21,
+    inStock: true,
+    inWishlist: false,
+    inCompare: false,
+    category: "women",
+  },
+  {
+    id: 14,
+    name: "Анальные шарики Luxe",
+    brand: "Luxe",
+    price: 3200,
+    oldPrice: null,
+    images: [
+      placeholderImages[13],
+      placeholderImages[17],
+      placeholderImages[0],
+      placeholderImages[3],
+    ],
+    image: placeholderImages[13],
+    rating: 3,
+    reviews: 45,
+    material: "Силикон",
+    color: "Черный",
+    isNew: false,
+    isHit: false,
+    discount: 0,
+    inStock: true,
+    inWishlist: false,
+    inCompare: false,
+    category: "couples",
+  },
+  {
+    id: 15,
+    name: "Мастурбатор Premium Touch",
+    brand: "Premium Touch",
+    price: 9800,
+    oldPrice: 12000,
+    images: [
+      placeholderImages[14],
+      placeholderImages[18],
+      placeholderImages[1],
+      placeholderImages[4],
+    ],
+    image: placeholderImages[14],
+    rating: 5,
+    reviews: 156,
+    material: "TPE",
+    color: "Телесный",
+    isNew: false,
+    isHit: true,
+    discount: 18,
+    inStock: true,
+    inWishlist: false,
+    inCompare: false,
+    category: "men",
+  },
+  {
+    id: 16,
+    name: "Вибропуля BeautyBliss",
+    brand: "BeautyBliss",
+    price: 1800,
+    oldPrice: null,
+    images: [
+      placeholderImages[15],
+      placeholderImages[19],
+      placeholderImages[2],
+      placeholderImages[5],
+    ],
+    image: placeholderImages[15],
+    rating: 3,
+    reviews: 32,
+    material: "Пластик",
+    color: "Золотой",
+    isNew: true,
+    isHit: false,
+    discount: 0,
+    inStock: true,
+    inWishlist: false,
+    inCompare: false,
+    category: "women",
+  },
+  {
+    id: 17,
+    name: "Кольцо с вибрацией PowerRing",
+    brand: "PowerRing",
+    price: 4500,
+    oldPrice: 5500,
+    images: [
+      placeholderImages[16],
+      placeholderImages[0],
+      placeholderImages[3],
+      placeholderImages[6],
+    ],
+    image: placeholderImages[16],
+    rating: 4,
+    reviews: 78,
+    material: "Силикон",
+    color: "Синий",
+    isNew: false,
+    isHit: false,
+    discount: 18,
+    inStock: true,
+    inWishlist: false,
+    inCompare: false,
+    category: "couples",
+  },
+  {
+    id: 18,
+    name: "Стимулятор простаты ProTouch",
+    brand: "ProTouch",
+    price: 8200,
+    oldPrice: null,
+    images: [
+      placeholderImages[17],
+      placeholderImages[1],
+      placeholderImages[4],
+      placeholderImages[7],
+    ],
+    image: placeholderImages[17],
+    rating: 4,
+    reviews: 95,
+    material: "Силикон",
+    color: "Черный",
+    isNew: true,
+    isHit: true,
+    discount: 0,
+    inStock: true,
+    inWishlist: false,
+    inCompare: false,
+    category: "men",
+  },
+  {
+    id: 19,
+    name: "Вибратор-кролик DualPleasure",
+    brand: "DualPleasure",
+    price: 13500,
+    oldPrice: 16000,
+    images: [
+      placeholderImages[18],
+      placeholderImages[2],
+      placeholderImages[5],
+      placeholderImages[8],
+    ],
+    image: placeholderImages[18],
+    rating: 5,
+    reviews: 203,
+    material: "Силикон",
+    color: "Фиолетовый",
+    isNew: false,
+    isHit: true,
+    discount: 16,
+    inStock: true,
+    inWishlist: true,
+    inCompare: false,
+    category: "women",
+  },
+  {
+    id: 20,
+    name: "Анальная пробка с хвостом TailPlay",
+    brand: "TailPlay",
+    price: 7800,
+    oldPrice: null,
+    images: [
+      placeholderImages[19],
+      placeholderImages[3],
+      placeholderImages[6],
+      placeholderImages[9],
+    ],
+    image: placeholderImages[19],
+    rating: 4,
+    reviews: 67,
+    material: "Металл",
+    color: "Серебристый",
+    isNew: false,
+    isHit: false,
+    discount: 0,
+    inStock: true,
+    inWishlist: false,
+    inCompare: false,
+    category: "couples",
+  },
+  {
+    id: 21,
+    name: "Мастурбатор реалистичный RealFeel",
+    brand: "RealFeel",
+    price: 6700,
+    oldPrice: 8200,
+    images: [
+      placeholderImages[0],
+      placeholderImages[4],
+      placeholderImages[7],
+      placeholderImages[10],
+    ],
+    image: placeholderImages[0],
+    rating: 4,
+    reviews: 112,
+    material: "TPE",
+    color: "Телесный",
+    isNew: false,
+    isHit: false,
+    discount: 18,
+    inStock: true,
+    inWishlist: false,
+    inCompare: false,
+    category: "men",
+  },
+  {
+    id: 22,
+    name: "Вибратор на палец FingerVibe",
+    brand: "FingerVibe",
+    price: 2200,
+    oldPrice: null,
+    images: [
+      placeholderImages[1],
+      placeholderImages[5],
+      placeholderImages[8],
+      placeholderImages[11],
+    ],
+    image: placeholderImages[1],
+    rating: 3,
+    reviews: 28,
+    material: "Силикон",
+    color: "Розовый",
+    isNew: true,
+    isHit: false,
+    discount: 0,
+    inStock: true,
+    inWishlist: false,
+    inCompare: false,
+    category: "women",
+  },
+  {
+    id: 23,
+    name: "Лубрикант премиум класса SilkySmooth",
+    brand: "SilkySmooth",
+    price: 890,
+    oldPrice: 1200,
+    images: [
+      placeholderImages[2],
+      placeholderImages[6],
+      placeholderImages[9],
+      placeholderImages[12],
+    ],
+    image: placeholderImages[2],
+    rating: 5,
+    reviews: 345,
+    material: "Гель на водной основе",
+    color: "Прозрачный",
+    isNew: false,
+    isHit: true,
+    discount: 26,
+    inStock: true,
+    inWishlist: false,
+    inCompare: false,
+    category: "couples",
+  },
+  {
+    id: 24,
+    name: "Стимулятор соска NippleJoy",
+    brand: "NippleJoy",
+    price: 3400,
+    oldPrice: null,
+    images: [
+      placeholderImages[3],
+      placeholderImages[7],
+      placeholderImages[10],
+      placeholderImages[13],
+    ],
+    image: placeholderImages[3],
+    rating: 4,
+    reviews: 89,
+    material: "Силикон",
+    color: "Красный",
+    isNew: true,
+    isHit: false,
+    discount: 0,
+    inStock: true,
+    inWishlist: false,
+    inCompare: false,
+    category: "couples",
+  },
+  {
+    id: 25,
+    name: "Вибратор беспроводной SmartVibe",
+    brand: "SmartVibe",
+    price: 15800,
+    oldPrice: 18500,
+    images: [
+      placeholderImages[4],
+      placeholderImages[8],
+      placeholderImages[11],
+      placeholderImages[14],
+    ],
+    image: placeholderImages[4],
+    rating: 5,
+    reviews: 278,
+    material: "Медицинский силикон",
+    color: "Белый",
+    isNew: false,
+    isHit: true,
+    discount: 15,
+    inStock: true,
+    inWishlist: false,
+    inCompare: false,
+    category: "women",
   },
 ]);
 
@@ -1444,6 +1708,93 @@ onMounted(async () => {
     });
   }, 1500);
 });
+
+// Обработчики событий компонента ProductCard
+const shareProduct = (product) => {
+  console.log("Поделиться товаром:", product.name);
+
+  // Создаем URL для шаринга товара
+  const shareUrl = `${window.location.origin}/product/${product.id}`;
+  const shareText = `Посмотрите на этот товар: ${
+    product.name
+  } - всего ${formatPrice(product.price)} ₽!`;
+
+  // Проверяем поддержку Web Share API
+  if (navigator.share) {
+    navigator
+      .share({
+        title: product.name,
+        text: shareText,
+        url: shareUrl,
+      })
+      .then(() => console.log("Товар успешно поделен"))
+      .catch((error) => {
+        console.error("Ошибка при шаринге:", error);
+        // Fallback к копированию в буфер обмена
+        copyToClipboard(shareUrl);
+      });
+  } else {
+    // Fallback для браузеров без поддержки Web Share API
+    copyToClipboard(shareUrl);
+  }
+};
+
+const copyToClipboard = (text) => {
+  if (navigator.clipboard) {
+    navigator.clipboard
+      .writeText(text)
+      .then(() => {
+        showShareNotification("Ссылка скопирована в буфер обмена!");
+      })
+      .catch(() => {
+        showShareModal(text);
+      });
+  } else {
+    // Fallback для старых браузеров
+    showShareModal(text);
+  }
+};
+
+const showShareNotification = (message) => {
+  // Создаем временное уведомление
+  const notification = document.createElement("div");
+  notification.textContent = message;
+  notification.className =
+    "fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50";
+  document.body.appendChild(notification);
+
+  // Убираем уведомление через 3 секунды
+  setTimeout(() => {
+    document.body.removeChild(notification);
+  }, 3000);
+};
+
+const showShareModal = (url) => {
+  // Простой alert как fallback
+  const userConfirmed = confirm(
+    `Скопируйте ссылку для шаринга:\n${url}\n\nНажмите OK чтобы закрыть`
+  );
+  if (userConfirmed) {
+    console.log("Модальное окно закрыто пользователем");
+  }
+};
+
+const openQuickView = (product) => {
+  console.log("Быстрый просмотр товара:", product.name);
+  // Здесь будет логика открытия модального окна быстрого просмотра
+  alert(
+    `Быстрый просмотр: ${product.name}\nЦена: ${formatPrice(
+      product.price
+    )} ₽\nРейтинг: ${product.rating}/5`
+  );
+};
+
+const openProductDetails = (product) => {
+  console.log("Переход к странице товара:", product.name);
+  // В реальном приложении здесь будет роутинг к странице товара
+  // this.$router.push(`/product/${product.id}`);
+  alert(`Переход к товару: ${product.name}\nID: ${product.id}`);
+};
 </script>
 
 <style scoped>
