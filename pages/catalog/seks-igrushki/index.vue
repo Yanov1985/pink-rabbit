@@ -29,134 +29,28 @@
 
     <div class="container mx-auto px-4 py-6">
       <div class="flex flex-col lg:flex-row gap-6">
-        <!-- Sidebar с фильтрами и каталогом -->
-        <aside class="lg:w-1/4 space-y-6" ref="filtersRef">
-          <!-- Каталог -->
-          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-            <h2 class="text-lg font-semibold text-gray-900 mb-4">Каталог</h2>
-            <div class="space-y-3">
-              <!-- Для женщин -->
-              <div data-category="women">
-                <div
-                  class="flex items-center justify-between cursor-pointer p-2 rounded hover:bg-gray-50 category-header"
-                  @click="toggleCategory('women')"
-                >
-                  <h3 class="font-medium text-gray-900">Для женщин</h3>
-                  <ChevronDownIcon
-                    class="w-4 h-4 transition-transform duration-200"
-                    :class="{ 'rotate-180': expandedCategories.women }"
-                  />
-                </div>
-                <div
-                  v-show="expandedCategories.women"
-                  class="ml-4 mt-2 space-y-2 category-list"
-                >
-                  <NuxtLink
-                    to="#"
-                    class="block text-sm text-gray-600 hover:text-pink-500 py-1"
-                    >Вибраторы</NuxtLink
-                  >
-                  <NuxtLink
-                    to="#"
-                    class="block text-sm text-gray-600 hover:text-pink-500 py-1"
-                    >Фаллоимитаторы</NuxtLink
-                  >
-                  <NuxtLink
-                    to="#"
-                    class="block text-sm text-gray-600 hover:text-pink-500 py-1"
-                    >Стимуляторы клитора</NuxtLink
-                  >
-                </div>
-              </div>
-
-              <!-- Для мужчин -->
-              <div data-category="men">
-                <div
-                  class="flex items-center justify-between cursor-pointer p-2 rounded hover:bg-gray-50 category-header"
-                  @click="toggleCategory('men')"
-                >
-                  <h3 class="font-medium text-gray-900">Для мужчин</h3>
-                  <ChevronDownIcon
-                    class="w-4 h-4 transition-transform duration-200"
-                    :class="{ 'rotate-180': expandedCategories.men }"
-                  />
-                </div>
-                <div
-                  v-show="expandedCategories.men"
-                  class="ml-4 mt-2 space-y-2 category-list"
-                >
-                  <NuxtLink
-                    to="#"
-                    class="block text-sm text-gray-600 hover:text-pink-500 py-1"
-                    >Мастурбаторы</NuxtLink
-                  >
-                  <NuxtLink
-                    to="#"
-                    class="block text-sm text-gray-600 hover:text-pink-500 py-1"
-                    >Стимуляторы простаты</NuxtLink
-                  >
-                  <NuxtLink
-                    to="#"
-                    class="block text-sm text-gray-600 hover:text-pink-500 py-1"
-                    >Кольца</NuxtLink
-                  >
-                </div>
-              </div>
-
-              <!-- Для двоих -->
-              <div data-category="couples">
-                <div
-                  class="flex items-center justify-between cursor-pointer p-2 rounded hover:bg-gray-50 category-header"
-                  @click="toggleCategory('couples')"
-                >
-                  <h3 class="font-medium text-gray-900">Для двоих</h3>
-                  <ChevronDownIcon
-                    class="w-4 h-4 transition-transform duration-200"
-                    :class="{ 'rotate-180': expandedCategories.couples }"
-                  />
-                </div>
-                <div
-                  v-show="expandedCategories.couples"
-                  class="ml-4 mt-2 space-y-2 category-list"
-                >
-                  <NuxtLink
-                    to="#"
-                    class="block text-sm text-gray-600 hover:text-pink-500 py-1"
-                    >Парные вибраторы</NuxtLink
-                  >
-                  <NuxtLink
-                    to="#"
-                    class="block text-sm text-gray-600 hover:text-pink-500 py-1"
-                    >Презервативы</NuxtLink
-                  >
-                  <NuxtLink
-                    to="#"
-                    class="block text-sm text-gray-600 hover:text-pink-500 py-1"
-                    >Лубриканты</NuxtLink
-                  >
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Фильтры для товаров для взрослых -->
-          <AdultToysFilters
-            :is-loading="isInitialLoading"
-            :initial-filters="{
-              priceMin: priceMin,
-              priceMax: priceMax,
-              selectedBrands: selectedBrands,
-              selectedMaterials: selectedMaterials,
-              selectedColors: selectedColors.map((c) => c.toLowerCase()),
-              onlyInStock: onlyInStock,
-              onlyWithDiscount: onlyWithDiscount,
-              onlyNew: onlyNew,
-            }"
-            @update-filters="updateFilters"
-            @apply-filters="applyFilters"
-            @reset-filters="resetFilters"
-          />
-        </aside>
+        <!-- Липкий sidebar только с фильтрами -->
+        <div class="sticky-sidebar">
+          <aside class="lg:w-1/4 space-y-6" ref="filtersRef">
+            <!-- Фильтры для товаров для взрослых -->
+            <AdultToysFilters
+              :is-loading="isInitialLoading"
+              :initial-filters="{
+                priceMin,
+                priceMax,
+                selectedBrands,
+                selectedMaterials,
+                selectedColors,
+                onlyInStock,
+                onlyWithDiscount,
+                onlyNew,
+              }"
+              @update-filters="updateFilters"
+              @apply-filters="applyFilters"
+              @reset-filters="resetFilters"
+            />
+          </aside>
+        </div>
 
         <!-- Основной контент -->
         <main class="lg:w-3/4 catalog-main">
@@ -2553,5 +2447,89 @@ input[type="range"]::-webkit-slider-thumb:hover {
 .catalog-main {
   flex: 1;
   min-width: 0; /* Предотвращает переполнение */
+  width: calc(100% - 324px); /* 300px + 24px gap */
+}
+
+/* Липкие фильтры - как на pinkrabbit.ru */
+.sticky-sidebar {
+  position: sticky;
+  top: 20px;
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  z-index: 10;
+  /* Фиксированная ширина для правильного отображения */
+  width: 300px;
+  min-width: 300px;
+  flex-shrink: 0;
+  /* Стилизация скроллбара */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 107, 157, 0.3) transparent;
+}
+
+/* Aside внутри sticky-sidebar должен занимать всю ширину */
+.sticky-sidebar aside {
+  width: 100% !important;
+  min-width: 100%;
+}
+
+/* Скрытие скроллбара для webkit браузеров */
+.sticky-sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sticky-sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sticky-sidebar::-webkit-scrollbar-thumb {
+  background: rgba(255, 107, 157, 0.3);
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+
+.sticky-sidebar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 107, 157, 0.5);
+}
+
+/* Основной контент занимает оставшееся место */
+.catalog-main {
+  flex: 1;
+  min-width: 0; /* Предотвращает переполнение */
+  width: calc(100% - 324px); /* 300px + 24px gap */
+}
+
+/* Адаптивное поведение для планшетов */
+@media (max-width: 1280px) {
+  .sticky-sidebar {
+    width: 280px;
+    min-width: 280px;
+  }
+
+  .catalog-main {
+    width: calc(100% - 304px); /* 280px + 24px gap */
+  }
+}
+
+/* Адаптивное поведение для мобильных устройств */
+@media (max-width: 1024px) {
+  .sticky-sidebar {
+    position: static;
+    max-height: none;
+    overflow-y: visible;
+    width: 100%;
+    min-width: 100%;
+    flex-shrink: 1;
+  }
+
+  .catalog-main {
+    width: 100%;
+  }
+}
+
+/* Дополнительные стили для корректного отображения на мобильных */
+@media (max-width: 768px) {
+  .sticky-sidebar aside {
+    width: 100% !important;
+  }
 }
 </style>
