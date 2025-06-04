@@ -279,97 +279,17 @@
 
         <!-- Основной контент -->
         <main class="lg:w-3/4">
-          <!-- Заголовок и управление -->
-          <div
-            class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6"
-            ref="headerRef"
-          >
-            <div
-              class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
-            >
-              <div>
-                <h1 class="text-2xl font-bold text-gray-900">
-                  Товары для взрослых
-                </h1>
-                <p class="text-gray-600 mt-1">
-                  Найдено {{ filteredProducts.length }}
-                  {{ getProductsWord(filteredProducts.length) }}
-                </p>
-              </div>
-
-              <!-- Переключатель видов и сортировка -->
-              <div class="flex items-center gap-4">
-                <!-- Переключатель видов -->
-                <div
-                  class="flex bg-gray-100 rounded-lg p-1"
-                  ref="viewToggleRef"
-                >
-                  <button
-                    @click="changeViewMode(4)"
-                    :class="[
-                      'px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 view-toggle-button',
-                      viewMode === 4
-                        ? 'bg-pink-500 text-white shadow-sm active'
-                        : 'text-gray-600 hover:text-gray-900',
-                    ]"
-                    title="4 колонки"
-                  >
-                    <svg
-                      class="w-5 h-5"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <rect x="1" y="2" width="3" height="3"></rect>
-                      <rect x="5" y="2" width="3" height="3"></rect>
-                      <rect x="9" y="2" width="3" height="3"></rect>
-                      <rect x="13" y="2" width="3" height="3"></rect>
-                      <rect x="1" y="6" width="3" height="3"></rect>
-                      <rect x="5" y="6" width="3" height="3"></rect>
-                      <rect x="9" y="6" width="3" height="3"></rect>
-                      <rect x="13" y="6" width="3" height="3"></rect>
-                    </svg>
-                  </button>
-                  <button
-                    @click="changeViewMode(3)"
-                    :class="[
-                      'px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 view-toggle-button',
-                      viewMode === 3
-                        ? 'bg-pink-500 text-white shadow-sm active'
-                        : 'text-gray-600 hover:text-gray-900',
-                    ]"
-                    title="3 колонки"
-                  >
-                    <svg
-                      class="w-5 h-5"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <rect x="2" y="2" width="4" height="4"></rect>
-                      <rect x="8" y="2" width="4" height="4"></rect>
-                      <rect x="14" y="2" width="4" height="4"></rect>
-                      <rect x="2" y="8" width="4" height="4"></rect>
-                      <rect x="8" y="8" width="4" height="4"></rect>
-                      <rect x="14" y="8" width="4" height="4"></rect>
-                    </svg>
-                  </button>
-                </div>
-
-                <!-- Сортировка -->
-                <select
-                  v-model="sortBy"
-                  @change="applySorting"
-                  class="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-pink-500 focus:border-pink-500 sort-select"
-                  ref="sortRef"
-                >
-                  <option value="popularity">По популярности</option>
-                  <option value="price-asc">Цена: по возрастанию</option>
-                  <option value="price-desc">Цена: по убыванию</option>
-                  <option value="rating">По рейтингу</option>
-                  <option value="newest">Сначала новые</option>
-                </select>
-              </div>
-            </div>
-          </div>
+          <!-- Заголовок каталога с компонентом -->
+          <CatalogHeader
+            category-title="Товары для взрослых"
+            :total-count="filteredProducts.length"
+            :view-mode="viewMode"
+            :sort-by="sortBy"
+            :is-loading="isInitialLoading"
+            @change-view-mode="changeViewMode"
+            @change-sorting="handleSortingChange"
+            ref="catalogHeaderRef"
+          />
 
           <!-- Skeleton загрузка -->
           <div
@@ -415,7 +335,7 @@
             </p>
             <button
               @click="resetFilters"
-              class="bg-pink-500 text-white px-6 py-2 rounded-lg hover:bg-pink-600 transition-colors"
+              class="reset-filters-btn text-white px-6 py-2 rounded-lg transition-colors"
             >
               Сбросить фильтры
             </button>
@@ -493,6 +413,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 // Импорт компонентов
 import ProductSkeleton from "~/components/ProductSkeleton.vue";
 import FilterSkeleton from "~/components/FilterSkeleton.vue";
+import CatalogHeader from "~/components/CatalogHeader.vue";
 
 // Импорт иконок
 import {
@@ -540,12 +461,10 @@ const imageErrorStates = ref({});
 
 // Ссылки на DOM элементы
 const filtersRef = ref(null);
-const headerRef = ref(null);
 const productsGridRef = ref(null);
-const viewToggleRef = ref(null);
-const sortRef = ref(null);
 const paginationRef = ref(null);
 const productCardRefs = ref([]);
+const catalogHeaderRef = ref(null);
 
 // Заглушки изображений Unsplash
 const placeholderImages = [
@@ -1795,6 +1714,11 @@ const openProductDetails = (product) => {
   // this.$router.push(`/product/${product.id}`);
   alert(`Переход к товару: ${product.name}\nID: ${product.id}`);
 };
+
+const handleSortingChange = (newSortBy) => {
+  sortBy.value = newSortBy;
+  applySorting();
+};
 </script>
 
 <style scoped>
@@ -2141,6 +2065,19 @@ const openProductDetails = (product) => {
   transform: scale(1.05);
 }
 
+.view-active {
+  background: linear-gradient(135deg, #ff6b9d, #ff8fb3) !important;
+}
+
+/* Кастомные цвета для фокуса */
+.focus\:ring-custom-pink:focus {
+  --tw-ring-color: rgba(255, 107, 157, 0.5);
+}
+
+.focus\:border-custom-pink:focus {
+  border-color: #ff6b9d;
+}
+
 /* Сортировка */
 .sort-select {
   background: rgba(255, 255, 255, 0.95);
@@ -2150,7 +2087,7 @@ const openProductDetails = (product) => {
 
 .sort-select:focus {
   transform: scale(1.02);
-  box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.1);
+  box-shadow: 0 0 0 3px rgba(255, 107, 157, 0.1);
 }
 
 /* Пагинация */
@@ -2167,9 +2104,9 @@ const openProductDetails = (product) => {
 }
 
 .pagination-button.active {
-  background: linear-gradient(135deg, #ec4899, #be185d);
+  background: linear-gradient(135deg, #ff6b9d, #ff8fb3);
   color: white;
-  border-color: #ec4899;
+  border-color: #ff6b9d;
   transform: scale(1.1);
 }
 
@@ -2185,7 +2122,7 @@ const openProductDetails = (product) => {
   position: absolute;
   inset: -2px;
   border-radius: 50%;
-  background: linear-gradient(45deg, #ec4899, #8b5cf6);
+  background: linear-gradient(45deg, #ff6b9d, #8b5cf6);
   opacity: 0;
   transition: opacity 0.3s ease;
   z-index: -1;
@@ -2202,7 +2139,7 @@ const openProductDetails = (product) => {
 
 .color-option.selected {
   transform: scale(1.15);
-  box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.3);
+  box-shadow: 0 0 0 3px rgba(255, 107, 157, 0.3);
 }
 
 /* Пустое состояние */
@@ -2293,12 +2230,12 @@ const openProductDetails = (product) => {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, #ec4899, #8b5cf6);
+  background: linear-gradient(135deg, #ff6b9d, #8b5cf6);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, #be185d, #7c3aed);
+  background: linear-gradient(135deg, #ff5a8a, #7c3aed);
 }
 
 /* Эффекты загрузки */
@@ -2307,7 +2244,7 @@ const openProductDetails = (product) => {
   inset: 0;
   background: linear-gradient(
     45deg,
-    rgba(236, 72, 153, 0.1),
+    rgba(255, 107, 157, 0.1),
     rgba(139, 92, 246, 0.1)
   );
   backdrop-filter: blur(5px);
@@ -2328,7 +2265,7 @@ input[type="checkbox"]:checked {
 
 /* Анимация для слайдеров */
 input[type="range"] {
-  background: linear-gradient(to right, #ec4899 0%, #e5e7eb 0%);
+  background: linear-gradient(to right, #ff6b9d 0%, #e5e7eb 0%);
   border-radius: 5px;
   height: 6px;
   outline: none;
@@ -2340,15 +2277,15 @@ input[type="range"]::-webkit-slider-thumb {
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #ec4899, #be185d);
+  background: linear-gradient(135deg, #ff6b9d, #ff8fb3);
   cursor: pointer;
-  box-shadow: 0 2px 6px rgba(236, 72, 153, 0.3);
+  box-shadow: 0 2px 6px rgba(255, 107, 157, 0.3);
   transition: all 0.3s ease;
 }
 
 input[type="range"]::-webkit-slider-thumb:hover {
   transform: scale(1.2);
-  box-shadow: 0 4px 12px rgba(236, 72, 153, 0.5);
+  box-shadow: 0 4px 12px rgba(255, 107, 157, 0.5);
 }
 
 /* Дополнительные анимации GSAP */
@@ -2439,5 +2376,38 @@ input[type="range"]::-webkit-slider-thumb:hover {
 .catalog-header:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.reset-filters-btn {
+  background: linear-gradient(135deg, #ff6b9d, #ff8fb3);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.reset-filters-btn::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: left 0.5s ease;
+}
+
+.reset-filters-btn:hover::before {
+  left: 100%;
+}
+
+.reset-filters-btn:hover {
+  background: linear-gradient(135deg, #ff5a8a, #ff7ba7);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(255, 107, 157, 0.4);
 }
 </style>
