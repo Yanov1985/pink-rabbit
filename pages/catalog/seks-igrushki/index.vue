@@ -139,146 +139,27 @@
             </div>
           </div>
 
-          <!-- Фильтры -->
-          <FilterSkeleton v-if="isInitialLoading" />
-          <div
-            v-else
-            class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 space-y-6"
-          >
-            <div class="flex items-center justify-between">
-              <h3 class="text-lg font-semibold text-gray-900">Фильтры</h3>
-              <button
-                v-if="hasActiveFilters"
-                @click="resetFilters"
-                class="text-sm text-pink-500 hover:text-pink-600"
-              >
-                Сбросить
-              </button>
-            </div>
-
-            <!-- Цена -->
-            <div class="filter-group">
-              <h4 class="font-medium text-gray-900 mb-3">Цена, ₽</h4>
-              <div class="flex gap-3 mb-3">
-                <input
-                  v-model="priceMin"
-                  type="number"
-                  placeholder="От"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm filter-input"
-                />
-                <input
-                  v-model="priceMax"
-                  type="number"
-                  placeholder="До"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm filter-input"
-                />
-              </div>
-              <button
-                @click="applyPriceFilter"
-                class="w-full bg-pink-500 text-white py-2 rounded-md text-sm hover:bg-pink-600 transition-colors"
-              >
-                Применить
-              </button>
-            </div>
-
-            <!-- Бренды -->
-            <div class="filter-group">
-              <h4 class="font-medium text-gray-900 mb-3">Бренд</h4>
-              <div class="space-y-2 max-h-48 overflow-y-auto">
-                <label
-                  v-for="brand in availableBrands"
-                  :key="brand"
-                  class="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-1 rounded filter-checkbox"
-                >
-                  <input
-                    v-model="selectedBrands"
-                    :value="brand"
-                    type="checkbox"
-                    class="text-pink-500 focus:ring-pink-500"
-                  />
-                  <span class="text-sm text-gray-700">{{ brand }}</span>
-                </label>
-              </div>
-            </div>
-
-            <!-- Материал -->
-            <div class="filter-group">
-              <h4 class="font-medium text-gray-900 mb-3">Материал</h4>
-              <div class="space-y-2 max-h-48 overflow-y-auto">
-                <label
-                  v-for="material in materials"
-                  :key="material"
-                  class="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-1 rounded filter-checkbox"
-                >
-                  <input
-                    v-model="selectedMaterials"
-                    :value="material"
-                    type="checkbox"
-                    class="text-pink-500 focus:ring-pink-500"
-                  />
-                  <span class="text-sm text-gray-700">{{ material }}</span>
-                </label>
-              </div>
-            </div>
-
-            <!-- Цвет -->
-            <div class="filter-group">
-              <h4 class="font-medium text-gray-900 mb-3">Цвет</h4>
-              <div class="grid grid-cols-6 gap-2">
-                <div
-                  v-for="color in colors"
-                  :key="color.name"
-                  @click="toggleColorFilter(color.name)"
-                  class="w-8 h-8 rounded-full border-2 cursor-pointer color-option"
-                  :style="{ backgroundColor: color.hex }"
-                  :class="{
-                    selected: selectedColors.includes(color.name),
-                    'border-pink-500': selectedColors.includes(color.name),
-                    'border-gray-300': !selectedColors.includes(color.name),
-                  }"
-                  :title="color.name"
-                ></div>
-              </div>
-            </div>
-
-            <!-- Дополнительные фильтры -->
-            <div class="filter-group space-y-3">
-              <label
-                class="flex items-center space-x-2 cursor-pointer filter-checkbox"
-              >
-                <input
-                  v-model="onlyInStock"
-                  type="checkbox"
-                  class="text-pink-500 focus:ring-pink-500"
-                />
-                <span class="text-sm text-gray-700">Только в наличии</span>
-              </label>
-              <label
-                class="flex items-center space-x-2 cursor-pointer filter-checkbox"
-              >
-                <input
-                  v-model="onlyWithDiscount"
-                  type="checkbox"
-                  class="text-pink-500 focus:ring-pink-500"
-                />
-                <span class="text-sm text-gray-700">Только со скидкой</span>
-              </label>
-              <label
-                class="flex items-center space-x-2 cursor-pointer filter-checkbox"
-              >
-                <input
-                  v-model="onlyNew"
-                  type="checkbox"
-                  class="text-pink-500 focus:ring-pink-500"
-                />
-                <span class="text-sm text-gray-700">Только новинки</span>
-              </label>
-            </div>
-          </div>
+          <!-- Фильтры для товаров для взрослых -->
+          <AdultToysFilters
+            :is-loading="isInitialLoading"
+            :initial-filters="{
+              priceMin: priceMin,
+              priceMax: priceMax,
+              selectedBrands: selectedBrands,
+              selectedMaterials: selectedMaterials,
+              selectedColors: selectedColors.map((c) => c.toLowerCase()),
+              onlyInStock: onlyInStock,
+              onlyWithDiscount: onlyWithDiscount,
+              onlyNew: onlyNew,
+            }"
+            @update-filters="updateFilters"
+            @apply-filters="applyFilters"
+            @reset-filters="resetFilters"
+          />
         </aside>
 
         <!-- Основной контент -->
-        <main class="lg:w-3/4">
+        <main class="lg:w-3/4 catalog-main">
           <!-- Заголовок каталога с компонентом -->
           <CatalogHeader
             category-title="Товары для взрослых"
@@ -412,8 +293,8 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 // Импорт компонентов
 import ProductSkeleton from "~/components/ProductSkeleton.vue";
-import FilterSkeleton from "~/components/FilterSkeleton.vue";
 import CatalogHeader from "~/components/CatalogHeader.vue";
+import AdultToysFilters from "~/components/AdultToysFilters.vue";
 
 // Импорт иконок
 import {
@@ -434,7 +315,7 @@ gsap.registerPlugin(ScrollTrigger);
 const isInitialLoading = ref(true); // Начальная загрузка
 const isLoading = ref(false); // Загрузка при фильтрации
 const currentPage = ref(1);
-const itemsPerPage = ref(12);
+const itemsPerPage = ref(50); // Увеличиваем до 50 товаров на странице для лучшего UX
 const viewMode = ref(4); // 4 или 3 колонки
 const sortBy = ref("popularity");
 
@@ -1120,6 +1001,223 @@ const products = ref([
   },
 ]);
 
+// Функция для генерации дополнительных товаров
+const generateAdditionalProducts = () => {
+  const brands = [
+    "LELO",
+    "We-Vibe",
+    "Satisfyer",
+    "Womanizer",
+    "Fun Factory",
+    "SVAKOM",
+    "Lovense",
+    "OhMiBod",
+    "Kiiroo",
+    "Tenga",
+    "Fleshlight",
+    "Doc Johnson",
+    "CalExotics",
+    "Pipedream",
+    "XSensual",
+    "Bad Dragon",
+    "Pure Romance",
+    "Adam & Eve",
+    "Spencer's",
+    "Bondara",
+  ];
+  const materials = [
+    "Медицинский силикон",
+    "TPE",
+    "ABS пластик",
+    "Кибершкурка",
+    "Стекло",
+    "Металл",
+    "PVC",
+    "Латекс",
+    "Кожа",
+    "Текстиль",
+  ];
+  const colors = [
+    "Розовый",
+    "Черный",
+    "Белый",
+    "Красный",
+    "Фиолетовый",
+    "Синий",
+    "Зеленый",
+    "Телесный",
+    "Прозрачный",
+    "Золотой",
+    "Серебристый",
+    "Коричневый",
+  ];
+  const categories = ["women", "men", "couples"];
+
+  const productNames = [
+    "Вибратор Eclipse Premium",
+    "Мастурбатор Elite Sensation",
+    "Кольцо Thunder Power",
+    "Анальная пробка Jewel Crown",
+    "Стимулятор простаты ProMax",
+    "Вибропуля Butterfly",
+    "Фаллоимитатор RealTouch",
+    "Клиторальный стимулятор Aurora",
+    "Парный вибратор Harmony",
+    "Страпон Commander",
+    "Помпа для пениса PowerPump",
+    "Вибратор-кролик Paradise",
+    "Насадка-удлинитель Mega",
+    "Анальные шарики Cascade",
+    "Вибратор G-точки Seeker",
+    "Мастурбатор Tornado",
+    "Кольцо с вибрацией Storm",
+    "Стимулятор сосков Thunder",
+    "Вибратор-пуля Stealth",
+    "Анальная пробка Comfort",
+    "Фаллоимитатор Double Joy",
+    "Клиторальный массажер Whisper",
+    "Парное кольцо Unity",
+    "Страпон Deluxe",
+    "Помпа вакуумная Superior",
+    "Вибратор многоскоростной Velocity",
+    "Мастурбатор реалистичный Natural",
+    "Анальный расширитель Progressive",
+    "Стимулятор простаты Wave",
+    "Вибропуля Remote Control",
+    "Фаллоимитатор Realistic Pro",
+    "Клиторальный вибратор Pulse",
+    "Парный массажер Couple's Choice",
+    "Страпон Professional",
+    "Кольцо эрекционное Titan",
+    "Анальная пробка с вибрацией Buzz",
+    "Вибратор App-контроль Smart",
+    "Мастурбатор автоматический Auto",
+    "Стимулятор точки G Discovery",
+    "Клиторальный стимулятор Gentle",
+    "Парные игрушки Set Passion",
+    "Вибратор водонепроницаемый Aqua",
+    "Анальные шарики Progressive",
+    "Фаллоимитатор с присоской Suction",
+    "Кольцо вибрирующее Intense",
+    "Стимулятор простаты Remote",
+    "Вибропуля беспроводная Wireless",
+    "Клиторальный массажер Soft",
+    "Мастурбатор подогреваемый Warm",
+    "Анальная пробка прогрессивная Growth",
+    "Вибратор перезаряжаемый Rechargeable",
+    "Парное кольцо Vibrating",
+    "Страпон регулируемый Adjustable",
+    "Помпа электрическая Electric",
+    "Стимулятор сосков Magnetic",
+    "Вибратор-бабочка Butterfly",
+    "Мастурбатор вращающийся Rotating",
+    "Анальный тренажер Training",
+    "Фаллоимитатор гибкий Flexible",
+    "Клиторальный стимулятор Pressure",
+    "Парный вибратор Sync",
+    "Кольцо задерживающее Delay",
+    "Стимулятор простаты Targeted",
+    "Вибропуля мини Compact",
+    "Анальная пробка надувная Inflatable",
+    "Вибратор пульсирующий Pulse",
+    "Мастурбатор текстурированный Textured",
+    "Клиторальный массажер Wave",
+    "Парные наручники Restraint",
+    "Страпон полый Hollow",
+    "Помпа ручная Manual",
+    "Стимулятор сосков Suction",
+    "Вибратор-язычок Tongue",
+    "Мастурбатор оральный Oral",
+    "Анальный дилдо Progressive",
+    "Фаллоимитатор двойной Double",
+    "Клиторальный стимулятор Finger",
+    "Парное кольцо Double",
+    "Кольцо эластичное Stretchy",
+    "Стимулятор простаты Curved",
+    "Вибропуля на пульте Remote",
+    "Анальная пробка металлическая Steel",
+    "Вибратор изогнутый Curved",
+    "Мастурбатор дорожный Travel",
+    "Клиторальный массажер Gentle Touch",
+    "Парный стимулятор Dual",
+    "Страпон с дилдо Complete",
+    "Помпа вибрирующая Vibrating",
+    "Стимулятор сосков регулируемый Adjustable",
+    "Вибратор-роза Rose",
+    "Мастурбатор сквирт Squirting",
+    "Анальный массажер Massage",
+    "Фаллоимитатор светящийся Glow",
+    "Клиторальный стимулятор Intense",
+    "Парное яйцо Love Egg",
+    "Кольцо светодиодное LED",
+    "Стимулятор простаты умный Smart",
+    "Вибропуля с пультом RC",
+    "Анальная пробка с хвостом Tail",
+    "Вибратор-дельфин Dolphin",
+    "Мастурбатор VR Virtual",
+    "Клиторальный массажер Sonic",
+    "Парный набор Couple Kit",
+    "Страпон женский Female",
+    "Помпа автоматическая Auto",
+    "Стимулятор сосков вибро Vibro",
+    "Вибратор-зайчик Bunny",
+    "Мастурбатор интерактивный Interactive",
+    "Анальный расширитель Set",
+    "Фаллоимитатор реалистичный Ultra Real",
+    "Клиторальный стимулятор Air",
+    "Парные трусики Vibrating Panties",
+  ];
+
+  const additionalProducts = [];
+
+  for (let i = 26; i <= 125; i++) {
+    const brand = brands[Math.floor(Math.random() * brands.length)];
+    const material = materials[Math.floor(Math.random() * materials.length)];
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    const category = categories[Math.floor(Math.random() * categories.length)];
+    const productName = productNames[(i - 26) % productNames.length];
+
+    const basePrice = Math.floor(Math.random() * 20000) + 1000;
+    const hasDiscount = Math.random() > 0.7;
+    const discount = hasDiscount ? Math.floor(Math.random() * 30) + 10 : 0;
+    const oldPrice = hasDiscount
+      ? Math.floor(basePrice * (1 + discount / 100))
+      : null;
+
+    additionalProducts.push({
+      id: i,
+      name: productName + ` ${brand}`,
+      brand: brand,
+      price: basePrice,
+      oldPrice: oldPrice,
+      images: [
+        placeholderImages[Math.floor(Math.random() * placeholderImages.length)],
+        placeholderImages[Math.floor(Math.random() * placeholderImages.length)],
+        placeholderImages[Math.floor(Math.random() * placeholderImages.length)],
+        placeholderImages[Math.floor(Math.random() * placeholderImages.length)],
+      ],
+      image:
+        placeholderImages[Math.floor(Math.random() * placeholderImages.length)],
+      rating: Math.floor(Math.random() * 5) + 1,
+      reviews: Math.floor(Math.random() * 300) + 5,
+      material: material,
+      color: color,
+      isNew: Math.random() > 0.85,
+      isHit: Math.random() > 0.9,
+      discount: discount,
+      inStock: Math.random() > 0.1,
+      inWishlist: false,
+      inCompare: false,
+      category: category,
+    });
+  }
+
+  return additionalProducts;
+};
+
+// Добавляем дополнительные товары к основному массиву
+products.value.push(...generateAdditionalProducts());
+
 // Инициализация состояний загрузки изображений
 products.value.forEach((product) => {
   imageLoadingStates.value[product.id] = true;
@@ -1718,6 +1816,46 @@ const openProductDetails = (product) => {
 const handleSortingChange = (newSortBy) => {
   sortBy.value = newSortBy;
   applySorting();
+};
+
+// Новые методы для работы с AdultToysFilters
+const updateFilters = (filters) => {
+  // Обновляем локальные переменные из компонента фильтров
+  if (filters.priceMin !== undefined) priceMin.value = filters.priceMin;
+  if (filters.priceMax !== undefined) priceMax.value = filters.priceMax;
+  if (filters.selectedBrands !== undefined)
+    selectedBrands.value = filters.selectedBrands;
+  if (filters.selectedMaterials !== undefined)
+    selectedMaterials.value = filters.selectedMaterials;
+  if (filters.selectedColors !== undefined)
+    selectedColors.value = filters.selectedColors;
+  if (filters.onlyInStock !== undefined)
+    onlyInStock.value = filters.onlyInStock;
+  if (filters.onlyWithDiscount !== undefined)
+    onlyWithDiscount.value = filters.onlyWithDiscount;
+  if (filters.onlyNew !== undefined) onlyNew.value = filters.onlyNew;
+
+  currentPage.value = 1; // Сбрасываем на первую страницу при изменении фильтров
+};
+
+const applyFilters = (filters) => {
+  // Применяем фильтры и обновляем состояние
+  updateFilters(filters);
+
+  // Анимация применения фильтров
+  gsap.fromTo(
+    ".product-card",
+    {
+      y: 20,
+      opacity: 0,
+    },
+    {
+      y: 0,
+      opacity: 1,
+      duration: 0.4,
+      stagger: 0.05,
+    }
+  );
 };
 </script>
 
@@ -2409,5 +2547,11 @@ input[type="range"]::-webkit-slider-thumb:hover {
   background: linear-gradient(135deg, #ff5a8a, #ff7ba7);
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(255, 107, 157, 0.4);
+}
+
+/* Улучшенный отступ для main контента */
+.catalog-main {
+  flex: 1;
+  min-width: 0; /* Предотвращает переполнение */
 }
 </style>
