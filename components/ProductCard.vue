@@ -1,177 +1,297 @@
 <template>
-  <div
+  <!-- Семантическая статья о товаре для лучшего SEO -->
+  <article
     class="product-card"
     @mouseenter="startSlider"
     @mouseleave="stopSlider"
     itemscope
     itemtype="https://schema.org/Product"
+    role="article"
+    :aria-label="`Товар: ${product.name}`"
   >
-    <!-- Контейнер изображения -->
-    <div class="image-container" itemprop="image">
-      <!-- Прелоадер -->
-      <div v-if="imageLoading" class="image-loader">
-        <div class="spinner"></div>
-      </div>
-
-      <!-- Слайдер изображений с плавными переходами -->
-      <div class="image-slider">
-        <img
-          v-for="(image, index) in displayImages"
-          :key="`slide-${index}`"
-          :src="image"
-          :alt="`${product.name} - изображение ${index + 1}`"
-          class="slider-image"
-          :class="{
-            active: index === currentImageIndex,
-            loaded: !imageLoading,
-          }"
-          @load="handleImageLoad"
-          @error="handleImageError"
-          loading="lazy"
-          itemprop="image"
-        />
-      </div>
-
-      <!-- Индикаторы слайдера - показываем всегда для демонстрации -->
-      <div class="slider-indicators">
-        <div
-          v-for="(_, index) in displayImages"
-          :key="`indicator-${index}`"
-          class="indicator"
-          :class="{ active: index === currentImageIndex }"
-          @click="goToSlide(index)"
-          @mouseenter="pauseSlider"
-          @mouseleave="resumeSlider"
-        ></div>
-      </div>
-
-      <!-- Бейджи -->
-      <div class="badges">
-        <span v-if="product.isNew" class="badge new">NEW</span>
-        <span v-if="product.discount > 0" class="badge discount">
-          -{{ product.discount }}%
-        </span>
-        <span v-if="product.isHit" class="badge hit">ХИТ</span>
-      </div>
-
-      <!-- Кнопки действий сверху -->
-      <div class="action-buttons">
-        <button
-          @click="toggleWishlist"
-          class="action-btn"
-          :class="{ active: product.inWishlist }"
-          title="Добавить в избранное"
-        >
-          <HeartIcon class="icon" />
-        </button>
-        <button
-          @click="openQuickView"
-          class="action-btn"
-          title="Быстрый просмотр"
-        >
-          <EyeIcon class="icon" />
-        </button>
-        <button
-          @click="toggleCompare"
-          class="action-btn"
-          :class="{ active: product.inCompare }"
-          title="Добавить к сравнению"
-        >
-          <ArrowsRightLeftIcon class="icon" />
-        </button>
-        <button @click="shareProduct" class="action-btn" title="Поделиться">
-          <ShareIcon class="icon" />
-        </button>
-      </div>
-    </div>
-
-    <!-- Информация о товаре -->
-    <div class="product-info">
-      <!-- Рейтинг -->
-      <div
-        class="rating"
-        itemprop="aggregateRating"
-        itemscope
-        itemtype="https://schema.org/AggregateRating"
+    <!-- Заголовок статьи - изображения и действия -->
+    <header class="product-header" role="banner">
+      <!-- Контейнер изображения товара -->
+      <figure
+        class="image-container"
+        itemprop="image"
+        role="img"
+        :aria-label="`Изображения товара ${product.name}`"
       >
-        <div class="stars">
-          <StarIcon
-            v-for="i in 5"
-            :key="i"
-            class="star"
-            :class="{ filled: i <= product.rating }"
+        <!-- Прелоадер -->
+        <div v-if="imageLoading" class="image-loader" aria-hidden="true">
+          <div
+            class="spinner"
+            role="status"
+            aria-label="Загрузка изображения"
+          ></div>
+        </div>
+
+        <!-- Слайдер изображений с плавными переходами -->
+        <div
+          class="image-slider"
+          role="region"
+          aria-label="Галерея изображений товара"
+        >
+          <img
+            v-for="(image, index) in displayImages"
+            :key="`slide-${index}`"
+            :src="image"
+            :alt="`${product.name} - изображение ${index + 1} из ${
+              displayImages.length
+            }`"
+            class="slider-image"
+            :class="{
+              active: index === currentImageIndex,
+              loaded: !imageLoading,
+            }"
+            @load="handleImageLoad"
+            @error="handleImageError"
+            loading="lazy"
+            itemprop="image"
+            :aria-hidden="index !== currentImageIndex"
           />
         </div>
-        <span class="reviews">
-          (<span itemprop="ratingValue">{{ product.rating }}</span
-          >/5 -
-          <span itemprop="reviewCount">{{ product.reviews }}</span> отзывов)
-        </span>
-        <!-- Скрытые микроданные для лучшего SEO -->
-        <meta itemprop="bestRating" content="5" />
-        <meta itemprop="worstRating" content="1" />
-      </div>
 
-      <!-- Название -->
-      <h3 class="product-title" itemprop="name">{{ product.name }}</h3>
+        <!-- Навигация по слайдеру -->
+        <nav
+          class="slider-indicators"
+          role="tablist"
+          aria-label="Навигация по изображениям товара"
+        >
+          <button
+            v-for="(_, index) in displayImages"
+            :key="`indicator-${index}`"
+            type="button"
+            class="indicator"
+            :class="{ active: index === currentImageIndex }"
+            @click="goToSlide(index)"
+            @mouseenter="pauseSlider"
+            @mouseleave="resumeSlider"
+            role="tab"
+            :aria-selected="index === currentImageIndex"
+            :aria-controls="`slide-${index}`"
+            :aria-label="`Показать изображение ${index + 1} из ${
+              displayImages.length
+            }`"
+          ></button>
+        </nav>
 
-      <!-- Характеристики -->
-      <div class="product-specs">
+        <!-- Бейджи товара -->
+        <aside class="badges" role="complementary" aria-label="Статус товара">
+          <span
+            v-if="product.isNew"
+            class="badge new"
+            role="mark"
+            aria-label="Новинка"
+            >NEW</span
+          >
+          <span
+            v-if="product.discount > 0"
+            class="badge discount"
+            role="mark"
+            :aria-label="`Скидка ${product.discount} процентов`"
+          >
+            -{{ product.discount }}%
+          </span>
+          <span
+            v-if="product.isHit"
+            class="badge hit"
+            role="mark"
+            aria-label="Хит продаж"
+            >ХИТ</span
+          >
+        </aside>
+
+        <!-- Действия над товаром -->
+        <nav
+          class="action-buttons"
+          role="toolbar"
+          aria-label="Действия с товаром"
+        >
+          <button
+            @click="toggleWishlist"
+            type="button"
+            class="action-btn"
+            :class="{ active: product.inWishlist }"
+            :title="
+              product.inWishlist
+                ? 'Удалить из избранного'
+                : 'Добавить в избранное'
+            "
+            :aria-label="
+              product.inWishlist
+                ? 'Удалить из избранного'
+                : 'Добавить в избранное'
+            "
+            :aria-pressed="product.inWishlist"
+          >
+            <HeartIcon class="icon" aria-hidden="true" />
+          </button>
+          <button
+            @click="openQuickView"
+            type="button"
+            class="action-btn"
+            title="Быстрый просмотр"
+            aria-label="Быстрый просмотр товара"
+          >
+            <EyeIcon class="icon" aria-hidden="true" />
+          </button>
+          <button
+            @click="toggleCompare"
+            type="button"
+            class="action-btn"
+            :class="{ active: product.inCompare }"
+            :title="
+              product.inCompare
+                ? 'Удалить из сравнения'
+                : 'Добавить к сравнению'
+            "
+            :aria-label="
+              product.inCompare
+                ? 'Удалить из сравнения'
+                : 'Добавить к сравнению'
+            "
+            :aria-pressed="product.inCompare"
+          >
+            <ArrowsRightLeftIcon class="icon" aria-hidden="true" />
+          </button>
+          <button
+            @click="shareProduct"
+            type="button"
+            class="action-btn"
+            title="Поделиться"
+            aria-label="Поделиться товаром"
+          >
+            <ShareIcon class="icon" aria-hidden="true" />
+          </button>
+        </nav>
+      </figure>
+    </header>
+
+    <!-- Основное содержимое товара -->
+    <div class="product-info" role="main">
+      <!-- Рейтинг товара -->
+      <section
+        class="rating-section"
+        role="region"
+        aria-labelledby="rating-heading"
+      >
+        <h2 id="rating-heading" class="sr-only">Рейтинг товара</h2>
+        <div
+          class="rating"
+          itemprop="aggregateRating"
+          itemscope
+          itemtype="https://schema.org/AggregateRating"
+          role="img"
+          :aria-label="`Рейтинг ${product.rating} из 5 звезд, ${product.reviews} отзывов`"
+        >
+          <div class="stars" aria-hidden="true">
+            <StarIcon
+              v-for="i in 5"
+              :key="i"
+              class="star"
+              :class="{ filled: i <= product.rating }"
+            />
+          </div>
+          <span class="reviews">
+            (<span itemprop="ratingValue">{{ product.rating }}</span
+            >/5 -
+            <span itemprop="reviewCount">{{ product.reviews }}</span> отзывов)
+          </span>
+          <!-- Скрытые микроданные для лучшего SEO -->
+          <meta itemprop="bestRating" content="5" />
+          <meta itemprop="worstRating" content="1" />
+        </div>
+      </section>
+
+      <!-- Название товара - главный заголовок статьи -->
+      <h1 class="product-title" itemprop="name">{{ product.name }}</h1>
+
+      <!-- Характеристики товара -->
+      <section
+        class="product-specs"
+        role="region"
+        aria-labelledby="specs-heading"
+      >
+        <h2 id="specs-heading" class="sr-only">Характеристики товара</h2>
         <div>
-          Бренд:
+          <strong>Бренд:</strong>
           <span itemprop="brand" itemscope itemtype="https://schema.org/Brand">
             <span itemprop="name">{{ product.brand }}</span>
           </span>
         </div>
         <div>
-          Материал: <span itemprop="material">{{ product.material }}</span>
+          <strong>Материал:</strong>
+          <span itemprop="material">{{ product.material }}</span>
         </div>
         <div>
-          Цвет: <span itemprop="color">{{ product.color }}</span>
+          <strong>Цвет:</strong>
+          <span itemprop="color">{{ product.color }}</span>
         </div>
-      </div>
+      </section>
 
-      <!-- Цена -->
-      <div
+      <!-- Цена товара -->
+      <section
         class="price-section"
-        itemprop="offers"
-        itemscope
-        itemtype="https://schema.org/Offer"
+        role="region"
+        aria-labelledby="price-heading"
       >
-        <span class="current-price" itemprop="price" :content="product.price">
-          {{ formatPrice(product.price) }} ₽
-        </span>
-        <span v-if="product.oldPrice" class="old-price">
-          {{ formatPrice(product.oldPrice) }} ₽
-        </span>
+        <h2 id="price-heading" class="sr-only">Цена товара</h2>
+        <div itemprop="offers" itemscope itemtype="https://schema.org/Offer">
+          <data
+            class="current-price"
+            itemprop="price"
+            :value="product.price"
+            :aria-label="`Цена ${formatPrice(product.price)} рублей`"
+          >
+            {{ formatPrice(product.price) }} ₽
+          </data>
+          <data
+            v-if="product.oldPrice"
+            class="old-price"
+            :value="product.oldPrice"
+            :aria-label="`Старая цена ${formatPrice(product.oldPrice)} рублей`"
+          >
+            {{ formatPrice(product.oldPrice) }} ₽
+          </data>
 
-        <!-- Скрытые микроданные для цены -->
-        <meta itemprop="priceCurrency" content="RUB" />
-        <meta itemprop="priceValidUntil" :content="priceValidUntil" />
-        <meta
-          itemprop="availability"
-          :content="
-            product.inStock
-              ? 'https://schema.org/InStock'
-              : 'https://schema.org/OutOfStock'
-          "
-        />
-        <meta
-          itemprop="itemCondition"
-          content="https://schema.org/NewCondition"
-        />
-        <meta itemprop="url" :content="productUrl" />
-      </div>
+          <!-- Скрытые микроданные для цены -->
+          <meta itemprop="priceCurrency" content="RUB" />
+          <meta itemprop="priceValidUntil" :content="priceValidUntil" />
+          <meta
+            itemprop="availability"
+            :content="
+              product.inStock
+                ? 'https://schema.org/InStock'
+                : 'https://schema.org/OutOfStock'
+            "
+          />
+          <meta
+            itemprop="itemCondition"
+            content="https://schema.org/NewCondition"
+          />
+          <meta itemprop="url" :content="productUrl" />
+        </div>
+      </section>
+    </div>
 
-      <!-- Нижние кнопки действий -->
-      <div class="bottom-actions">
+    <!-- Подвал карточки - действия -->
+    <footer role="contentinfo">
+      <nav
+        class="bottom-actions"
+        role="navigation"
+        aria-label="Действия с товаром"
+      >
         <!-- Кнопка подробнее (компактная иконка) -->
         <button
           @click="openDetails"
           @mouseenter="handleButtonHover('details', true)"
           @mouseleave="handleButtonHover('details', false)"
+          type="button"
           class="action-button detail-btn"
           title="Подробная информация"
+          aria-label="Посмотреть подробную информацию о товаре"
         >
           <svg
             class="action-icon"
@@ -179,6 +299,8 @@
             fill="none"
             stroke="currentColor"
             stroke-width="2"
+            aria-hidden="true"
+            role="img"
           >
             <circle cx="12" cy="12" r="10" />
             <path d="M12 16v-4" />
@@ -192,8 +314,10 @@
           @click="addToCart"
           @mouseenter="handleButtonHover('cart', true)"
           @mouseleave="handleButtonHover('cart', false)"
+          type="button"
           class="action-button cart-btn"
           title="Добавить в корзину"
+          aria-label="Добавить товар в корзину"
         >
           <svg
             class="action-icon cart-icon"
@@ -201,6 +325,8 @@
             fill="none"
             stroke="currentColor"
             stroke-width="2"
+            aria-hidden="true"
+            role="img"
           >
             <circle cx="9" cy="21" r="1" />
             <circle cx="20" cy="21" r="1" />
@@ -215,8 +341,10 @@
         <button
           v-else
           disabled
+          type="button"
           class="action-button out-of-stock-btn"
           title="Товар отсутствует в наличии"
+          aria-label="Товар отсутствует в наличии"
         >
           <svg
             class="action-icon"
@@ -224,20 +352,28 @@
             fill="none"
             stroke="currentColor"
             stroke-width="2"
+            aria-hidden="true"
+            role="img"
           >
             <circle cx="12" cy="12" r="10" />
             <path d="M4.93 4.93l14.14 14.14" />
           </svg>
           <span class="button-text">Нет в наличии</span>
         </button>
-      </div>
-    </div>
+      </nav>
+    </footer>
 
-    <!-- Overlay для товаров не в наличии -->
-    <div v-if="!product.inStock" class="out-of-stock-overlay">
-      <span>Нет в наличии</span>
+    <!-- Оверлей для товаров не в наличии -->
+    <div
+      v-if="!product.inStock"
+      class="out-of-stock-overlay"
+      role="alert"
+      aria-live="polite"
+      aria-label="Товар отсутствует в наличии"
+    >
+      <span class="out-of-stock-text">Нет в наличии</span>
     </div>
-  </div>
+  </article>
 </template>
 
 <script setup>
@@ -681,6 +817,19 @@ if (typeof window !== "undefined") {
   transform: translateX(-50%) translateY(-2px);
 }
 
+/* === СКРЫТЫЕ ЗАГОЛОВКИ ДЛЯ ACCESSIBILITY === */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* === СЛАЙДЕР ИЗОБРАЖЕНИЙ === */
 .image-slider {
   position: relative;
@@ -694,7 +843,7 @@ if (typeof window !== "undefined") {
   justify-content: center;
 }
 
-.image-slider img {
+.slider-image {
   position: absolute;
   top: 0;
   left: 0;
@@ -706,11 +855,11 @@ if (typeof window !== "undefined") {
   border-radius: 8px;
 }
 
-.image-slider img.active {
+.slider-image.active {
   opacity: 1;
 }
 
-/* Индикаторы слайдера */
+/* === НАВИГАЦИЯ СЛАЙДЕРА === */
 .slider-indicators {
   position: absolute;
   bottom: 8px;
@@ -789,19 +938,6 @@ if (typeof window !== "undefined") {
     transform: scale(1.5);
     opacity: 0;
   }
-}
-
-/* Удаляем старые стили product-image */
-.product-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.product-image.loaded {
-  opacity: 1;
 }
 
 .image-loader {
@@ -914,7 +1050,7 @@ if (typeof window !== "undefined") {
 
 /* === ИНФОРМАЦИЯ О ТОВАРЕ === */
 .product-info {
-  padding: 16px;
+  padding: 16px 16px 0 16px;
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -996,7 +1132,7 @@ if (typeof window !== "undefined") {
   text-decoration: line-through;
 }
 
-/* === OVERLAY ДЛЯ ТОВАРОВ НЕ В НАЛИЧИИ === */
+/* === ОВЕРЛЕЙ ДЛЯ ТОВАРОВ НЕ В НАЛИЧИИ === */
 .out-of-stock-overlay {
   position: absolute;
   top: 0;
@@ -1016,12 +1152,16 @@ if (typeof window !== "undefined") {
 }
 
 /* === НИЖНИЕ КНОПКИ ДЕЙСТВИЙ === */
+footer {
+  margin-top: auto; /* Прижимаем footer к низу карточки */
+}
+
 .bottom-actions {
   display: flex;
   align-items: center;
   gap: 10px;
-  /* Убираем margin-top и позиционируем в конце флекс-контейнера */
-  margin-top: auto;
+  /* Нормальные отступы от краев */
+  padding: 16px; /* Равномерные отступы со всех сторон */
   /* Фиксированная высота для одинакового расположения на всех карточках */
   min-height: 42px;
   /* ВЫСОКИЙ Z-INDEX для кликабельности */
@@ -1177,7 +1317,7 @@ if (typeof window !== "undefined") {
   /* Адаптивные стили для нижних кнопок */
   .bottom-actions {
     gap: 8px;
-    margin-top: auto;
+    padding: 12px; /* Уменьшенные отступы для мобильных */
     min-height: 38px;
   }
 
