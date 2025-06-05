@@ -45,20 +45,37 @@
     <div v-else>
       <!-- Заголовок фильтров -->
       <div class="filters-header">
-        <h3 class="filter-main-title">
-          <FunnelIcon class="w-5 h-5 text-pink-500" />
-          Фильтры товаров
-        </h3>
+        <div class="header-main">
+          <h3 class="filter-main-title">
+            <FunnelIcon class="w-5 h-5 text-pink-500" />
+            Фильтры товаров
+          </h3>
+          <div class="filters-counter" v-if="hasActiveFilters">
+            <span class="counter-badge">{{ activeFiltersCount }}</span>
+          </div>
+        </div>
         <div class="header-controls">
-          <button @click="toggleAllAccordions" class="toggle-all-btn">
-            {{ allAccordionsOpen ? "📁 Свернуть все" : "📂 Развернуть все" }}
+          <button
+            @click="toggleAllAccordions"
+            class="control-btn control-btn-secondary"
+            :title="
+              allAccordionsOpen
+                ? 'Свернуть все разделы'
+                : 'Развернуть все разделы'
+            "
+          >
+            <ChevronDownIcon
+              class="w-4 h-4 transition-transform duration-300"
+              :class="{ 'rotate-180': allAccordionsOpen }"
+            />
           </button>
           <button
             v-if="hasActiveFilters"
             @click="resetAllFilters"
-            class="reset-all-btn"
+            class="control-btn control-btn-danger"
+            title="Сбросить все фильтры"
           >
-            Сбросить все
+            <TrashIcon class="w-4 h-4" />
           </button>
         </div>
       </div>
@@ -78,26 +95,14 @@
             />
           </div>
           <div v-if="accordionState.price" class="filter-body">
-            <div class="price-range">
-              <div class="price-input-wrapper">
-                <label>От</label>
-                <input
-                  v-model="filters.priceMin"
-                  type="number"
-                  placeholder="0"
-                  class="price-input"
-                />
-              </div>
-              <div class="price-input-wrapper">
-                <label>До</label>
-                <input
-                  v-model="filters.priceMax"
-                  type="number"
-                  placeholder="100000"
-                  class="price-input"
-                />
-              </div>
-            </div>
+            <!-- Профессиональный слайдер для диапазона цен -->
+            <PriceRangeSlider
+              v-model="priceRange"
+              :min="0"
+              :max="250000"
+              :step="100"
+              @change="onPriceRangeChange"
+            />
           </div>
         </div>
 
@@ -452,17 +457,25 @@
 
       <!-- Кнопки действий -->
       <div class="filter-actions">
-        <button @click="applyFilters" class="apply-btn" :disabled="!hasChanges">
+        <button
+          @click="applyFilters"
+          class="action-btn action-btn-primary"
+          :disabled="!hasChanges"
+          :class="{ 'btn-disabled': !hasChanges }"
+        >
           <MagnifyingGlassIcon class="btn-icon" />
-          Показать товары
+          <span class="btn-text">Показать товары</span>
+          <span v-if="activeFiltersCount > 0" class="btn-badge">{{
+            activeFiltersCount
+          }}</span>
         </button>
         <button
           v-if="hasActiveFilters"
           @click="resetAllFilters"
-          class="reset-btn"
+          class="action-btn action-btn-secondary"
         >
           <TrashIcon class="btn-icon" />
-          Сбросить
+          <span class="btn-text">Очистить</span>
         </button>
       </div>
     </div>
@@ -489,6 +502,7 @@ import {
   SparklesIcon,
   HeartIcon,
 } from "@heroicons/vue/24/solid";
+import PriceRangeSlider from "@/components/PriceRangeSlider.vue";
 
 // Псевдо-икона для волн (заменить на реальную если нужно)
 const WaveIcon = CogIcon;
@@ -531,6 +545,9 @@ const accordionState = ref({
   aroma: false,
   edible: false,
 });
+
+// Состояние слайдера цены
+const priceRange = ref({ min: 0, max: 250000 });
 
 // Имитация загрузки данных
 onMounted(async () => {
@@ -662,6 +679,25 @@ const hasActiveFilters = computed(() => {
   );
 });
 
+const activeFiltersCount = computed(() => {
+  let count = 0;
+  // Подсчитываем активные фильтры
+  if (filters.value.priceMin !== null || filters.value.priceMax !== null)
+    count++;
+  count += filters.value.selectedBrands.length;
+  count += filters.value.selectedMaterials.length;
+  count += filters.value.selectedColors.length;
+  count += filters.value.selectedLengths.length;
+  count += filters.value.selectedDiameters.length;
+  count += filters.value.selectedVibrationModes.length;
+  count += filters.value.selectedWaterproofLevels.length;
+  if (filters.value.hasHeating) count++;
+  count += filters.value.selectedMotorCounts.length;
+  count += filters.value.selectedAromas.length;
+  if (filters.value.isEdible) count++;
+  return count;
+});
+
 const hasChanges = computed(() => {
   return hasActiveFilters.value;
 });
@@ -697,7 +733,17 @@ const resetAllFilters = () => {
     selectedAromas: [],
     isEdible: false,
   };
+  // Сбрасываем также слайдер цены
+  priceRange.value = { min: 0, max: 250000 };
   brandSearch.value = "";
+};
+
+const onPriceRangeChange = (range) => {
+  // Обновляем состояние фильтров при изменении слайдера
+  priceRange.value = range;
+  filters.value.priceMin = range.min;
+  filters.value.priceMax = range.max;
+  console.log("Диапазон цен изменен:", range);
 };
 </script>
 
@@ -862,43 +908,67 @@ const resetAllFilters = () => {
 /* Заголовок */
 .filters-header {
   @apply p-4 border-b border-gray-200 flex justify-between items-center;
+  background: linear-gradient(
+    135deg,
+    rgba(248, 250, 252, 0.8),
+    rgba(255, 255, 255, 0.9)
+  );
+}
+
+.header-main {
+  @apply flex items-center gap-3;
 }
 
 .filter-main-title {
   @apply text-lg font-semibold text-gray-900 flex items-center gap-2;
 }
 
+.filters-counter {
+  @apply flex items-center;
+}
+
+.counter-badge {
+  @apply bg-gradient-to-r from-pink-500 to-pink-600 text-white px-2 py-1 rounded-full text-xs font-medium;
+  min-width: 20px;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(236, 72, 153, 0.2);
+  animation: fadeInScale 0.3s ease-out;
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 .header-controls {
-  @apply flex items-center gap-3;
+  @apply flex items-center gap-2;
 }
 
-.toggle-all-btn {
-  @apply text-xs text-gray-600 hover:text-pink-600 transition-all duration-300 px-3 py-2 rounded-lg;
-  transition: all 0.3s ease;
+.control-btn {
+  @apply w-10 h-10 rounded-lg border transition-all duration-300 flex items-center justify-center;
+  @apply hover:scale-105 hover:shadow-lg;
 }
 
-.toggle-all-btn:hover {
-  background: linear-gradient(
-    135deg,
-    rgba(236, 72, 153, 0.1),
-    rgba(219, 39, 119, 0.1)
-  );
-  box-shadow: 0 2px 8px rgba(236, 72, 153, 0.2);
-  transform: translateY(-1px);
+.control-btn-secondary {
+  @apply bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100 hover:border-gray-300;
 }
 
-.reset-all-btn {
-  @apply text-sm text-pink-600 hover:text-pink-700 transition-all duration-300 px-3 py-2 rounded-lg;
+.control-btn-secondary:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-.reset-all-btn:hover {
-  background: linear-gradient(
-    135deg,
-    rgba(236, 72, 153, 0.1),
-    rgba(219, 39, 119, 0.1)
-  );
-  box-shadow: 0 2px 8px rgba(236, 72, 153, 0.2);
-  transform: translateY(-1px);
+.control-btn-danger {
+  @apply bg-pink-50 border-pink-200 text-pink-600 hover:bg-pink-100 hover:border-pink-300;
+}
+
+.control-btn-danger:hover {
+  box-shadow: 0 4px 12px rgba(236, 72, 153, 0.2);
 }
 
 /* Контент фильтров */
@@ -1185,18 +1255,27 @@ const resetAllFilters = () => {
   border-color: rgba(236, 72, 153, 0.1);
 }
 
-.apply-btn {
-  @apply flex-1 py-3 px-4 rounded-lg font-medium flex items-center justify-center gap-2;
-  background: linear-gradient(135deg, rgb(236, 72, 153), rgb(219, 39, 119));
-  color: white;
-  border: none;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 15px rgba(236, 72, 153, 0.3);
-  position: relative;
+.action-btn {
+  @apply py-3 px-4 rounded-lg font-medium flex items-center justify-center gap-2 relative;
+  @apply transition-all duration-300 border;
   overflow: hidden;
+  min-height: 48px;
 }
 
-.apply-btn::before {
+.action-btn-primary {
+  @apply flex-1 text-white;
+  background: linear-gradient(135deg, rgb(236, 72, 153), rgb(219, 39, 119));
+  border-color: rgba(236, 72, 153, 0.3);
+  box-shadow: 0 4px 12px rgba(236, 72, 153, 0.2);
+}
+
+.action-btn-secondary {
+  @apply bg-gray-50 text-gray-700 border-gray-200;
+  flex: 0 0 auto;
+  min-width: 100px;
+}
+
+.action-btn::before {
   content: "";
   position: absolute;
   top: 0;
@@ -1206,72 +1285,73 @@ const resetAllFilters = () => {
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(255, 255, 255, 0.3),
+    rgba(255, 255, 255, 0.2),
     transparent
   );
   transition: all 0.6s ease;
 }
 
-.apply-btn:hover::before {
+.action-btn:hover::before {
   left: 100%;
 }
 
-.apply-btn:hover {
+.action-btn-primary:hover {
   transform: translateY(-2px) scale(1.02);
-  box-shadow: 0 8px 25px rgba(236, 72, 153, 0.4),
-    0 0 20px rgba(236, 72, 153, 0.3);
+  box-shadow: 0 6px 20px rgba(236, 72, 153, 0.3);
   background: linear-gradient(135deg, rgb(219, 39, 119), rgb(236, 72, 153));
 }
 
-.apply-btn:focus {
+.action-btn-secondary:hover {
+  @apply bg-gray-100 border-gray-300 text-gray-800;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.action-btn:focus {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.3),
-    0 8px 25px rgba(236, 72, 153, 0.4);
 }
 
-.apply-btn:disabled {
-  @apply bg-gray-300 cursor-not-allowed;
-  background: linear-gradient(135deg, rgb(156, 163, 175), rgb(209, 213, 219));
-  box-shadow: none;
-  transform: none;
+.action-btn-primary:focus {
+  box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.3);
 }
 
-.apply-btn:disabled:hover {
-  transform: none;
-  box-shadow: none;
+.action-btn-secondary:focus {
+  box-shadow: 0 0 0 3px rgba(156, 163, 175, 0.3);
+}
+
+.btn-disabled {
+  @apply cursor-not-allowed opacity-60;
+  background: linear-gradient(
+    135deg,
+    rgb(156, 163, 175),
+    rgb(209, 213, 219)
+  ) !important;
+  border-color: rgba(156, 163, 175, 0.3) !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.btn-disabled:hover {
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.btn-disabled::before {
+  display: none;
 }
 
 @keyframes pulse-glow {
   0%,
   100% {
-    box-shadow: 0 4px 15px rgba(236, 72, 153, 0.3);
+    box-shadow: 0 4px 12px rgba(236, 72, 153, 0.2);
   }
   50% {
-    box-shadow: 0 4px 25px rgba(236, 72, 153, 0.5),
-      0 0 20px rgba(236, 72, 153, 0.3);
+    box-shadow: 0 6px 20px rgba(236, 72, 153, 0.4);
   }
 }
 
-.apply-btn:focus {
+.action-btn-primary:focus {
   animation: pulse-glow 2s infinite;
-}
-
-.reset-btn {
-  @apply bg-gray-100 text-gray-700 py-3 px-4 rounded-lg font-medium flex items-center justify-center gap-2;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border: 1px solid rgba(236, 72, 153, 0.1);
-}
-
-.reset-btn:hover {
-  background: linear-gradient(
-    135deg,
-    rgba(236, 72, 153, 0.1),
-    rgba(219, 39, 119, 0.1)
-  );
-  color: rgb(236, 72, 153);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(236, 72, 153, 0.2);
-  border-color: rgba(236, 72, 153, 0.3);
 }
 
 .btn-icon {
@@ -1279,14 +1359,21 @@ const resetAllFilters = () => {
   transition: all 0.3s ease;
 }
 
-.apply-btn:hover .btn-icon {
+.action-btn:hover .btn-icon {
   transform: scale(1.1);
   filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.5));
 }
 
-.reset-btn:hover .btn-icon {
-  transform: scale(1.1);
-  filter: drop-shadow(0 0 4px rgba(236, 72, 153, 0.5));
+.btn-text {
+  @apply text-sm font-medium;
+}
+
+.btn-badge {
+  @apply bg-pink-500 text-white px-2 py-1 rounded-full text-xs font-medium;
+  min-width: 20px;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(236, 72, 153, 0.2);
+  animation: fadeInScale 0.3s ease-out;
 }
 
 /* Адаптивность */
