@@ -231,28 +231,128 @@ defineExpose({
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 16px;
   transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.catalog-header::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    45deg,
+    rgba(255, 107, 157, 0.05),
+    rgba(139, 92, 246, 0.05),
+    rgba(6, 182, 212, 0.05)
+  );
+  background-size: 300% 300%;
+  animation: backgroundShift 8s ease-in-out infinite;
+  z-index: -1;
+}
+
+@keyframes backgroundShift {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  33% {
+    background-position: 100% 0%;
+  }
+  66% {
+    background-position: 0% 100%;
+  }
 }
 
 .catalog-header:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 25px rgba(255, 107, 157, 0.15);
 }
 
 /* Заголовок категории */
 .catalog-title {
-  background: linear-gradient(135deg, #ff6b9d, #8b5cf6);
+  background: linear-gradient(
+    45deg,
+    #ff6b9d,
+    #ff8fb3,
+    #8b5cf6,
+    #06b6d4,
+    #10b981,
+    #f59e0b,
+    #ef4444,
+    #ff6b9d
+  );
+  background-size: 300% 300%;
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   font-weight: 700;
   letter-spacing: -0.025em;
+  animation: gradientShift 4s ease-in-out infinite,
+    textGlow 2s ease-in-out infinite alternate;
+  position: relative;
+  text-shadow: 0 0 10px rgba(255, 107, 157, 0.3);
 }
 
 /* Счетчик товаров */
 .catalog-count {
-  color: #6b7280;
+  background: linear-gradient(135deg, #6b7280, #9ca3af, #6b7280);
+  background-size: 200% 200%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
   font-size: 0.875rem;
   font-weight: 500;
+  animation: subtleGradient 3s ease-in-out infinite;
+  opacity: 0.8;
+  transition: opacity 0.3s ease;
+}
+
+.catalog-count:hover {
+  opacity: 1;
+}
+
+/* Тонкая анимация для счетчика */
+@keyframes subtleGradient {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+/* Улучшаем контейнер информации о каталоге */
+.catalog-info {
+  position: relative;
+  padding: 0.5rem 0;
+}
+
+.catalog-info::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -10px;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(to bottom, #ff6b9d, #8b5cf6, #06b6d4);
+  border-radius: 2px;
+  animation: barGlow 2s ease-in-out infinite alternate;
+}
+
+/* Анимация световой полосы */
+@keyframes barGlow {
+  0% {
+    opacity: 0.6;
+    transform: scaleY(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: scaleY(1);
+  }
 }
 
 /* Элементы управления */
@@ -273,6 +373,27 @@ defineExpose({
   overflow: hidden;
 }
 
+.view-toggle-button::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    45deg,
+    transparent,
+    rgba(255, 107, 157, 0.1),
+    transparent
+  );
+  transform: translateX(-100%);
+  transition: transform 0.5s ease;
+}
+
+.view-toggle-button:hover::before {
+  transform: translateX(100%);
+}
+
 .view-toggle-button:hover {
   transform: scale(1.05);
   background: rgba(255, 107, 157, 0.1);
@@ -283,6 +404,16 @@ defineExpose({
   color: white !important;
   box-shadow: 0 4px 12px rgba(255, 107, 157, 0.3);
   transform: scale(1.05);
+  animation: activeGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes activeGlow {
+  0% {
+    box-shadow: 0 4px 12px rgba(255, 107, 157, 0.3);
+  }
+  100% {
+    box-shadow: 0 6px 20px rgba(255, 107, 157, 0.5);
+  }
 }
 
 /* Обертка для сортировки */
@@ -372,6 +503,68 @@ defineExpose({
   .sort-select {
     font-size: 0.875rem;
     padding: 0.5rem 2rem 0.5rem 2.5rem;
+  }
+}
+
+/* Анимация движения градиента */
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  25% {
+    background-position: 100% 50%;
+  }
+  50% {
+    background-position: 100% 100%;
+  }
+  75% {
+    background-position: 0% 100%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Анимация свечения текста */
+@keyframes textGlow {
+  0% {
+    filter: brightness(1) contrast(1);
+    transform: scale(1);
+  }
+  100% {
+    filter: brightness(1.2) contrast(1.1);
+    transform: scale(1.02);
+  }
+}
+
+/* Дополнительный эффект переливания для заголовка */
+.catalog-title::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.4),
+    transparent
+  );
+  animation: shimmer 3s ease-in-out infinite;
+  z-index: 1;
+}
+
+/* Анимация блика */
+@keyframes shimmer {
+  0% {
+    left: -100%;
+  }
+  50% {
+    left: 100%;
+  }
+  100% {
+    left: 100%;
   }
 }
 </style>
