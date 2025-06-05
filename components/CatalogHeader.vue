@@ -56,17 +56,8 @@
             title="4 колонки - как витрина супермаркета"
             :disabled="isLoading"
           >
-            <!-- Иконка 4 колонки -->
-            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-              <rect x="1" y="2" width="3" height="3"></rect>
-              <rect x="5" y="2" width="3" height="3"></rect>
-              <rect x="9" y="2" width="3" height="3"></rect>
-              <rect x="13" y="2" width="3" height="3"></rect>
-              <rect x="1" y="6" width="3" height="3"></rect>
-              <rect x="5" y="6" width="3" height="3"></rect>
-              <rect x="9" y="6" width="3" height="3"></rect>
-              <rect x="13" y="6" width="3" height="3"></rect>
-            </svg>
+            <!-- Иконка 4 колонки с Heroicons -->
+            <Squares2X2Icon class="w-5 h-5" />
           </button>
           <button
             @click="$emit('changeViewMode', 3)"
@@ -79,19 +70,12 @@
             title="3 колонки - как в интернет-магазине"
             :disabled="isLoading"
           >
-            <!-- Иконка 3 колонки -->
-            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-              <rect x="2" y="2" width="4" height="4"></rect>
-              <rect x="8" y="2" width="4" height="4"></rect>
-              <rect x="14" y="2" width="4" height="4"></rect>
-              <rect x="2" y="8" width="4" height="4"></rect>
-              <rect x="8" y="8" width="4" height="4"></rect>
-              <rect x="14" y="8" width="4" height="4"></rect>
-            </svg>
+            <!-- Иконка 3 колонки с Heroicons -->
+            <ViewColumnsIcon class="w-5 h-5" />
           </button>
         </div>
 
-        <!-- Сортировка с иконками -->
+        <!-- Сортировка с иконками Heroicons -->
         <div class="relative sort-wrapper">
           <select
             :value="sortBy"
@@ -100,49 +84,29 @@
             ref="sortRef"
             :disabled="isLoading"
           >
-            <option value="popularity">🔥 По популярности</option>
-            <option value="price-asc">💰 Цена: по возрастанию</option>
-            <option value="price-desc">💎 Цена: по убыванию</option>
-            <option value="rating">⭐ По рейтингу</option>
-            <option value="newest">✨ Сначала новые</option>
+            <option value="popularity">По популярности</option>
+            <option value="price-asc">Цена: по возрастанию</option>
+            <option value="price-desc">Цена: по убыванию</option>
+            <option value="rating">По рейтингу</option>
+            <option value="newest">Сначала новые</option>
           </select>
 
-          <!-- Иконка сортировки -->
+          <!-- Иконка сортировки с Heroicons - динамическая для каждого типа -->
           <div
             class="absolute left-3 top-1/2 transform -translate-y-1/2 pointer-events-none"
           >
-            <svg
-              class="w-4 h-4 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
-              />
-            </svg>
+            <component
+              :is="sortIcon"
+              :class="['w-4 h-4 transition-all duration-300', sortIconColor]"
+              title="Иконка текущей сортировки"
+            />
           </div>
 
-          <!-- Стрелка выпадающего списка -->
+          <!-- Стрелка выпадающего списка с Heroicons -->
           <div
             class="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none"
           >
-            <svg
-              class="w-4 h-4 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M19 9l-7 7-7-7"
-              />
-            </svg>
+            <ChevronDownIcon class="w-4 h-4 text-gray-400" />
           </div>
         </div>
       </div>
@@ -152,6 +116,19 @@
 
 <script setup>
 import { ref, computed } from "vue";
+// Импорт иконок Heroicons в едином стиле с фильтрами
+import {
+  Squares2X2Icon,
+  ViewColumnsIcon,
+  ChevronDownIcon,
+  // Дополнительные иконки для разных типов сортировки
+  FireIcon, // Для популярности - как огонь популярности
+  ArrowUpIcon, // Для цены по возрастанию
+  ArrowDownIcon, // Для цены по убыванию
+  StarIcon, // Для рейтинга - звездочка оценки
+  SparklesIcon, // Для новинок - искорки новизны
+  CurrencyDollarIcon, // Дополнительная иконка для цены
+} from "@heroicons/vue/24/solid";
 
 // Пропсы компонента
 const props = defineProps({
@@ -214,6 +191,48 @@ const getProductsWord = (count) => {
     return "товаров";
   }
 };
+
+/**
+ * Computed свойство для определения иконки сортировки
+ * Как в Tinder - каждый тип имеет свою уникальную иконку
+ */
+const sortIcon = computed(() => {
+  switch (props.sortBy) {
+    case "popularity":
+      return FireIcon; // Огонь популярности
+    case "price-asc":
+      return ArrowUpIcon; // Стрелка вверх для возрастания цены
+    case "price-desc":
+      return ArrowDownIcon; // Стрелка вниз для убывания цены
+    case "rating":
+      return StarIcon; // Звезда для рейтинга
+    case "newest":
+      return SparklesIcon; // Искорки для новинок
+    default:
+      return FireIcon; // Дефолтная иконка сортировки
+  }
+});
+
+/**
+ * Computed свойство для цвета иконки сортировки
+ * Каждый тип сортировки имеет свой фирменный цвет
+ */
+const sortIconColor = computed(() => {
+  switch (props.sortBy) {
+    case "popularity":
+      return "text-orange-500"; // Оранжевый огонь популярности
+    case "price-asc":
+      return "text-green-500"; // Зеленый для роста цены
+    case "price-desc":
+      return "text-red-500"; // Красный для снижения цены
+    case "rating":
+      return "text-yellow-500"; // Желтый для звезды рейтинга
+    case "newest":
+      return "text-purple-500"; // Фиолетовый для новинок
+    default:
+      return "text-gray-400"; // Серый по умолчанию
+  }
+});
 
 // Экспорт ссылок для возможного использования родительским компонентом
 defineExpose({
@@ -566,5 +585,155 @@ defineExpose({
   100% {
     left: 100%;
   }
+}
+
+/* Анимации и стили для иконок */
+.view-toggle-button .w-5 {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.view-toggle-button:hover .w-5 {
+  transform: scale(1.1);
+  filter: drop-shadow(0 2px 4px rgba(255, 107, 157, 0.3));
+}
+
+.view-active .w-5 {
+  animation: iconPulse 2s ease-in-out infinite alternate;
+}
+
+@keyframes iconPulse {
+  0% {
+    transform: scale(1);
+    filter: drop-shadow(0 2px 4px rgba(255, 255, 255, 0.3));
+  }
+  100% {
+    transform: scale(1.05);
+    filter: drop-shadow(0 4px 8px rgba(255, 255, 255, 0.5));
+  }
+}
+
+/* Стили для иконок сортировки */
+.sort-wrapper .w-4 {
+  transition: all 0.3s ease;
+}
+
+/* Анимация для динамических иконок сортировки */
+.sort-wrapper [title="Иконка текущей сортировки"] {
+  animation: sortIconActive 2s ease-in-out infinite alternate;
+}
+
+@keyframes sortIconActive {
+  0% {
+    transform: scale(1) rotate(0deg);
+    filter: drop-shadow(0 0 2px currentColor);
+  }
+  100% {
+    transform: scale(1.1) rotate(2deg);
+    filter: drop-shadow(0 0 6px currentColor);
+  }
+}
+
+/* Специальные анимации для разных типов сортировки */
+.text-orange-500 {
+  animation: fireGlow 1.5s ease-in-out infinite alternate;
+}
+
+.text-green-500 {
+  animation: upArrowGlow 2s ease-in-out infinite;
+}
+
+.text-red-500 {
+  animation: downArrowGlow 2s ease-in-out infinite;
+}
+
+.text-yellow-500 {
+  animation: starTwinkle 1.8s ease-in-out infinite;
+}
+
+.text-purple-500 {
+  animation: sparkleShimmer 2.2s ease-in-out infinite;
+}
+
+/* Анимация огня для популярности */
+@keyframes fireGlow {
+  0% {
+    filter: drop-shadow(0 0 3px #f97316) brightness(1);
+  }
+  100% {
+    filter: drop-shadow(0 0 8px #f97316) brightness(1.2);
+  }
+}
+
+/* Анимация для стрелки вверх */
+@keyframes upArrowGlow {
+  0%,
+  100% {
+    transform: translateY(0);
+    filter: drop-shadow(0 0 2px #10b981);
+  }
+  50% {
+    transform: translateY(-2px);
+    filter: drop-shadow(0 0 6px #10b981);
+  }
+}
+
+/* Анимация для стрелки вниз */
+@keyframes downArrowGlow {
+  0%,
+  100% {
+    transform: translateY(0);
+    filter: drop-shadow(0 0 2px #ef4444);
+  }
+  50% {
+    transform: translateY(2px);
+    filter: drop-shadow(0 0 6px #ef4444);
+  }
+}
+
+/* Анимация мерцания звезды */
+@keyframes starTwinkle {
+  0%,
+  100% {
+    transform: scale(1) rotate(0deg);
+    filter: drop-shadow(0 0 3px #eab308) brightness(1);
+  }
+  25% {
+    transform: scale(1.1) rotate(18deg);
+    filter: drop-shadow(0 0 6px #eab308) brightness(1.3);
+  }
+  75% {
+    transform: scale(1.05) rotate(-18deg);
+    filter: drop-shadow(0 0 4px #eab308) brightness(1.1);
+  }
+}
+
+/* Анимация переливания для новинок */
+@keyframes sparkleShimmer {
+  0% {
+    transform: scale(1) rotate(0deg);
+    filter: drop-shadow(0 0 2px #8b5cf6) hue-rotate(0deg);
+  }
+  33% {
+    transform: scale(1.1) rotate(120deg);
+    filter: drop-shadow(0 0 6px #8b5cf6) hue-rotate(60deg);
+  }
+  66% {
+    transform: scale(1.05) rotate(240deg);
+    filter: drop-shadow(0 0 4px #8b5cf6) hue-rotate(120deg);
+  }
+  100% {
+    transform: scale(1) rotate(360deg);
+    filter: drop-shadow(0 0 2px #8b5cf6) hue-rotate(180deg);
+  }
+}
+
+.sort-select:focus + div .w-4,
+.sort-select:hover + div .w-4 {
+  transform: scale(1.2);
+  filter: brightness(1.3) !important;
+}
+
+.sort-select:focus ~ div .w-4 {
+  animation-duration: 1s !important;
 }
 </style>
