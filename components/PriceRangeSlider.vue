@@ -166,7 +166,7 @@ watch(
   font-weight: 400;
 }
 
-/* Range слайдер - исправленное позиционирование */
+/* Range слайдер - ИДЕАЛЬНОЕ центрирование */
 .range-slider {
   @apply relative;
   height: 20px;
@@ -185,9 +185,23 @@ watch(
   pointer-events: none;
   margin: 0;
   padding: 0;
+  border: none;
+  top: 0;
+  left: 0;
 }
 
-/* Стили для WebKit (Chrome, Safari, Edge) */
+/* Полная очистка стилей для WebKit */
+.range-input::-webkit-slider-runnable-track {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 20px;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  cursor: pointer;
+}
+
+/* Стили ползунков для WebKit - ТОЧНОЕ ПОЗИЦИОНИРОВАНИЕ */
 .range-input::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
@@ -203,6 +217,7 @@ watch(
   box-shadow: 0 2px 8px rgba(240, 98, 146, 0.3);
   transition: all 0.2s ease;
   margin-top: 0;
+  top: 0;
 }
 
 .range-input::-webkit-slider-thumb:hover {
@@ -215,17 +230,14 @@ watch(
   box-shadow: 0 2px 6px rgba(240, 98, 146, 0.5);
 }
 
-/* Убираем фон трека для input */
-.range-input::-webkit-slider-runnable-track {
-  -webkit-appearance: none;
-  appearance: none;
-  height: 6px;
+/* Стили для Firefox - ТОЧНОЕ ПОЗИЦИОНИРОВАНИЕ */
+.range-input::-moz-range-track {
   background: transparent;
   border: none;
-  border-radius: 3px;
+  height: 20px;
+  cursor: pointer;
 }
 
-/* Стили для Firefox */
 .range-input::-moz-range-thumb {
   height: 20px;
   width: 20px;
@@ -240,6 +252,8 @@ watch(
   transition: all 0.2s ease;
   border-width: 0;
   margin: 0;
+  -moz-appearance: none;
+  appearance: none;
 }
 
 .range-input::-moz-range-thumb:hover {
@@ -252,17 +266,11 @@ watch(
   box-shadow: 0 2px 6px rgba(240, 98, 146, 0.5);
 }
 
-.range-input::-moz-range-track {
-  background: transparent;
-  border: none;
-  height: 6px;
-}
-
 .range-input::-moz-range-progress {
   background: transparent;
 }
 
-/* Трек слайдера - точно по центру */
+/* Трек слайдера - СТРОГО ПО ЦЕНТРУ */
 .range-track {
   @apply absolute left-0 right-0;
   height: 6px;
@@ -303,9 +311,17 @@ watch(
     width: 18px;
   }
 
+  .range-input::-webkit-slider-runnable-track {
+    height: 18px;
+  }
+
   .range-input::-moz-range-thumb {
     height: 18px;
     width: 18px;
+  }
+
+  .range-input::-moz-range-track {
+    height: 18px;
   }
 
   .range-track {
@@ -318,6 +334,14 @@ watch(
 }
 
 /* Дополнительные стили для IE/Edge */
+.range-input::-ms-track {
+  background: transparent;
+  border: none;
+  height: 20px;
+  color: transparent;
+  cursor: pointer;
+}
+
 .range-input::-ms-thumb {
   height: 20px;
   width: 20px;
@@ -326,13 +350,7 @@ watch(
   border: 3px solid #fff;
   cursor: pointer;
   box-shadow: 0 2px 8px rgba(240, 98, 146, 0.3);
-}
-
-.range-input::-ms-track {
-  background: transparent;
-  border: none;
-  height: 6px;
-  color: transparent;
+  margin-top: 0;
 }
 
 .range-input::-ms-fill-lower,
@@ -354,5 +372,14 @@ watch(
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* Дополнительное принудительное выравнивание */
+.range-input {
+  vertical-align: middle !important;
+}
+
+.range-input:focus {
+  outline: none !important;
 }
 </style>
