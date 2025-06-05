@@ -4,24 +4,23 @@
     ref="headerRef"
   >
     <!-- Skeleton состояние при загрузке -->
-    <div v-if="isLoading" class="animate-pulse">
-      <div
-        class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
-      >
-        <div class="space-y-3">
-          <!-- Заголовок skeleton -->
-          <div class="h-8 bg-gray-200 rounded-lg w-64"></div>
-          <!-- Счетчик товаров skeleton -->
-          <div class="h-5 bg-gray-200 rounded-lg w-32"></div>
-        </div>
+    <div v-if="isLoading" class="pink-rabbit-header-skeleton">
+      <div class="skeleton-content">
+        <!-- Заголовок skeleton -->
+        <div class="skeleton-title"></div>
+        <!-- Счетчик товаров skeleton -->
+        <div class="skeleton-counter"></div>
+      </div>
 
-        <!-- Элементы управления skeleton -->
-        <div class="flex items-center gap-4">
-          <!-- Переключатель видов skeleton -->
-          <div class="h-10 bg-gray-200 rounded-lg w-24"></div>
-          <!-- Сортировка skeleton -->
-          <div class="h-10 bg-gray-200 rounded-lg w-40"></div>
+      <!-- Элементы управления skeleton -->
+      <div class="skeleton-controls">
+        <!-- Переключатель видов skeleton -->
+        <div class="skeleton-view-toggle">
+          <div class="skeleton-view-btn"></div>
+          <div class="skeleton-view-btn"></div>
         </div>
+        <!-- Сортировка skeleton -->
+        <div class="skeleton-sort-dropdown"></div>
       </div>
     </div>
 
@@ -707,26 +706,6 @@ defineExpose({
   }
 }
 
-/* Анимация переливания для новинок */
-@keyframes sparkleShimmer {
-  0% {
-    transform: scale(1) rotate(0deg);
-    filter: drop-shadow(0 0 2px #8b5cf6) hue-rotate(0deg);
-  }
-  33% {
-    transform: scale(1.1) rotate(120deg);
-    filter: drop-shadow(0 0 6px #8b5cf6) hue-rotate(60deg);
-  }
-  66% {
-    transform: scale(1.05) rotate(240deg);
-    filter: drop-shadow(0 0 4px #8b5cf6) hue-rotate(120deg);
-  }
-  100% {
-    transform: scale(1) rotate(360deg);
-    filter: drop-shadow(0 0 2px #8b5cf6) hue-rotate(180deg);
-  }
-}
-
 .sort-select:focus + div .w-4,
 .sort-select:hover + div .w-4 {
   transform: scale(1.2);
@@ -735,5 +714,111 @@ defineExpose({
 
 .sort-select:focus ~ div .w-4 {
   animation-duration: 1s !important;
+}
+
+/* === СТИЛИ СКЕЛЕТОНА ЗАГОЛОВКА В СТИЛЕ PINK RABBIT === */
+.pink-rabbit-header-skeleton {
+  @apply flex justify-between items-center p-4 mb-6 bg-white rounded-xl shadow-sm border border-gray-100;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.pink-rabbit-header-skeleton:hover {
+  box-shadow: 0 10px 25px rgba(236, 72, 153, 0.1);
+  border-color: rgba(236, 72, 153, 0.2);
+}
+
+.skeleton-content {
+  @apply flex items-center gap-4;
+}
+
+.skeleton-title {
+  width: 200px;
+  height: 28px;
+  background: linear-gradient(
+    90deg,
+    rgba(236, 72, 153, 0.08) 0%,
+    rgba(236, 72, 153, 0.25) 50%,
+    rgba(236, 72, 153, 0.08) 100%
+  );
+  background-size: 200% 100%;
+  border-radius: 14px;
+  animation: pinkRabbitShimmer 3.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  animation-delay: 0.2s;
+}
+
+.skeleton-counter {
+  width: 80px;
+  height: 20px;
+  background: linear-gradient(
+    90deg,
+    rgba(236, 72, 153, 0.05) 0%,
+    rgba(236, 72, 153, 0.15) 50%,
+    rgba(236, 72, 153, 0.05) 100%
+  );
+  background-size: 200% 100%;
+  border-radius: 10px;
+  animation: pinkRabbitShimmer 3.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  animation-delay: 0.4s;
+}
+
+.skeleton-controls {
+  @apply flex items-center gap-3;
+}
+
+.skeleton-view-toggle {
+  @apply flex gap-2;
+}
+
+.skeleton-view-btn {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(
+    90deg,
+    rgba(236, 72, 153, 0.08) 0%,
+    rgba(236, 72, 153, 0.2) 50%,
+    rgba(236, 72, 153, 0.08) 100%
+  );
+  background-size: 200% 100%;
+  border-radius: 10px;
+  animation: pinkRabbitShimmer 3.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.skeleton-view-btn:nth-child(1) {
+  animation-delay: 0.6s;
+}
+
+.skeleton-view-btn:nth-child(2) {
+  animation-delay: 0.8s;
+}
+
+.skeleton-sort-dropdown {
+  width: 160px;
+  height: 40px;
+  background: linear-gradient(
+    90deg,
+    rgba(236, 72, 153, 0.08) 0%,
+    rgba(236, 72, 153, 0.2) 50%,
+    rgba(236, 72, 153, 0.08) 100%
+  );
+  background-size: 200% 100%;
+  border-radius: 10px;
+  animation: pinkRabbitShimmer 3.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  animation-delay: 1s;
+}
+
+/* === АНИМАЦИИ СКЕЛЕТОНА === */
+@keyframes pinkRabbitShimmer {
+  0% {
+    background-position: -200px 0;
+    opacity: 0.5;
+  }
+  50% {
+    background-position: calc(100px + 50%) 0;
+    opacity: 1;
+  }
+  100% {
+    background-position: calc(200px + 100%) 0;
+    opacity: 0.5;
+  }
 }
 </style>

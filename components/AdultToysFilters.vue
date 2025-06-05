@@ -1,43 +1,47 @@
 <template>
   <div class="filters-container">
     <!-- Skeleton при загрузке -->
-    <div v-if="isLoading" class="skeleton-wrapper">
-      <!-- Заголовок skeleton -->
+    <div v-if="isLoading" class="pink-rabbit-filters-skeleton">
+      <!-- Заголовок skeleton с минимальным дизайном -->
       <div class="skeleton-header">
-        <div class="skeleton-title"></div>
-        <div class="skeleton-controls">
-          <div class="skeleton-btn skeleton-btn-small"></div>
-          <div class="skeleton-btn skeleton-btn-small"></div>
+        <div class="skeleton-header-content">
+          <div class="skeleton-title"></div>
+          <div class="skeleton-counter"></div>
         </div>
+        <div class="skeleton-toggle-btn"></div>
       </div>
 
-      <!-- Skeleton контент фильтров -->
+      <!-- Простой красивый контент skeleton -->
       <div class="skeleton-content">
-        <!-- Повторяем skeleton для каждой секции -->
-        <div v-for="n in 6" :key="n" class="skeleton-section">
+        <!-- Уменьшенное количество секций для элегантности (было 4, стало 2) -->
+        <div
+          v-for="n in 2"
+          :key="n"
+          class="skeleton-section"
+          :style="{ animationDelay: `${n * 0.3}s` }"
+        >
           <div class="skeleton-section-header">
             <div class="skeleton-section-title"></div>
-            <div class="skeleton-arrow"></div>
+            <div class="skeleton-chevron"></div>
           </div>
-          <div class="skeleton-section-body">
+          <!-- Упрощенные опции (было 3, стало 2) -->
+          <div class="skeleton-options">
             <div
-              v-for="i in 4"
+              v-for="i in 2"
               :key="i"
               class="skeleton-option"
-              :style="{ animationDelay: `${(n - 1) * 0.1 + i * 0.05}s` }"
+              :style="{ animationDelay: `${n * 0.3 + i * 0.2}s` }"
             >
               <div class="skeleton-checkbox"></div>
               <div class="skeleton-label"></div>
-              <div class="skeleton-count"></div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Skeleton кнопки действий -->
-      <div class="skeleton-actions">
-        <div class="skeleton-btn skeleton-btn-primary"></div>
-        <div class="skeleton-btn skeleton-btn-secondary"></div>
+      <!-- Простые кнопки действий (только одна кнопка) -->
+      <div class="skeleton-footer">
+        <div class="skeleton-apply-btn" style="animation-delay: 1.2s"></div>
       </div>
     </div>
 
@@ -748,47 +752,74 @@ const onPriceRangeChange = (range) => {
 </script>
 
 <style scoped>
-/* Skeleton стили */
-.skeleton-wrapper {
+/* === СТИЛИ СКЕЛЕТОНА В СТИЛЕ PINK RABBIT === */
+.pink-rabbit-filters-skeleton {
   @apply bg-white rounded-lg border border-gray-200 shadow-sm;
+  transition: all 0.3s ease;
+}
+
+.pink-rabbit-filters-skeleton:hover {
+  box-shadow: 0 8px 25px rgba(236, 72, 153, 0.08);
+  border-color: rgba(236, 72, 153, 0.2);
 }
 
 .skeleton-header {
   @apply p-4 border-b border-gray-200 flex justify-between items-center;
+  background: linear-gradient(
+    135deg,
+    rgba(248, 250, 252, 0.8),
+    rgba(255, 255, 255, 0.9)
+  );
 }
 
-.skeleton-title {
-  @apply h-6 bg-gradient-to-r from-gray-200 via-pink-100 to-gray-200 rounded-md;
-  width: 150px;
-  animation: shimmer 2s ease-in-out infinite;
-}
-
-.skeleton-controls {
+.skeleton-header-content {
   @apply flex items-center gap-3;
 }
 
-.skeleton-btn {
-  @apply bg-gradient-to-r from-gray-200 via-pink-100 to-gray-200 rounded-lg;
-  animation: shimmer 2s ease-in-out infinite;
+.skeleton-title {
+  width: 120px;
+  height: 24px;
+  background: linear-gradient(
+    90deg,
+    rgba(236, 72, 153, 0.08) 0%,
+    rgba(236, 72, 153, 0.25) 50%,
+    rgba(236, 72, 153, 0.08) 100%
+  );
+  background-size: 200% 100%;
+  border-radius: 12px;
+  animation: pinkRabbitShimmer 3.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
-.skeleton-btn-small {
-  @apply h-8;
-  width: 80px;
+.skeleton-counter {
+  width: 40px;
+  height: 16px;
+  background: linear-gradient(
+    90deg,
+    rgba(236, 72, 153, 0.05) 0%,
+    rgba(236, 72, 153, 0.15) 50%,
+    rgba(236, 72, 153, 0.05) 100%
+  );
+  background-size: 200% 100%;
+  border-radius: 8px;
+  animation: pinkRabbitShimmer 3.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
-.skeleton-btn-primary {
-  @apply h-12;
-  width: 140px;
-}
-
-.skeleton-btn-secondary {
-  @apply h-12;
-  width: 100px;
+.skeleton-toggle-btn {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(
+    90deg,
+    rgba(236, 72, 153, 0.08) 0%,
+    rgba(236, 72, 153, 0.2) 50%,
+    rgba(236, 72, 153, 0.08) 100%
+  );
+  background-size: 200% 100%;
+  border-radius: 10px;
+  animation: pinkRabbitShimmer 3.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
 .skeleton-content {
-  @apply p-4 space-y-3;
+  @apply p-4 space-y-4;
 }
 
 .skeleton-section {
@@ -798,6 +829,8 @@ const onPriceRangeChange = (range) => {
     rgba(255, 255, 255, 0.9),
     rgba(248, 250, 252, 0.9)
   );
+  opacity: 0;
+  animation: fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 .skeleton-section-header {
@@ -805,44 +838,72 @@ const onPriceRangeChange = (range) => {
 }
 
 .skeleton-section-title {
-  @apply h-5 bg-gradient-to-r from-gray-200 via-pink-100 to-gray-200 rounded;
-  width: 120px;
-  animation: shimmer 2s ease-in-out infinite;
+  width: 100px;
+  height: 18px;
+  background: linear-gradient(
+    90deg,
+    rgba(236, 72, 153, 0.08) 0%,
+    rgba(236, 72, 153, 0.25) 50%,
+    rgba(236, 72, 153, 0.08) 100%
+  );
+  background-size: 200% 100%;
+  border-radius: 9px;
+  animation: pinkRabbitShimmer 3.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
-.skeleton-arrow {
-  @apply h-4 w-4 bg-gradient-to-r from-gray-200 via-pink-100 to-gray-200 rounded;
-  animation: shimmer 2s ease-in-out infinite;
+.skeleton-chevron {
+  width: 16px;
+  height: 16px;
+  background: linear-gradient(
+    90deg,
+    rgba(236, 72, 153, 0.05) 0%,
+    rgba(236, 72, 153, 0.15) 50%,
+    rgba(236, 72, 153, 0.05) 100%
+  );
+  background-size: 200% 100%;
+  border-radius: 8px;
+  animation: pinkRabbitShimmer 3.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
-.skeleton-section-body {
-  @apply p-3 pt-0 border-t border-gray-100 space-y-2;
+.skeleton-options {
+  @apply p-3 pt-0 space-y-3;
 }
 
 .skeleton-option {
-  @apply flex items-center gap-2 p-2;
-  animation: slideInFromLeft 0.8s ease-out forwards;
+  @apply flex items-center gap-3 p-2;
   opacity: 0;
-  transform: translateX(-20px);
+  animation: fadeInLeft 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 .skeleton-checkbox {
-  @apply h-4 w-4 bg-gradient-to-r from-gray-200 via-pink-100 to-gray-200 rounded;
-  animation: shimmer 2s ease-in-out infinite;
+  width: 16px;
+  height: 16px;
+  background: linear-gradient(
+    90deg,
+    rgba(236, 72, 153, 0.08) 0%,
+    rgba(236, 72, 153, 0.2) 50%,
+    rgba(236, 72, 153, 0.08) 100%
+  );
+  background-size: 200% 100%;
+  border-radius: 4px;
+  animation: pinkRabbitShimmer 3.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
 .skeleton-label {
-  @apply h-4 bg-gradient-to-r from-gray-200 via-pink-100 to-gray-200 rounded flex-1;
-  animation: shimmer 2s ease-in-out infinite;
+  flex: 1;
+  height: 16px;
+  background: linear-gradient(
+    90deg,
+    rgba(236, 72, 153, 0.05) 0%,
+    rgba(236, 72, 153, 0.15) 50%,
+    rgba(236, 72, 153, 0.05) 100%
+  );
+  background-size: 200% 100%;
+  border-radius: 8px;
+  animation: pinkRabbitShimmer 3.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
-.skeleton-count {
-  @apply h-4 bg-gradient-to-r from-gray-200 via-pink-100 to-gray-200 rounded;
-  width: 30px;
-  animation: shimmer 2s ease-in-out infinite;
-}
-
-.skeleton-actions {
+.skeleton-footer {
   @apply sticky bottom-0 bg-white border-t border-gray-200 p-4 flex gap-3;
   background: linear-gradient(
     135deg,
@@ -852,46 +913,56 @@ const onPriceRangeChange = (range) => {
   backdrop-filter: blur(10px);
 }
 
-/* Анимации skeleton */
-@keyframes shimmer {
+.skeleton-apply-btn {
+  flex: 1;
+  height: 48px;
+  background: linear-gradient(
+    90deg,
+    rgba(236, 72, 153, 0.12) 0%,
+    rgba(236, 72, 153, 0.3) 50%,
+    rgba(236, 72, 153, 0.12) 100%
+  );
+  background-size: 200% 100%;
+  border-radius: 12px;
+  animation: pinkRabbitShimmer 3.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+/* === АНИМАЦИИ СКЕЛЕТОНА === */
+@keyframes pinkRabbitShimmer {
   0% {
     background-position: -200px 0;
+    opacity: 0.5;
+  }
+  50% {
+    background-position: calc(100px + 50%) 0;
+    opacity: 1;
   }
   100% {
     background-position: calc(200px + 100%) 0;
+    opacity: 0.5;
   }
 }
 
-@keyframes slideInFromLeft {
+@keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateX(-20px);
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-15px);
   }
   to {
     opacity: 1;
     transform: translateX(0);
   }
-}
-
-/* Обновление градиентов для skeleton */
-.skeleton-btn,
-.skeleton-title,
-.skeleton-section-title,
-.skeleton-arrow,
-.skeleton-checkbox,
-.skeleton-label,
-.skeleton-count {
-  background: linear-gradient(
-    90deg,
-    rgba(236, 72, 153, 0.1) 0%,
-    rgba(236, 72, 153, 0.2) 20%,
-    rgba(219, 39, 119, 0.1) 40%,
-    rgba(236, 72, 153, 0.2) 60%,
-    rgba(236, 72, 153, 0.1) 80%,
-    rgba(236, 72, 153, 0.05) 100%
-  );
-  background-size: 200px 100%;
-  background-repeat: no-repeat;
 }
 
 /* Основной контейнер */
