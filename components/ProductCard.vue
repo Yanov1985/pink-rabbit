@@ -208,29 +208,6 @@
       <!-- Название товара - главный заголовок статьи -->
       <h1 class="product-title" itemprop="name">{{ product.name }}</h1>
 
-      <!-- Характеристики товара -->
-      <section
-        class="product-specs"
-        role="region"
-        aria-labelledby="specs-heading"
-      >
-        <h2 id="specs-heading" class="sr-only">Характеристики товара</h2>
-        <div>
-          <strong>Бренд:</strong>
-          <span itemprop="brand" itemscope itemtype="https://schema.org/Brand">
-            <span itemprop="name">{{ product.brand }}</span>
-          </span>
-        </div>
-        <div>
-          <strong>Материал:</strong>
-          <span itemprop="material">{{ product.material }}</span>
-        </div>
-        <div>
-          <strong>Цвет:</strong>
-          <span itemprop="color">{{ product.color }}</span>
-        </div>
-      </section>
-
       <!-- Цена товара -->
       <section
         class="price-section"
@@ -277,7 +254,7 @@
     </div>
 
     <!-- Подвал карточки - действия -->
-    <footer role="contentinfo">
+    <footer class="product-footer" role="contentinfo">
       <nav
         class="bottom-actions"
         role="navigation"
@@ -800,10 +777,13 @@ if (typeof window !== "undefined") {
 /* === КОНТЕЙНЕР ИЗОБРАЖЕНИЯ === */
 .image-container {
   position: relative;
-  aspect-ratio: 1;
+  aspect-ratio: 1; /* Квадратный контейнер */
   background: linear-gradient(135deg, #f9fafb, #f3f4f6);
   overflow: hidden;
   cursor: pointer;
+  /* Убеждаемся что контейнер полностью заполняется */
+  width: 100%;
+  min-height: 0; /* Важно для flex элементов */
 }
 
 .image-container:hover {
@@ -832,15 +812,15 @@ if (typeof window !== "undefined") {
 
 /* === СЛАЙДЕР ИЗОБРАЖЕНИЙ === */
 .image-slider {
-  position: relative;
+  position: absolute; /* Абсолютное позиционирование для полного заполнения */
+  top: 0;
+  left: 0;
   width: 100%;
-  height: 200px;
+  height: 100%; /* Заполняем весь контейнер */
   overflow: hidden;
   background: #f8f8f8;
   border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  /* Убираем flex - используем absolute позиционирование */
 }
 
 .slider-image {
@@ -849,10 +829,14 @@ if (typeof window !== "undefined") {
   left: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: cover; /* Заполняет всю область с сохранением пропорций */
+  object-position: center; /* Центрируем изображение */
   opacity: 0;
   transition: opacity 0.5s ease-in-out;
   border-radius: 8px;
+  /* Дополнительная защита от пустого пространства */
+  min-width: 100%;
+  min-height: 100%;
 }
 
 .slider-image.active {
@@ -1050,7 +1034,7 @@ if (typeof window !== "undefined") {
 
 /* === ИНФОРМАЦИЯ О ТОВАРЕ === */
 .product-info {
-  padding: 16px 16px 0 16px;
+  padding: 16px 16px 16px 16px; /* Равномерные отступы по всем сторонам */
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -1100,17 +1084,6 @@ if (typeof window !== "undefined") {
   white-space: normal;
 }
 
-.product-specs {
-  font-size: 12px;
-  color: #6b7280;
-  margin-bottom: 12px;
-  line-height: 1.3;
-}
-
-.product-specs > div {
-  margin-bottom: 2px;
-}
-
 .price-section {
   display: flex;
   align-items: center;
@@ -1152,16 +1125,15 @@ if (typeof window !== "undefined") {
 }
 
 /* === НИЖНИЕ КНОПКИ ДЕЙСТВИЙ === */
-footer {
-  margin-top: auto; /* Прижимаем footer к низу карточки */
-}
-
 .bottom-actions {
   display: flex;
   align-items: center;
   gap: 10px;
-  /* Нормальные отступы от краев */
-  padding: 16px; /* Равномерные отступы со всех сторон */
+  /* Убираем margin-top и позиционируем в конце флекс-контейнера */
+  margin-top: auto;
+  /* Добавляем отступы от краев карточки для визуального "дыхания" */
+  margin-bottom: 8px; /* Увеличенный отступ снизу */
+  padding: 0 8px; /* Отступы по бокам */
   /* Фиксированная высота для одинакового расположения на всех карточках */
   min-height: 42px;
   /* ВЫСОКИЙ Z-INDEX для кликабельности */
@@ -1317,7 +1289,7 @@ footer {
   /* Адаптивные стили для нижних кнопок */
   .bottom-actions {
     gap: 8px;
-    padding: 12px; /* Уменьшенные отступы для мобильных */
+    margin-top: auto;
     min-height: 38px;
   }
 
