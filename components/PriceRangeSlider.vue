@@ -1,25 +1,41 @@
 <template>
   <div class="price-filter">
-    <!-- Поля ввода цены -->
+    <!-- Компактные поля ввода цены -->
     <div class="price-inputs">
-      <input
-        v-model.number="localMin"
-        @input="updateValues"
-        type="number"
-        :min="min"
-        :max="max"
-        class="price-input"
-        :placeholder="min.toString()"
-      />
-      <input
-        v-model.number="localMax"
-        @input="updateValues"
-        type="number"
-        :min="min"
-        :max="max"
-        class="price-input"
-        :placeholder="max.toString()"
-      />
+      <div class="price-input-group">
+        <label class="price-label">От</label>
+        <div class="input-wrapper">
+          <input
+            v-model.number="localMin"
+            @input="updateValues"
+            @blur="validateAndFormat"
+            type="number"
+            :min="min"
+            :max="max"
+            :step="step"
+            class="price-input"
+            :placeholder="formatPrice(min)"
+          />
+          <span class="price-currency">₽</span>
+        </div>
+      </div>
+      <div class="price-input-group">
+        <label class="price-label">До</label>
+        <div class="input-wrapper">
+          <input
+            v-model.number="localMax"
+            @input="updateValues"
+            @blur="validateAndFormat"
+            type="number"
+            :min="min"
+            :max="max"
+            :step="step"
+            class="price-input"
+            :placeholder="formatPrice(max)"
+          />
+          <span class="price-currency">₽</span>
+        </div>
+      </div>
     </div>
 
     <!-- Range слайдер -->
@@ -45,6 +61,11 @@
       <div class="range-track">
         <div class="range-fill" :style="fillStyle"></div>
       </div>
+    </div>
+
+    <!-- Компактное отображение выбранного диапазона -->
+    <div class="price-display">
+      {{ formatPrice(localMin) }} — {{ formatPrice(localMax) }} ₽
     </div>
   </div>
 </template>
@@ -130,34 +151,72 @@ watch(
     localMax.value = newValue.max || props.max;
   }
 );
+
+// Дополнительные функции
+const formatPrice = (value) => {
+  return value.toLocaleString("ru-RU");
+};
+
+const validateAndFormat = () => {
+  // Реализация валидации и форматирования
+};
 </script>
 
 <style scoped>
 .price-filter {
-  @apply space-y-4;
-  margin-top: 12px;
+  @apply space-y-3;
+  margin-top: 8px;
+  padding: 0 4px;
 }
 
 .price-inputs {
   @apply grid grid-cols-2 gap-3;
+  padding: 0 2px;
+}
+
+.price-input-group {
+  @apply relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.price-label {
+  @apply text-xs font-medium text-gray-600;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  letter-spacing: 0.02em;
+  margin-bottom: 0;
+  line-height: 1.2;
+}
+
+.input-wrapper {
+  @apply relative;
+  position: relative;
 }
 
 .price-input {
   @apply w-full px-3 py-2 text-sm border rounded-lg;
-  @apply focus:outline-none focus:ring-2 focus:ring-pink-200;
+  @apply focus:outline-none focus:ring-1 focus:ring-pink-200;
   @apply transition-all duration-200;
-  background: #fafafa;
+  background: linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%);
   border: 1px solid #e0e0e0;
   color: #333;
   font-size: 13px;
-  height: 32px;
+  height: 36px;
   font-weight: 500;
+  padding-right: 24px;
+  margin: 0;
 }
 
 .price-input:focus {
   border-color: #f06292;
-  background: #fff;
-  box-shadow: 0 0 0 3px rgba(240, 98, 146, 0.1);
+  background: linear-gradient(135deg, #fff 0%, #fafafa 100%);
+  box-shadow: 0 0 0 2px rgba(240, 98, 146, 0.08);
+}
+
+.price-input:hover {
+  border-color: #f06292;
+  background: linear-gradient(135deg, #fdfdfd 0%, #f8f8f8 100%);
 }
 
 .price-input::placeholder {
@@ -166,11 +225,30 @@ watch(
   font-weight: 400;
 }
 
-/* Range слайдер - ИДЕАЛЬНОЕ центрирование */
+.price-currency {
+  @apply absolute right-2 top-1/2 transform -translate-y-1/2;
+  @apply text-xs text-gray-500 font-medium pointer-events-none;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  line-height: 1;
+}
+
+.price-display {
+  @apply text-center text-xs font-semibold text-gray-700;
+  @apply bg-gradient-to-r from-pink-50 to-pink-100;
+  @apply border border-pink-200 rounded-md px-3 py-1.5;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  letter-spacing: 0.02em;
+  box-shadow: 0 1px 2px rgba(240, 98, 146, 0.08);
+  margin: 6px 0 0 0;
+  line-height: 1.3;
+}
+
+/* Range слайдер - КОМПАКТНАЯ версия */
 .range-slider {
   @apply relative;
-  height: 20px;
-  margin-top: 16px;
+  height: 18px;
+  margin-top: 12px;
+  margin-bottom: 6px;
   display: flex;
   align-items: center;
 }
@@ -179,7 +257,7 @@ watch(
   @apply absolute w-full;
   -webkit-appearance: none;
   appearance: none;
-  height: 20px;
+  height: 18px;
   background: transparent;
   outline: none;
   pointer-events: none;
@@ -194,61 +272,61 @@ watch(
 .range-input::-webkit-slider-runnable-track {
   -webkit-appearance: none;
   appearance: none;
-  height: 20px;
+  height: 18px;
   background: transparent;
   border: none;
   border-radius: 0;
   cursor: pointer;
 }
 
-/* Стили ползунков для WebKit - ТОЧНОЕ ПОЗИЦИОНИРОВАНИЕ */
+/* Стили ползунков для WebKit - КОМПАКТНЫЕ */
 .range-input::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  height: 20px;
-  width: 20px;
+  height: 18px;
+  width: 18px;
   border-radius: 50%;
   background: linear-gradient(135deg, #f06292 0%, #e91e63 100%);
-  border: 3px solid #fff;
+  border: 2px solid #fff;
   cursor: pointer;
   pointer-events: all;
   position: relative;
   z-index: 3;
-  box-shadow: 0 2px 8px rgba(240, 98, 146, 0.3);
+  box-shadow: 0 2px 6px rgba(240, 98, 146, 0.25);
   transition: all 0.2s ease;
   margin-top: 0;
   top: 0;
 }
 
 .range-input::-webkit-slider-thumb:hover {
-  transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(240, 98, 146, 0.4);
+  transform: scale(1.08);
+  box-shadow: 0 3px 8px rgba(240, 98, 146, 0.35);
 }
 
 .range-input::-webkit-slider-thumb:active {
-  transform: scale(1.05);
-  box-shadow: 0 2px 6px rgba(240, 98, 146, 0.5);
+  transform: scale(1.02);
+  box-shadow: 0 2px 4px rgba(240, 98, 146, 0.4);
 }
 
-/* Стили для Firefox - ТОЧНОЕ ПОЗИЦИОНИРОВАНИЕ */
+/* Стили для Firefox - КОМПАКТНЫЕ */
 .range-input::-moz-range-track {
   background: transparent;
   border: none;
-  height: 20px;
+  height: 18px;
   cursor: pointer;
 }
 
 .range-input::-moz-range-thumb {
-  height: 20px;
-  width: 20px;
+  height: 18px;
+  width: 18px;
   border-radius: 50%;
   background: linear-gradient(135deg, #f06292 0%, #e91e63 100%);
-  border: 3px solid #fff;
+  border: 2px solid #fff;
   cursor: pointer;
   pointer-events: all;
   position: relative;
   z-index: 3;
-  box-shadow: 0 2px 8px rgba(240, 98, 146, 0.3);
+  box-shadow: 0 2px 6px rgba(240, 98, 146, 0.25);
   transition: all 0.2s ease;
   border-width: 0;
   margin: 0;
@@ -257,79 +335,118 @@ watch(
 }
 
 .range-input::-moz-range-thumb:hover {
-  transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(240, 98, 146, 0.4);
+  transform: scale(1.08);
+  box-shadow: 0 3px 8px rgba(240, 98, 146, 0.35);
 }
 
 .range-input::-moz-range-thumb:active {
-  transform: scale(1.05);
-  box-shadow: 0 2px 6px rgba(240, 98, 146, 0.5);
+  transform: scale(1.02);
+  box-shadow: 0 2px 4px rgba(240, 98, 146, 0.4);
 }
 
 .range-input::-moz-range-progress {
   background: transparent;
 }
 
-/* Трек слайдера - СТРОГО ПО ЦЕНТРУ */
+/* Трек слайдера - КОМПАКТНЫЙ */
 .range-track {
   @apply absolute left-0 right-0;
-  height: 6px;
+  height: 5px;
   background: linear-gradient(90deg, #f5f5f5 0%, #e8e8e8 100%);
-  border-radius: 3px;
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+  border-radius: 2.5px;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.08);
   top: 50%;
   transform: translateY(-50%);
   z-index: 1;
 }
 
 .range-fill {
-  @apply absolute top-0 h-full rounded-lg;
+  @apply absolute top-0 h-full rounded;
   background: linear-gradient(90deg, #f06292 0%, #e91e63 100%);
   transition: all 0.15s ease;
-  box-shadow: 0 1px 3px rgba(240, 98, 146, 0.3);
+  box-shadow: 0 1px 2px rgba(240, 98, 146, 0.25);
   z-index: 2;
+  border-radius: 2.5px;
 }
 
-/* Адаптивность */
+/* Адаптивность - МАКСИМАЛЬНО КОМПАКТНО */
 @media (max-width: 640px) {
+  .price-filter {
+    @apply space-y-2;
+    margin-top: 6px;
+    padding: 0 2px;
+  }
+
+  .price-inputs {
+    @apply grid-cols-1 gap-2;
+    padding: 0;
+  }
+
+  .price-input-group {
+    gap: 3px;
+  }
+
+  .price-label {
+    @apply text-xs;
+    margin-bottom: 0;
+    line-height: 1.1;
+  }
+
   .price-input {
     @apply py-2 px-3;
     font-size: 12px;
-    height: 30px;
+    height: 32px;
+    padding-right: 20px;
+  }
+
+  .price-currency {
+    @apply text-xs;
+    right: 6px;
+  }
+
+  .price-display {
+    @apply text-xs px-2 py-1;
+    margin: 4px 0 0 0;
+    line-height: 1.2;
   }
 
   .range-slider {
-    height: 18px;
+    height: 16px;
+    margin-top: 8px;
+    margin-bottom: 4px;
   }
 
   .range-input {
-    height: 18px;
+    height: 16px;
   }
 
   .range-input::-webkit-slider-thumb {
-    height: 18px;
-    width: 18px;
+    height: 16px;
+    width: 16px;
+    border: 2px solid #fff;
   }
 
   .range-input::-webkit-slider-runnable-track {
-    height: 18px;
+    height: 16px;
   }
 
   .range-input::-moz-range-thumb {
-    height: 18px;
-    width: 18px;
+    height: 16px;
+    width: 16px;
+    border: 2px solid #fff;
   }
 
   .range-input::-moz-range-track {
-    height: 18px;
+    height: 16px;
   }
 
   .range-track {
-    height: 5px;
+    height: 4px;
+    border-radius: 2px;
   }
 
   .range-fill {
-    @apply rounded;
+    border-radius: 2px;
   }
 }
 

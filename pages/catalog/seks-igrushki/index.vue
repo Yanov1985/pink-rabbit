@@ -41,12 +41,19 @@
                 selectedBrands,
                 selectedMaterials,
                 selectedColors,
+                selectedLengths,
+                selectedDiameters,
+                selectedVibrationModes,
+                selectedWaterproofLevels,
+                hasHeating,
+                selectedMotorCounts,
+                selectedAromas,
+                isEdible,
                 onlyInStock,
                 onlyWithDiscount,
                 onlyNew,
               }"
-              @update-filters="updateFilters"
-              @apply-filters="applyFilters"
+              @update-filters="applyFilters"
               @reset-filters="resetFilters"
             />
           </aside>
@@ -213,12 +220,20 @@ const itemsPerPage = ref(50); // Увеличиваем до 50 товаров �
 const viewMode = ref(4); // 4 или 3 колонки
 const sortBy = ref("popularity");
 
-// Фильтры
+// Фильтры (добавляем все недостающие переменные)
 const priceMin = ref(null);
 const priceMax = ref(null);
 const selectedBrands = ref([]);
 const selectedMaterials = ref([]);
 const selectedColors = ref([]);
+const selectedLengths = ref([]); // Добавляем фильтр по длине
+const selectedDiameters = ref([]); // Добавляем фильтр по диаметру
+const selectedVibrationModes = ref([]); // Добавляем фильтр по режимам вибрации
+const selectedWaterproofLevels = ref([]); // Добавляем фильтр по водозащите
+const hasHeating = ref(false); // Добавляем фильтр по нагреву
+const selectedMotorCounts = ref([]); // Добавляем фильтр по моторам
+const selectedAromas = ref([]); // Добавляем фильтр по ароматам
+const isEdible = ref(false); // Добавляем фильтр съедобности
 const onlyInStock = ref(false);
 const onlyWithDiscount = ref(false);
 const onlyNew = ref(false);
@@ -265,12 +280,12 @@ const placeholderImages = [
   "https://images.unsplash.com/photo-1581833971358-2c8b550f87b3?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
 ];
 
-// Данные товаров для демонстрации
+// Данные товаров для демонстрации с полными характеристиками для фильтрации
 const products = ref([
   {
     id: 1,
     name: "Вибратор Lelo Gigi 2",
-    brand: "Lelo",
+    brand: 1, // ID бренда из фильтров
     price: 12000,
     oldPrice: 15000,
     images: [
@@ -282,8 +297,16 @@ const products = ref([
     image: placeholderImages[0],
     rating: 5,
     reviews: 127,
-    material: "Силикон",
-    color: "Розовый",
+    material: 1, // ID материала (Медицинский силикон)
+    color: 1, // ID цвета (Розовый)
+    length: "15", // Длина в см
+    diameter: "3", // Диаметр в см
+    vibrationModes: "7", // Количество режимов вибрации
+    waterproof: "ipx7", // Уровень водозащиты
+    hasHeating: false, // Функция нагрева
+    motorCount: "1", // Количество моторов
+    aroma: null, // ID аромата (null если нет)
+    isEdible: false, // Съедобный ли товар
     isNew: false,
     isHit: true,
     discount: 20,
@@ -294,8 +317,8 @@ const products = ref([
   },
   {
     id: 2,
-    name: "Мастурбатор Fleshlight",
-    brand: "Fleshlight",
+    name: "Мастурбатор Fleshlight Original",
+    brand: 8, // Doc Johnson (как аналог)
     price: 8500,
     oldPrice: null,
     images: [
@@ -307,8 +330,16 @@ const products = ref([
     image: placeholderImages[1],
     rating: 4,
     reviews: 89,
-    material: "TPE",
-    color: "Телесный",
+    material: 2, // TPE
+    color: 8, // Телесный
+    length: "20", // Длина в см
+    diameter: "4", // Диаметр в см
+    vibrationModes: null, // Нет вибрации
+    waterproof: "ipx4", // Базовая водозащита
+    hasHeating: false,
+    motorCount: null, // Нет моторов
+    aroma: null,
+    isEdible: false,
     isNew: true,
     isHit: false,
     discount: 0,
@@ -320,7 +351,7 @@ const products = ref([
   {
     id: 3,
     name: "Вибратор для пар We-Vibe Sync",
-    brand: "We-Vibe",
+    brand: 2, // We-Vibe
     price: 18000,
     oldPrice: 22000,
     images: [
@@ -332,8 +363,16 @@ const products = ref([
     image: placeholderImages[2],
     rating: 5,
     reviews: 203,
-    material: "Силикон",
-    color: "Фиолетовый",
+    material: 1, // Медицинский силикон
+    color: 5, // Фиолетовый
+    length: "10", // Длина в см
+    diameter: "2", // Диаметр в см
+    vibrationModes: "10", // 10 режимов вибрации
+    waterproof: "full", // Полная защита
+    hasHeating: true, // Есть функция нагрева
+    motorCount: "2", // 2 мотора
+    aroma: null,
+    isEdible: false,
     isNew: false,
     isHit: true,
     discount: 18,
@@ -344,8 +383,8 @@ const products = ref([
   },
   {
     id: 4,
-    name: "Анальная пробка Jewel",
-    brand: "NJOY",
+    name: "Анальная пробка Jewel Premium",
+    brand: 8, // Doc Johnson (как аналог NJOY)
     price: 6500,
     oldPrice: null,
     images: [
@@ -357,8 +396,16 @@ const products = ref([
     image: placeholderImages[3],
     rating: 4,
     reviews: 56,
-    material: "Металл",
-    color: "Серебристый",
+    material: 5, // Металл
+    color: 11, // Серебро
+    length: "10", // Длина в см
+    diameter: "3", // Диаметр в см
+    vibrationModes: null, // Нет вибрации
+    waterproof: "full", // Полная защита
+    hasHeating: false,
+    motorCount: null, // Нет моторов
+    aroma: null,
+    isEdible: false,
     isNew: false,
     isHit: false,
     discount: 0,
@@ -369,8 +416,8 @@ const products = ref([
   },
   {
     id: 5,
-    name: "Кольцо Satisfyer Men",
-    brand: "Satisfyer",
+    name: "Кольцо Satisfyer Power Ring",
+    brand: 3, // Satisfyer
     price: 3500,
     oldPrice: 4200,
     images: [
@@ -382,8 +429,16 @@ const products = ref([
     image: placeholderImages[4],
     rating: 4,
     reviews: 34,
-    material: "Силикон",
-    color: "Черный",
+    material: 1, // Медицинский силикон
+    color: 2, // Черный
+    length: null, // Не применимо для колец
+    diameter: "4", // Внутренний диаметр
+    vibrationModes: "5", // 5 режимов вибрации
+    waterproof: "ipx7",
+    hasHeating: false,
+    motorCount: "1", // 1 мотор
+    aroma: null,
+    isEdible: false,
     isNew: true,
     isHit: false,
     discount: 17,
@@ -394,8 +449,8 @@ const products = ref([
   },
   {
     id: 6,
-    name: "Вибратор Bullet Magic",
-    brand: "Magic Motion",
+    name: "Вибратор Bullet Magic Mini",
+    brand: 8, // Doc Johnson (как аналог Magic Motion)
     price: 2800,
     oldPrice: null,
     images: [
@@ -407,8 +462,16 @@ const products = ref([
     image: placeholderImages[5],
     rating: 3,
     reviews: 67,
-    material: "Силикон",
-    color: "Белый",
+    material: 1, // Медицинский силикон
+    color: 3, // Белый
+    length: "10", // Длина в см
+    diameter: "2", // Диаметр в см
+    vibrationModes: "3", // 3 режима вибрации
+    waterproof: "ipx4",
+    hasHeating: false,
+    motorCount: "1", // 1 мотор
+    aroma: null,
+    isEdible: false,
     isNew: false,
     isHit: false,
     discount: 0,
@@ -419,8 +482,8 @@ const products = ref([
   },
   {
     id: 7,
-    name: "Фаллоимитатор Realistic",
-    brand: "Doc Johnson",
+    name: "Фаллоимитатор Realistic King Size",
+    brand: 8, // Doc Johnson
     price: 4200,
     oldPrice: 5000,
     images: [
@@ -432,8 +495,16 @@ const products = ref([
     image: placeholderImages[6],
     rating: 4,
     reviews: 45,
-    material: "PVC",
-    color: "Телесный",
+    material: 2, // TPE
+    color: 8, // Телесный
+    length: "25", // Длина в см
+    diameter: "5", // Диаметр в см
+    vibrationModes: null, // Нет вибрации
+    waterproof: "ipx4",
+    hasHeating: false,
+    motorCount: null, // Нет моторов
+    aroma: null,
+    isEdible: false,
     isNew: false,
     isHit: false,
     discount: 16,
@@ -444,9 +515,9 @@ const products = ref([
   },
   {
     id: 8,
-    name: "Массажер простаты Aneros",
-    brand: "Aneros",
-    price: 9500,
+    name: "Лубрикант с ароматом ванили",
+    brand: 5, // Fun Factory (как пример)
+    price: 850,
     oldPrice: null,
     images: [
       placeholderImages[7],
@@ -455,24 +526,32 @@ const products = ref([
       placeholderImages[17],
     ],
     image: placeholderImages[7],
-    rating: 5,
-    reviews: 78,
-    material: "Медицинский пластик",
-    color: "Черный",
+    rating: 4,
+    reviews: 89,
+    material: 6, // Кибер-кожа (как заменитель для лубрикантов)
+    color: 12, // Прозрачный
+    length: null, // Не применимо
+    diameter: null, // Не применимо
+    vibrationModes: null, // Не применимо
+    waterproof: null, // Не применимо
+    hasHeating: false,
+    motorCount: null,
+    aroma: 1, // Ваниль
+    isEdible: true, // Съедобный лубрикант
     isNew: true,
-    isHit: true,
+    isHit: false,
     discount: 0,
     inStock: true,
     inWishlist: false,
     inCompare: false,
-    category: "men",
+    category: "couples",
   },
   {
     id: 9,
-    name: "Виброяйцо Lush 3",
-    brand: "Lovense",
-    price: 11000,
-    oldPrice: 13500,
+    name: "Вибромассажер LELO Smart Wand",
+    brand: 1, // LELO
+    price: 24000,
+    oldPrice: 28000,
     images: [
       placeholderImages[8],
       placeholderImages[12],
@@ -482,22 +561,30 @@ const products = ref([
     image: placeholderImages[8],
     rating: 5,
     reviews: 156,
-    material: "Силикон",
-    color: "Розовый",
+    material: 1, // Медицинский силикон
+    color: 2, // Черный
+    length: "30", // Длина в см
+    diameter: "4", // Диаметр в см
+    vibrationModes: "15", // 15+ режимов
+    waterproof: "full", // Полная защита
+    hasHeating: true, // Есть функция нагрева
+    motorCount: "3", // 3+ моторов
+    aroma: null,
+    isEdible: false,
     isNew: false,
     isHit: true,
-    discount: 19,
+    discount: 14,
     inStock: true,
-    inWishlist: true,
+    inWishlist: false,
     inCompare: false,
     category: "women",
   },
   {
     id: 10,
-    name: "Страпон Feeldoe",
-    brand: "Tantus",
-    price: 14000,
-    oldPrice: null,
+    name: "Набор для БДСМ Premium",
+    brand: 5, // Fun Factory
+    price: 15000,
+    oldPrice: 18000,
     images: [
       placeholderImages[9],
       placeholderImages[13],
@@ -506,12 +593,20 @@ const products = ref([
     ],
     image: placeholderImages[9],
     rating: 4,
-    reviews: 92,
-    material: "Силикон",
-    color: "Фиолетовый",
+    reviews: 78,
+    material: 6, // Кибер-кожа
+    color: 2, // Черный
+    length: null, // Набор разных размеров
+    diameter: null, // Набор разных размеров
+    vibrationModes: null, // Не применимо
+    waterproof: null, // Не применимо
+    hasHeating: false,
+    motorCount: null,
+    aroma: null,
+    isEdible: false,
     isNew: false,
     isHit: false,
-    discount: 0,
+    discount: 17,
     inStock: true,
     inWishlist: false,
     inCompare: false,
@@ -519,10 +614,10 @@ const products = ref([
   },
   {
     id: 11,
-    name: "Стимулятор клитора Womanizer",
-    brand: "Womanizer",
-    price: 16500,
-    oldPrice: 19000,
+    name: "Мини-вибратор Tenga Iroha",
+    brand: 6, // Tenga
+    price: 5500,
+    oldPrice: null,
     images: [
       placeholderImages[10],
       placeholderImages[14],
@@ -530,23 +625,31 @@ const products = ref([
       placeholderImages[0],
     ],
     image: placeholderImages[10],
-    rating: 5,
-    reviews: 234,
-    material: "Силикон",
-    color: "Красный",
-    isNew: false,
-    isHit: true,
-    discount: 13,
+    rating: 4,
+    reviews: 92,
+    material: 1, // Медицинский силикон
+    color: 7, // Зеленый
+    length: "15", // Длина в см
+    diameter: "3", // Диаметр в см
+    vibrationModes: "7", // 7 режимов
+    waterproof: "ipx7",
+    hasHeating: false,
+    motorCount: "1", // 1 мотор
+    aroma: null,
+    isEdible: false,
+    isNew: true,
+    isHit: false,
+    discount: 0,
     inStock: true,
     inWishlist: false,
-    inCompare: true,
+    inCompare: false,
     category: "women",
   },
   {
     id: 12,
-    name: "Мастурбатор Tenga Flip",
-    brand: "Tenga",
-    price: 7200,
+    name: "Гель-лубрикант с клубничным вкусом",
+    brand: 5, // Fun Factory
+    price: 1200,
     oldPrice: null,
     images: [
       placeholderImages[11],
@@ -555,61 +658,18 @@ const products = ref([
       placeholderImages[1],
     ],
     image: placeholderImages[11],
-    rating: 4,
-    reviews: 67,
-    material: "TPE",
-    color: "Белый",
-    isNew: true,
-    isHit: false,
-    discount: 0,
-    inStock: true,
-    inWishlist: false,
-    inCompare: false,
-    category: "men",
-  },
-  // Добавляем недостающие 13 товаров для достижения 25
-  {
-    id: 13,
-    name: "Вибратор точки G PinkCherry",
-    brand: "PinkCherry",
-    price: 5500,
-    oldPrice: 7000,
-    images: [
-      placeholderImages[12],
-      placeholderImages[16],
-      placeholderImages[19],
-      placeholderImages[2],
-    ],
-    image: placeholderImages[12],
-    rating: 4,
-    reviews: 89,
-    material: "Силикон",
-    color: "Розовый",
-    isNew: true,
-    isHit: false,
-    discount: 21,
-    inStock: true,
-    inWishlist: false,
-    inCompare: false,
-    category: "women",
-  },
-  {
-    id: 14,
-    name: "Анальные шарики Luxe",
-    brand: "Luxe",
-    price: 3200,
-    oldPrice: null,
-    images: [
-      placeholderImages[13],
-      placeholderImages[17],
-      placeholderImages[0],
-      placeholderImages[3],
-    ],
-    image: placeholderImages[13],
     rating: 3,
     reviews: 45,
-    material: "Силикон",
-    color: "Черный",
+    material: 6, // Кибер-кожа (заменитель для лубрикантов)
+    color: 4, // Красный (клубничный)
+    length: null,
+    diameter: null,
+    vibrationModes: null,
+    waterproof: null,
+    hasHeating: false,
+    motorCount: null,
+    aroma: 2, // Клубника
+    isEdible: true, // Съедобный
     isNew: false,
     isHit: false,
     discount: 0,
@@ -617,283 +677,111 @@ const products = ref([
     inWishlist: false,
     inCompare: false,
     category: "couples",
-  },
-  {
-    id: 15,
-    name: "Мастурбатор Premium Touch",
-    brand: "Premium Touch",
-    price: 9800,
-    oldPrice: 12000,
-    images: [
-      placeholderImages[14],
-      placeholderImages[18],
-      placeholderImages[1],
-      placeholderImages[4],
-    ],
-    image: placeholderImages[14],
-    rating: 5,
-    reviews: 156,
-    material: "TPE",
-    color: "Телесный",
-    isNew: false,
-    isHit: true,
-    discount: 18,
-    inStock: true,
-    inWishlist: false,
-    inCompare: false,
-    category: "men",
-  },
-  {
-    id: 16,
-    name: "Вибропуля BeautyBliss",
-    brand: "BeautyBliss",
-    price: 1800,
-    oldPrice: null,
-    images: [
-      placeholderImages[15],
-      placeholderImages[19],
-      placeholderImages[2],
-      placeholderImages[5],
-    ],
-    image: placeholderImages[15],
-    rating: 3,
-    reviews: 32,
-    material: "Пластик",
-    color: "Золотой",
-    isNew: true,
-    isHit: false,
-    discount: 0,
-    inStock: true,
-    inWishlist: false,
-    inCompare: false,
-    category: "women",
-  },
-  {
-    id: 17,
-    name: "Кольцо с вибрацией PowerRing",
-    brand: "PowerRing",
-    price: 4500,
-    oldPrice: 5500,
-    images: [
-      placeholderImages[16],
-      placeholderImages[0],
-      placeholderImages[3],
-      placeholderImages[6],
-    ],
-    image: placeholderImages[16],
-    rating: 4,
-    reviews: 78,
-    material: "Силикон",
-    color: "Синий",
-    isNew: false,
-    isHit: false,
-    discount: 18,
-    inStock: true,
-    inWishlist: false,
-    inCompare: false,
-    category: "couples",
-  },
-  {
-    id: 18,
-    name: "Стимулятор простаты ProTouch",
-    brand: "ProTouch",
-    price: 8200,
-    oldPrice: null,
-    images: [
-      placeholderImages[17],
-      placeholderImages[1],
-      placeholderImages[4],
-      placeholderImages[7],
-    ],
-    image: placeholderImages[17],
-    rating: 4,
-    reviews: 95,
-    material: "Силикон",
-    color: "Черный",
-    isNew: true,
-    isHit: true,
-    discount: 0,
-    inStock: true,
-    inWishlist: false,
-    inCompare: false,
-    category: "men",
-  },
-  {
-    id: 19,
-    name: "Вибратор-кролик DualPleasure",
-    brand: "DualPleasure",
-    price: 13500,
-    oldPrice: 16000,
-    images: [
-      placeholderImages[18],
-      placeholderImages[2],
-      placeholderImages[5],
-      placeholderImages[8],
-    ],
-    image: placeholderImages[18],
-    rating: 5,
-    reviews: 203,
-    material: "Силикон",
-    color: "Фиолетовый",
-    isNew: false,
-    isHit: true,
-    discount: 16,
-    inStock: true,
-    inWishlist: true,
-    inCompare: false,
-    category: "women",
-  },
-  {
-    id: 20,
-    name: "Анальная пробка с хвостом TailPlay",
-    brand: "TailPlay",
-    price: 7800,
-    oldPrice: null,
-    images: [
-      placeholderImages[19],
-      placeholderImages[3],
-      placeholderImages[6],
-      placeholderImages[9],
-    ],
-    image: placeholderImages[19],
-    rating: 4,
-    reviews: 67,
-    material: "Металл",
-    color: "Серебристый",
-    isNew: false,
-    isHit: false,
-    discount: 0,
-    inStock: true,
-    inWishlist: false,
-    inCompare: false,
-    category: "couples",
-  },
-  {
-    id: 21,
-    name: "Мастурбатор реалистичный RealFeel",
-    brand: "RealFeel",
-    price: 6700,
-    oldPrice: 8200,
-    images: [
-      placeholderImages[0],
-      placeholderImages[4],
-      placeholderImages[7],
-      placeholderImages[10],
-    ],
-    image: placeholderImages[0],
-    rating: 4,
-    reviews: 112,
-    material: "TPE",
-    color: "Телесный",
-    isNew: false,
-    isHit: false,
-    discount: 18,
-    inStock: true,
-    inWishlist: false,
-    inCompare: false,
-    category: "men",
-  },
-  {
-    id: 22,
-    name: "Вибратор на палец FingerVibe",
-    brand: "FingerVibe",
-    price: 2200,
-    oldPrice: null,
-    images: [
-      placeholderImages[1],
-      placeholderImages[5],
-      placeholderImages[8],
-      placeholderImages[11],
-    ],
-    image: placeholderImages[1],
-    rating: 3,
-    reviews: 28,
-    material: "Силикон",
-    color: "Розовый",
-    isNew: true,
-    isHit: false,
-    discount: 0,
-    inStock: true,
-    inWishlist: false,
-    inCompare: false,
-    category: "women",
-  },
-  {
-    id: 23,
-    name: "Лубрикант премиум класса SilkySmooth",
-    brand: "SilkySmooth",
-    price: 890,
-    oldPrice: 1200,
-    images: [
-      placeholderImages[2],
-      placeholderImages[6],
-      placeholderImages[9],
-      placeholderImages[12],
-    ],
-    image: placeholderImages[2],
-    rating: 5,
-    reviews: 345,
-    material: "Гель на водной основе",
-    color: "Прозрачный",
-    isNew: false,
-    isHit: true,
-    discount: 26,
-    inStock: true,
-    inWishlist: false,
-    inCompare: false,
-    category: "couples",
-  },
-  {
-    id: 24,
-    name: "Стимулятор соска NippleJoy",
-    brand: "NippleJoy",
-    price: 3400,
-    oldPrice: null,
-    images: [
-      placeholderImages[3],
-      placeholderImages[7],
-      placeholderImages[10],
-      placeholderImages[13],
-    ],
-    image: placeholderImages[3],
-    rating: 4,
-    reviews: 89,
-    material: "Силикон",
-    color: "Красный",
-    isNew: true,
-    isHit: false,
-    discount: 0,
-    inStock: true,
-    inWishlist: false,
-    inCompare: false,
-    category: "couples",
-  },
-  {
-    id: 25,
-    name: "Вибратор беспроводной SmartVibe",
-    brand: "SmartVibe",
-    price: 15800,
-    oldPrice: 18500,
-    images: [
-      placeholderImages[4],
-      placeholderImages[8],
-      placeholderImages[11],
-      placeholderImages[14],
-    ],
-    image: placeholderImages[4],
-    rating: 5,
-    reviews: 278,
-    material: "Медицинский силикон",
-    color: "Белый",
-    isNew: false,
-    isHit: true,
-    discount: 15,
-    inStock: true,
-    inWishlist: false,
-    inCompare: false,
-    category: "women",
   },
 ]);
+
+// Обновляем фильтрацию товаров с учетом всех новых полей
+const filteredProducts = computed(() => {
+  let filtered = products.value;
+
+  // Фильтр по цене
+  if (priceMin.value) {
+    filtered = filtered.filter((p) => p.price >= priceMin.value);
+  }
+  if (priceMax.value) {
+    filtered = filtered.filter((p) => p.price <= priceMax.value);
+  }
+
+  // Фильтр по брендам (теперь по ID)
+  if (selectedBrands.value.length > 0) {
+    filtered = filtered.filter((p) => selectedBrands.value.includes(p.brand));
+  }
+
+  // Фильтр по материалам (теперь по ID)
+  if (selectedMaterials.value.length > 0) {
+    filtered = filtered.filter((p) =>
+      selectedMaterials.value.includes(p.material)
+    );
+  }
+
+  // Фильтр по цветам (теперь по ID)
+  if (selectedColors.value.length > 0) {
+    filtered = filtered.filter((p) => selectedColors.value.includes(p.color));
+  }
+
+  // Фильтр по длине
+  if (selectedLengths.value.length > 0) {
+    filtered = filtered.filter((p) => {
+      if (!p.length) return false; // Исключаем товары без длины
+      return selectedLengths.value.includes(p.length);
+    });
+  }
+
+  // Фильтр по диаметру
+  if (selectedDiameters.value.length > 0) {
+    filtered = filtered.filter((p) => {
+      if (!p.diameter) return false; // Исключаем товары без диаметра
+      return selectedDiameters.value.includes(p.diameter);
+    });
+  }
+
+  // Фильтр по режимам вибрации
+  if (selectedVibrationModes.value.length > 0) {
+    filtered = filtered.filter((p) => {
+      if (!p.vibrationModes) return false; // Исключаем товары без вибрации
+      return selectedVibrationModes.value.includes(p.vibrationModes);
+    });
+  }
+
+  // Фильтр по водонепроницаемости
+  if (selectedWaterproofLevels.value.length > 0) {
+    filtered = filtered.filter((p) => {
+      if (!p.waterproof) return false; // Исключаем товары без водозащиты
+      return selectedWaterproofLevels.value.includes(p.waterproof);
+    });
+  }
+
+  // Фильтр по функции нагрева
+  if (hasHeating.value) {
+    filtered = filtered.filter((p) => p.hasHeating === true);
+  }
+
+  // Фильтр по количеству моторов
+  if (selectedMotorCounts.value.length > 0) {
+    filtered = filtered.filter((p) => {
+      if (!p.motorCount) return false; // Исключаем товары без моторов
+      return selectedMotorCounts.value.includes(p.motorCount);
+    });
+  }
+
+  // Фильтр по аромату
+  if (selectedAromas.value.length > 0) {
+    filtered = filtered.filter((p) => {
+      if (!p.aroma) return false; // Исключаем товары без аромата
+      return selectedAromas.value.includes(p.aroma);
+    });
+  }
+
+  // Фильтр съедобный
+  if (isEdible.value) {
+    filtered = filtered.filter((p) => p.isEdible === true);
+  }
+
+  // Дополнительные фильтры
+  if (onlyInStock.value) {
+    filtered = filtered.filter((p) => p.inStock);
+  }
+
+  if (onlyWithDiscount.value) {
+    filtered = filtered.filter((p) => p.discount > 0);
+  }
+
+  if (onlyNew.value) {
+    filtered = filtered.filter((p) => p.isNew);
+  }
+
+  return filtered;
+});
 
 // Функция для генерации дополнительных товаров
 const generateAdditionalProducts = () => {
@@ -1140,51 +1028,6 @@ const colors = computed(() => {
   ];
 });
 
-// Фильтрация товаров
-const filteredProducts = computed(() => {
-  let filtered = products.value;
-
-  // Фильтр по цене
-  if (priceMin.value) {
-    filtered = filtered.filter((p) => p.price >= priceMin.value);
-  }
-  if (priceMax.value) {
-    filtered = filtered.filter((p) => p.price <= priceMax.value);
-  }
-
-  // Фильтр по брендам
-  if (selectedBrands.value.length > 0) {
-    filtered = filtered.filter((p) => selectedBrands.value.includes(p.brand));
-  }
-
-  // Фильтр по материалам
-  if (selectedMaterials.value.length > 0) {
-    filtered = filtered.filter((p) =>
-      selectedMaterials.value.includes(p.material)
-    );
-  }
-
-  // Фильтр по цветам
-  if (selectedColors.value.length > 0) {
-    filtered = filtered.filter((p) => selectedColors.value.includes(p.color));
-  }
-
-  // Дополнительные фильтры
-  if (onlyInStock.value) {
-    filtered = filtered.filter((p) => p.inStock);
-  }
-
-  if (onlyWithDiscount.value) {
-    filtered = filtered.filter((p) => p.discount > 0);
-  }
-
-  if (onlyNew.value) {
-    filtered = filtered.filter((p) => p.isNew);
-  }
-
-  return filtered;
-});
-
 // Сортировка
 const sortedProducts = computed(() => {
   const sorted = [...filteredProducts.value];
@@ -1249,6 +1092,14 @@ const hasActiveFilters = computed(() => {
     selectedBrands.value.length > 0 ||
     selectedMaterials.value.length > 0 ||
     selectedColors.value.length > 0 ||
+    selectedLengths.value.length > 0 ||
+    selectedDiameters.value.length > 0 ||
+    selectedVibrationModes.value.length > 0 ||
+    selectedWaterproofLevels.value.length > 0 ||
+    hasHeating.value ||
+    selectedMotorCounts.value.length > 0 ||
+    selectedAromas.value.length > 0 ||
+    isEdible.value ||
     onlyInStock.value ||
     onlyWithDiscount.value ||
     onlyNew.value
@@ -1261,11 +1112,21 @@ const applyPriceFilter = () => {
 };
 
 const resetFilters = () => {
+  console.log("🔄 Сбрасываем все фильтры");
+
   priceMin.value = null;
   priceMax.value = null;
   selectedBrands.value = [];
   selectedMaterials.value = [];
   selectedColors.value = [];
+  selectedLengths.value = [];
+  selectedDiameters.value = [];
+  selectedVibrationModes.value = [];
+  selectedWaterproofLevels.value = [];
+  hasHeating.value = false;
+  selectedMotorCounts.value = [];
+  selectedAromas.value = [];
+  isEdible.value = false;
   onlyInStock.value = false;
   onlyWithDiscount.value = false;
   onlyNew.value = false;
@@ -1285,6 +1146,8 @@ const resetFilters = () => {
       stagger: 0.1,
     }
   );
+
+  console.log("✅ Все фильтры сброшены");
 };
 
 const changePage = (page) => {
@@ -1714,6 +1577,8 @@ const handleSortingChange = (newSortBy) => {
 
 // Новые методы для работы с AdultToysFilters
 const updateFilters = (filters) => {
+  console.log("🔧 Обновляем фильтры:", filters);
+
   // Обновляем локальные переменные из компонента фильтров
   if (filters.priceMin !== undefined) priceMin.value = filters.priceMin;
   if (filters.priceMax !== undefined) priceMax.value = filters.priceMax;
@@ -1723,6 +1588,20 @@ const updateFilters = (filters) => {
     selectedMaterials.value = filters.selectedMaterials;
   if (filters.selectedColors !== undefined)
     selectedColors.value = filters.selectedColors;
+  if (filters.selectedLengths !== undefined)
+    selectedLengths.value = filters.selectedLengths;
+  if (filters.selectedDiameters !== undefined)
+    selectedDiameters.value = filters.selectedDiameters;
+  if (filters.selectedVibrationModes !== undefined)
+    selectedVibrationModes.value = filters.selectedVibrationModes;
+  if (filters.selectedWaterproofLevels !== undefined)
+    selectedWaterproofLevels.value = filters.selectedWaterproofLevels;
+  if (filters.hasHeating !== undefined) hasHeating.value = filters.hasHeating;
+  if (filters.selectedMotorCounts !== undefined)
+    selectedMotorCounts.value = filters.selectedMotorCounts;
+  if (filters.selectedAromas !== undefined)
+    selectedAromas.value = filters.selectedAromas;
+  if (filters.isEdible !== undefined) isEdible.value = filters.isEdible;
   if (filters.onlyInStock !== undefined)
     onlyInStock.value = filters.onlyInStock;
   if (filters.onlyWithDiscount !== undefined)
@@ -1730,25 +1609,39 @@ const updateFilters = (filters) => {
   if (filters.onlyNew !== undefined) onlyNew.value = filters.onlyNew;
 
   currentPage.value = 1; // Сбрасываем на первую страницу при изменении фильтров
+  console.log(
+    "✅ Фильтры применены, найдено товаров:",
+    filteredProducts.value.length
+  );
 };
 
 const applyFilters = (filters) => {
+  console.log("🎯 Применяем фильтры:", filters);
+
   // Применяем фильтры и обновляем состояние
   updateFilters(filters);
 
-  // Анимация применения фильтров
+  // Анимация применения фильтров с GSAP
   gsap.fromTo(
     ".product-card",
     {
       y: 20,
       opacity: 0,
+      scale: 0.95,
     },
     {
       y: 0,
       opacity: 1,
+      scale: 1,
       duration: 0.4,
       stagger: 0.05,
+      ease: "power2.out",
     }
+  );
+
+  console.log(
+    "🎉 Фильтрация завершена, показано товаров:",
+    filteredProducts.value.length
   );
 };
 </script>

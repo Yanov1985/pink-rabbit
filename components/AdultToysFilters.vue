@@ -132,6 +132,14 @@
               />
             </div>
             <div class="options-list">
+              <div
+                v-if="filteredBrands.length === 0 && brandSearch.trim()"
+                class="empty-search-result"
+              >
+                <div class="empty-icon">🔍</div>
+                <p class="empty-text">Бренды не найдены</p>
+                <p class="empty-hint">Попробуйте изменить поисковый запрос</p>
+              </div>
               <label
                 v-for="brand in filteredBrands"
                 :key="brand.id"
@@ -467,11 +475,14 @@
           :disabled="!hasChanges"
           :class="{ 'btn-disabled': !hasChanges }"
         >
-          <MagnifyingGlassIcon class="btn-icon" />
-          <span class="btn-text">Показать товары</span>
-          <span v-if="activeFiltersCount > 0" class="btn-badge">{{
-            activeFiltersCount
-          }}</span>
+          <div class="btn-content">
+            <div class="btn-main">
+              <MagnifyingGlassIcon class="btn-icon" />
+            </div>
+            <span v-if="activeFiltersCount > 0" class="btn-badge">
+              {{ formatBadgeCount(activeFiltersCount) }}
+            </span>
+          </div>
         </button>
         <button
           v-if="hasActiveFilters"
@@ -479,7 +490,6 @@
           class="action-btn action-btn-secondary"
         >
           <TrashIcon class="btn-icon" />
-          <span class="btn-text">Очистить</span>
         </button>
       </div>
     </div>
@@ -487,7 +497,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import {
   CheckIcon,
   ChevronDownIcon,
@@ -529,6 +539,9 @@ const filters = ref({
   selectedMotorCounts: [],
   selectedAromas: [],
   isEdible: false,
+  onlyInStock: false,
+  onlyWithDiscount: false,
+  onlyNew: false,
 });
 
 // Состояние UI
@@ -552,6 +565,9 @@ const accordionState = ref({
 
 // Состояние слайдера цены
 const priceRange = ref({ min: 0, max: 250000 });
+
+// Определяем emit события
+const emit = defineEmits(["update-filters", "reset-filters"]);
 
 // Имитация загрузки данных
 onMounted(async () => {
@@ -577,7 +593,7 @@ const allAccordionsOpen = computed(() => {
   return Object.values(accordionState.value).every((state) => state);
 });
 
-// Данные для фильтров (как на оригинальном сайте)
+// Данные для фильтров (расширенный список брендов)
 const brands = ref([
   { id: 1, name: "LELO", count: 45 },
   { id: 2, name: "We-Vibe", count: 32 },
@@ -587,6 +603,28 @@ const brands = ref([
   { id: 6, name: "Tenga", count: 18 },
   { id: 7, name: "Lovense", count: 15 },
   { id: 8, name: "Doc Johnson", count: 35 },
+  { id: 9, name: "Bad Dragon", count: 28 },
+  { id: 10, name: "Dame Products", count: 22 },
+  { id: 11, name: "CalExotics", count: 31 },
+  { id: 12, name: "Pipedream", count: 19 },
+  { id: 13, name: "Adam & Eve", count: 26 },
+  { id: 14, name: "Rocks-Off", count: 17 },
+  { id: 15, name: "JimmyJane", count: 14 },
+  { id: 16, name: "Magic Silk", count: 12 },
+  { id: 17, name: "Aneros", count: 21 },
+  { id: 18, name: "OhMiBod", count: 16 },
+  { id: 19, name: "Hot Octopuss", count: 13 },
+  { id: 20, name: "Liberator", count: 11 },
+  { id: 21, name: "System JO", count: 24 },
+  { id: 22, name: "Pjur", count: 18 },
+  { id: 23, name: "Durex", count: 29 },
+  { id: 24, name: "Trojan", count: 23 },
+  { id: 25, name: "Silk Touch", count: 9 },
+  { id: 26, name: "Fifty Shades", count: 33 },
+  { id: 27, name: "Pure Romance", count: 20 },
+  { id: 28, name: "Spencer's", count: 15 },
+  { id: 29, name: "Evolved Novelties", count: 27 },
+  { id: 30, name: "Blush Novelties", count: 25 },
 ]);
 
 const materials = ref([
@@ -659,10 +697,22 @@ const aromas = ref([
 
 // Вычисляемые свойства
 const filteredBrands = computed(() => {
-  const search = brandSearch.value.toLowerCase();
-  return brands.value.filter((brand) =>
+  const search = brandSearch.value.toLowerCase().trim();
+  console.log("🔍 Поиск по брендам:", search);
+
+  if (!search) {
+    console.log("📋 Показываем все бренды:", brands.value.length);
+    return brands.value;
+  }
+
+  const filtered = brands.value.filter((brand) =>
     brand.name.toLowerCase().includes(search)
   );
+
+  console.log(
+    `🎯 Найдено брендов: ${filtered.length} из ${brands.value.length}`
+  );
+  return filtered;
 });
 
 const hasActiveFilters = computed(() => {
@@ -716,12 +766,29 @@ const toggleColor = (colorId) => {
   }
 };
 
+// Форматирование счётчика для badge кнопки
+const formatBadgeCount = (count) => {
+  // Показываем точное количество товаров для лучшего понимания
+  if (count > 999) return "999+";
+  if (count > 99) return "99+";
+  return count.toString();
+};
+
 const applyFilters = () => {
-  console.log("Применяем фильтры:", filters.value);
-  // Здесь будет логика применения фильтров
+  console.log(
+    "✨ Применяем фильтры в компоненте AdultToysFilters:",
+    filters.value
+  );
+
+  // Передаем все фильтры в родительский компонент
+  emit("update-filters", filters.value);
+
+  console.log("📤 Фильтры отправлены в каталог товаров");
 };
 
 const resetAllFilters = () => {
+  console.log("🔄 Сбрасываем все фильтры в компоненте AdultToysFilters");
+
   filters.value = {
     priceMin: null,
     priceMax: null,
@@ -736,10 +803,20 @@ const resetAllFilters = () => {
     selectedMotorCounts: [],
     selectedAromas: [],
     isEdible: false,
+    onlyInStock: false,
+    onlyWithDiscount: false,
+    onlyNew: false,
   };
+
   // Сбрасываем также слайдер цены
   priceRange.value = { min: 0, max: 250000 };
   brandSearch.value = "";
+
+  // Передаем сброшенные фильтры в родительский компонент
+  emit("reset-filters");
+  emit("update-filters", filters.value);
+
+  console.log("✅ Все фильтры сброшены и отправлены в каталог");
 };
 
 const onPriceRangeChange = (range) => {
@@ -747,8 +824,137 @@ const onPriceRangeChange = (range) => {
   priceRange.value = range;
   filters.value.priceMin = range.min;
   filters.value.priceMax = range.max;
-  console.log("Диапазон цен изменен:", range);
+  console.log("💰 Диапазон цен изменен:", range);
+
+  // Автоматически применяем фильтры при изменении цены
+  applyFilters();
 };
+
+// Добавляем автоматическое применение фильтров при изменении других параметров
+const autoApplyFilters = () => {
+  console.log("🚀 Автоматическое применение фильтров");
+  applyFilters();
+};
+
+// Watchers для автоматического применения фильтров
+watch(
+  () => filters.value.selectedBrands,
+  () => {
+    console.log("🔄 Изменены бренды:", filters.value.selectedBrands);
+    autoApplyFilters();
+  },
+  { deep: true }
+);
+
+watch(
+  () => filters.value.selectedMaterials,
+  () => {
+    console.log("🔄 Изменены материалы:", filters.value.selectedMaterials);
+    autoApplyFilters();
+  },
+  { deep: true }
+);
+
+watch(
+  () => filters.value.selectedColors,
+  () => {
+    console.log("🔄 Изменены цвета:", filters.value.selectedColors);
+    autoApplyFilters();
+  },
+  { deep: true }
+);
+
+watch(
+  () => filters.value.selectedLengths,
+  () => {
+    console.log("🔄 Изменена длина:", filters.value.selectedLengths);
+    autoApplyFilters();
+  },
+  { deep: true }
+);
+
+watch(
+  () => filters.value.selectedDiameters,
+  () => {
+    console.log("🔄 Изменён диаметр:", filters.value.selectedDiameters);
+    autoApplyFilters();
+  },
+  { deep: true }
+);
+
+watch(
+  () => filters.value.selectedVibrationModes,
+  () => {
+    console.log(
+      "🔄 Изменены режимы вибрации:",
+      filters.value.selectedVibrationModes
+    );
+    autoApplyFilters();
+  },
+  { deep: true }
+);
+
+watch(
+  () => filters.value.selectedWaterproofLevels,
+  () => {
+    console.log(
+      "🔄 Изменена водозащита:",
+      filters.value.selectedWaterproofLevels
+    );
+    autoApplyFilters();
+  },
+  { deep: true }
+);
+
+watch(
+  () => filters.value.hasHeating,
+  () => {
+    console.log("🔄 Изменён фильтр нагрева:", filters.value.hasHeating);
+    autoApplyFilters();
+  }
+);
+
+watch(
+  () => filters.value.selectedMotorCounts,
+  () => {
+    console.log(
+      "🔄 Изменено количество моторов:",
+      filters.value.selectedMotorCounts
+    );
+    autoApplyFilters();
+  },
+  { deep: true }
+);
+
+watch(
+  () => filters.value.selectedAromas,
+  () => {
+    console.log("🔄 Изменены ароматы:", filters.value.selectedAromas);
+    autoApplyFilters();
+  },
+  { deep: true }
+);
+
+watch(
+  () => filters.value.isEdible,
+  () => {
+    console.log("🔄 Изменён фильтр съедобности:", filters.value.isEdible);
+    autoApplyFilters();
+  }
+);
+
+// Добавляем watcher для отладки поиска
+watch(
+  brandSearch,
+  (newValue, oldValue) => {
+    console.log("🔄 brandSearch изменился:", {
+      old: oldValue,
+      new: newValue,
+      filteredCount: filteredBrands.value.length,
+    });
+  },
+  { immediate: true }
+);
 </script>
 
 <style scoped>
@@ -967,13 +1173,20 @@ const onPriceRangeChange = (range) => {
 
 /* Основной контейнер */
 .filters-container {
-  @apply bg-white rounded-lg border border-gray-200 shadow-sm;
+  @apply bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden;
   transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.95),
+    rgba(248, 250, 252, 0.9)
+  );
 }
 
 .filters-container:hover {
   box-shadow: 0 8px 25px rgba(236, 72, 153, 0.08);
   border-color: rgba(236, 72, 153, 0.2);
+  transform: translateY(-1px);
 }
 
 /* Заголовок */
@@ -984,6 +1197,22 @@ const onPriceRangeChange = (range) => {
     rgba(248, 250, 252, 0.8),
     rgba(255, 255, 255, 0.9)
   );
+  position: relative;
+}
+
+.filters-header::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(236, 72, 153, 0.2),
+    transparent
+  );
 }
 
 .header-main {
@@ -992,6 +1221,8 @@ const onPriceRangeChange = (range) => {
 
 .filter-main-title {
   @apply text-lg font-semibold text-gray-900 flex items-center gap-2;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  letter-spacing: -0.02em;
 }
 
 .filters-counter {
@@ -1004,6 +1235,7 @@ const onPriceRangeChange = (range) => {
   text-align: center;
   box-shadow: 0 2px 4px rgba(236, 72, 153, 0.2);
   animation: fadeInScale 0.3s ease-out;
+  font-weight: 600;
 }
 
 @keyframes fadeInScale {
@@ -1024,6 +1256,29 @@ const onPriceRangeChange = (range) => {
 .control-btn {
   @apply w-10 h-10 rounded-lg border transition-all duration-300 flex items-center justify-center;
   @apply hover:scale-105 hover:shadow-lg;
+  position: relative;
+  overflow: hidden;
+}
+
+.control-btn::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: radial-gradient(
+    circle,
+    rgba(236, 72, 153, 0.1) 0%,
+    transparent 70%
+  );
+  transition: all 0.3s ease;
+  transform: translate(-50%, -50%);
+}
+
+.control-btn:hover::before {
+  width: 100px;
+  height: 100px;
 }
 
 .control-btn-secondary {
@@ -1045,308 +1300,670 @@ const onPriceRangeChange = (range) => {
 /* Контент фильтров */
 .filters-content {
   @apply p-4 space-y-3;
+  overflow-y: visible;
+  scrollbar-width: none;
 }
 
-/* Секция фильтра */
-.filter-section {
-  @apply border border-gray-100 rounded-lg;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.9),
-    rgba(248, 250, 252, 0.9)
-  );
-}
-
-.filter-section:hover {
-  border-color: rgba(236, 72, 153, 0.2);
-  box-shadow: 0 4px 15px rgba(236, 72, 153, 0.08);
-  transform: translateY(-2px);
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 1),
-    rgba(252, 231, 243, 0.3)
-  );
-}
-
-.filter-header {
-  @apply flex items-center justify-between p-3 cursor-pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border-radius: 8px 8px 0 0;
-}
-
-.filter-header:hover {
-  background: linear-gradient(
-    135deg,
-    rgba(236, 72, 153, 0.05),
-    rgba(219, 39, 119, 0.05)
-  );
-  transform: scale(1.01);
-}
-
-.filter-title {
-  @apply text-sm font-medium text-gray-800 flex items-center gap-2;
-  transition: all 0.3s ease;
-}
-
-.filter-header:hover .filter-title {
-  color: rgb(236, 72, 153);
-  text-shadow: 0 0 8px rgba(236, 72, 153, 0.3);
-}
-
-.filter-icon {
-  @apply w-4 h-4 text-pink-500;
-  transition: all 0.3s ease;
-  filter: drop-shadow(0 0 2px rgba(236, 72, 153, 0.3));
-}
-
-.filter-header:hover .filter-icon {
-  transform: scale(1.1);
-  filter: drop-shadow(0 0 6px rgba(236, 72, 153, 0.6));
-}
-
-.accordion-arrow {
-  @apply w-4 h-4 text-gray-400 transition-all duration-500 ease-in-out;
-}
-
-.filter-header:hover .accordion-arrow {
-  color: rgb(236, 72, 153);
-  transform: scale(1.1);
-  filter: drop-shadow(0 0 4px rgba(236, 72, 153, 0.4));
-}
-
-.filter-body {
-  @apply p-3 pt-0 border-t border-gray-100;
-  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-  animation: slideDown 0.5s ease-out;
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-    max-height: 0;
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-    max-height: 500px;
-  }
-}
-
-/* Ценовой диапазон */
-.price-range {
-  @apply flex gap-3;
-}
-
-.price-input-wrapper {
-  @apply flex-1;
-}
-
-.price-input-wrapper label {
-  @apply block text-xs text-gray-600 mb-1;
-  transition: all 0.3s ease;
-}
-
-.price-input {
-  @apply w-full px-3 py-2 border border-gray-300 rounded-md text-sm transition-all duration-300;
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.9),
-    rgba(248, 250, 252, 0.9)
-  );
-}
-
-.price-input:focus {
-  @apply ring-2 ring-pink-500 border-pink-500;
-  box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.1), 0 0 8px rgba(236, 72, 153, 0.2);
-  background: white;
-}
-
-.price-input:hover {
-  border-color: rgba(236, 72, 153, 0.3);
-  box-shadow: 0 2px 8px rgba(236, 72, 153, 0.1);
-}
-
-/* Поиск */
+/* Обертка поиска */
 .search-wrapper {
-  @apply mb-3;
+  @apply p-3 border-b border-gray-100;
+  position: sticky;
+  top: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.98),
+    rgba(248, 250, 252, 0.98)
+  );
+  backdrop-filter: blur(8px);
+  z-index: 10;
 }
 
 .search-input {
-  @apply w-full px-3 py-2 border border-gray-300 rounded-md text-sm transition-all duration-300;
+  @apply w-full px-4 py-3 border border-gray-200 rounded-lg text-sm;
+  @apply focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent;
+  transition: all 0.3s ease;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.95),
+    rgba(248, 250, 252, 0.95)
+  );
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.search-input:focus {
+  box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.1),
+    0 4px 12px rgba(236, 72, 153, 0.1);
+  background: rgba(255, 255, 255, 1);
+  border-color: rgba(236, 72, 153, 0.5);
+  transform: translateY(-1px);
+}
+
+.search-input::placeholder {
+  color: rgba(107, 114, 128, 0.6);
+  font-style: italic;
+}
+
+/* Список опций - улучшенный */
+.options-list {
+  @apply p-3 space-y-2;
+  max-height: 320px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
+}
+
+.options-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.options-list::-webkit-scrollbar-track {
+  background: linear-gradient(
+    135deg,
+    rgba(236, 72, 153, 0.03),
+    rgba(236, 72, 153, 0.08)
+  );
+  border-radius: 4px;
+  margin: 4px 0;
+}
+
+.options-list::-webkit-scrollbar-thumb {
+  background: linear-gradient(
+    135deg,
+    rgba(236, 72, 153, 0.2),
+    rgba(236, 72, 153, 0.4)
+  );
+  border-radius: 4px;
+  border: 1px solid rgba(236, 72, 153, 0.1);
+  transition: all 0.3s ease;
+}
+
+.options-list::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(236, 72, 153, 0.4),
+    rgba(236, 72, 153, 0.6)
+  );
+  box-shadow: 0 2px 4px rgba(236, 72, 153, 0.2);
+}
+
+.options-list::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(
+    135deg,
+    rgba(236, 72, 153, 0.6),
+    rgba(236, 72, 153, 0.8)
+  );
+}
+
+/* Опция чекбокса */
+.checkbox-option {
+  @apply flex items-center gap-3 p-2 rounded-lg cursor-pointer;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.checkbox-option::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(236, 72, 153, 0.05),
+    rgba(236, 72, 153, 0.02)
+  );
+  border-radius: 0.5rem;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.checkbox-option:hover::before {
+  opacity: 1;
+}
+
+.checkbox-option:hover {
+  transform: translateX(2px);
+}
+
+.option-checkbox {
+  @apply w-4 h-4 rounded border-2 border-gray-300;
+  @apply focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-1;
+  transition: all 0.3s ease;
+  appearance: none;
   background: linear-gradient(
     135deg,
     rgba(255, 255, 255, 0.9),
     rgba(248, 250, 252, 0.9)
   );
-}
-
-.search-input:focus {
-  @apply ring-2 ring-pink-500 border-pink-500;
-  box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.1), 0 0 8px rgba(236, 72, 153, 0.2);
-  background: white;
-}
-
-.search-input:hover {
-  border-color: rgba(236, 72, 153, 0.3);
-  box-shadow: 0 2px 8px rgba(236, 72, 153, 0.1);
-}
-
-/* Список опций */
-.options-list {
-  @apply space-y-2 max-h-40 overflow-y-auto;
-}
-
-.checkbox-option {
-  @apply flex items-center gap-2 p-2 rounded-md cursor-pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.5),
-    rgba(248, 250, 252, 0.5)
-  );
-}
-
-.checkbox-option:hover {
-  background: linear-gradient(
-    135deg,
-    rgba(236, 72, 153, 0.08),
-    rgba(219, 39, 119, 0.08)
-  );
-  transform: translateX(4px) scale(1.02);
-  box-shadow: 0 2px 12px rgba(236, 72, 153, 0.15);
-  border-radius: 8px;
-}
-
-.option-checkbox {
-  @apply w-4 h-4 text-pink-600 bg-gray-100 border-gray-300 rounded;
-  transition: all 0.3s ease;
-}
-
-.option-checkbox:focus {
-  @apply ring-pink-500 ring-2;
-  box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.2);
+  position: relative;
+  z-index: 2;
 }
 
 .option-checkbox:checked {
-  background: linear-gradient(135deg, rgb(236, 72, 153), rgb(219, 39, 119));
-  box-shadow: 0 0 8px rgba(236, 72, 153, 0.4);
+  @apply border-pink-500 bg-pink-500;
+  background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='m13.854 3.646-7.5 7.5a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6 10.293l7.146-7.147a.5.5 0 0 1 .708.708z'/%3e%3c/svg%3e");
+  box-shadow: 0 2px 4px rgba(236, 72, 153, 0.2);
+}
+
+.option-checkbox:checked:hover {
+  box-shadow: 0 4px 8px rgba(236, 72, 153, 0.3);
 }
 
 .option-label {
-  @apply flex-1 text-sm text-gray-700;
+  @apply text-sm text-gray-700 flex-1;
   transition: all 0.3s ease;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  position: relative;
+  z-index: 2;
 }
 
 .checkbox-option:hover .option-label {
-  color: rgb(236, 72, 153);
-  font-weight: 500;
+  color: rgba(236, 72, 153, 0.8);
 }
 
 .option-count {
-  @apply text-xs text-gray-500;
+  @apply text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full;
   transition: all 0.3s ease;
+  font-weight: 500;
+  position: relative;
+  z-index: 2;
 }
 
 .checkbox-option:hover .option-count {
-  color: rgb(219, 39, 119);
-  font-weight: 600;
+  background: rgba(236, 72, 153, 0.1);
+  color: rgba(236, 72, 153, 0.7);
+}
+
+/* Цветовая сетка */
+.color-grid {
+  @apply p-3 flex flex-wrap gap-2;
+}
+
+.color-option {
+  @apply w-8 h-8 rounded-full border-2 border-gray-200 cursor-pointer;
+  @apply relative transition-all duration-300 hover:scale-110;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.color-option::before {
+  content: "";
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  border-radius: 50%;
+  background: linear-gradient(
+    45deg,
+    rgba(236, 72, 153, 0.2),
+    rgba(236, 72, 153, 0.1)
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.color-option:hover::before {
+  opacity: 1;
+}
+
+.color-option:hover {
+  border-color: rgba(236, 72, 153, 0.5);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.color-option.active {
+  border-color: rgba(236, 72, 153, 0.8);
+  box-shadow: 0 0 0 2px rgba(236, 72, 153, 0.2);
+  transform: scale(1.1);
+}
+
+.color-option.active::before {
+  opacity: 1;
+}
+
+.color-check {
+  @apply w-4 h-4 text-white absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2;
+  filter: drop-shadow(0 0 6px rgba(236, 72, 153, 0.6));
+  z-index: 2;
 }
 
 /* Toggle опции */
 .toggle-options {
-  @apply space-y-2;
+  @apply p-3 space-y-2;
 }
 
 .toggle-option {
-  @apply flex items-center gap-2 cursor-pointer p-2 rounded-lg;
+  @apply flex items-center gap-3 p-2 rounded-lg cursor-pointer;
   transition: all 0.3s ease;
+  position: relative;
 }
 
-.toggle-option:hover {
+.toggle-option::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background: linear-gradient(
     135deg,
-    rgba(236, 72, 153, 0.08),
-    rgba(219, 39, 119, 0.08)
+    rgba(236, 72, 153, 0.05),
+    rgba(236, 72, 153, 0.02)
   );
-  transform: scale(1.02);
-  box-shadow: 0 2px 8px rgba(236, 72, 153, 0.1);
+  border-radius: 0.5rem;
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
-/* Сетка цветов */
-.color-grid {
-  @apply grid grid-cols-6 gap-3;
+.toggle-option:hover::before {
+  opacity: 1;
 }
 
-.color-option {
-  @apply w-8 h-8 rounded-full border-2 border-gray-300 cursor-pointer relative flex items-center justify-center;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.color-option:hover {
-  transform: scale(1.2) translateY(-2px);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2), 0 0 12px rgba(236, 72, 153, 0.3);
-  border-color: rgb(236, 72, 153);
-}
-
-.color-option.active {
-  transform: scale(1.15);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), 0 0 15px rgba(236, 72, 153, 0.5);
-  border-color: rgb(236, 72, 153);
-  border-width: 3px;
-}
-
-.color-check {
-  @apply w-4 h-4 text-white;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
-  animation: colorCheck 0.3s ease-out;
-}
-
-@keyframes colorCheck {
-  from {
-    transform: scale(0);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-/* Кнопки действий */
+/* Улучшенные стили для кнопок действий */
 .filter-actions {
-  @apply sticky bottom-0 bg-white border-t border-gray-200 p-4 flex gap-3;
+  @apply sticky bottom-0 bg-white border-t border-gray-200 p-4;
   background: linear-gradient(
     135deg,
     rgba(255, 255, 255, 0.95),
     rgba(248, 250, 252, 0.95)
   );
   backdrop-filter: blur(10px);
-  border-color: rgba(236, 72, 153, 0.1);
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
 }
 
 .action-btn {
-  @apply py-3 px-4 rounded-lg font-medium flex items-center justify-center gap-2 relative;
-  @apply transition-all duration-300 border;
+  @apply font-medium text-sm transition-all duration-300 rounded-lg;
+  @apply focus:outline-none focus:ring-2 focus:ring-offset-2;
+  position: relative;
   overflow: hidden;
+  border: none;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   min-height: 48px;
 }
 
-.action-btn-primary {
-  @apply flex-1 text-white;
-  background: linear-gradient(135deg, rgb(236, 72, 153), rgb(219, 39, 119));
-  border-color: rgba(236, 72, 153, 0.3);
-  box-shadow: 0 4px 12px rgba(236, 72, 153, 0.2);
-}
-
-.action-btn-secondary {
-  @apply bg-gray-50 text-gray-700 border-gray-200;
-  flex: 0 0 auto;
-  min-width: 100px;
-}
-
 .action-btn::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.3) 0%,
+    transparent 70%
+  );
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+}
+
+.action-btn:hover::before {
+  width: 120px;
+  height: 120px;
+}
+
+/* Структура кнопки */
+.btn-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  gap: 12px;
+}
+
+.btn-main {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.btn-icon {
+  @apply w-6 h-6;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.action-btn-primary:hover .btn-icon {
+  transform: scale(1.2) rotate(10deg);
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.4));
+}
+
+/* Основная кнопка - оптимизированная для иконки */
+.action-btn-primary {
+  @apply text-white;
+  @apply focus:ring-pink-500;
+  background: linear-gradient(135deg, #ec4899 0%, #db2777 50%, #be185d 100%);
+  border-radius: 16px;
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: 0.025em;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 6px 20px 0 rgba(236, 72, 153, 0.35),
+    0 2px 8px 0 rgba(236, 72, 153, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  position: relative;
+  transform: perspective(1000px) rotateX(0deg);
+  padding: 14px 18px;
+  min-width: 64px;
+  width: auto;
+  flex: 0 0 auto;
+}
+
+.action-btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #f472b6 0%, #ec4899 50%, #db2777 100%);
+  box-shadow: 0 10px 30px 0 rgba(236, 72, 153, 0.45),
+    0 4px 15px 0 rgba(236, 72, 153, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  transform: perspective(1000px) rotateX(-2deg) translateY(-2px) scale(1.02);
+}
+
+.action-btn-primary:active:not(:disabled) {
+  transform: perspective(1000px) rotateX(1deg) translateY(0px) scale(0.98);
+  box-shadow: 0 4px 12px 0 rgba(236, 72, 153, 0.4),
+    0 1px 4px 0 rgba(236, 72, 153, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Улучшенный badge */
+.btn-badge {
+  @apply bg-white bg-opacity-35 text-white rounded-full font-bold;
+  min-width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  line-height: 1;
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+  margin-left: 8px;
+}
+
+.btn-badge::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(
+    circle at center,
+    rgba(255, 255, 255, 0.2) 0%,
+    transparent 70%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.action-btn-primary:hover .btn-badge {
+  background: rgba(255, 255, 255, 0.4);
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.action-btn-primary:hover .btn-badge::before {
+  opacity: 1;
+}
+
+/* Анимация появления badge */
+@keyframes badgeAppear {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.btn-badge {
+  animation: badgeAppear 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Состояние отключенной кнопки */
+.action-btn-primary.btn-disabled {
+  background: linear-gradient(135deg, #d1d5db 0%, #9ca3af 50%, #6b7280 100%);
+  box-shadow: 0 2px 8px 0 rgba(107, 114, 128, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  cursor: not-allowed;
+  opacity: 0.6;
+  transform: none;
+}
+
+.action-btn-primary.btn-disabled:hover {
+  transform: none;
+  box-shadow: 0 2px 8px 0 rgba(107, 114, 128, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* Вторичная кнопка - оптимизированная для иконки */
+.action-btn-secondary {
+  @apply border border-gray-300 text-gray-700;
+  @apply focus:ring-gray-500;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.95),
+    rgba(248, 250, 252, 0.95)
+  );
+  border-radius: 14px;
+  font-weight: 500;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 6px 0 rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  padding: 14px 16px;
+  min-width: 56px;
+  width: auto;
+  flex: 0 0 auto;
+}
+
+.action-btn-secondary .btn-icon {
+  @apply w-5 h-5;
+}
+
+.action-btn-secondary:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(248, 250, 252, 0.98),
+    rgba(241, 245, 249, 0.95)
+  );
+  border-color: rgba(236, 72, 153, 0.3);
+  color: rgba(236, 72, 153, 0.8);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.12),
+    0 2px 6px 0 rgba(236, 72, 153, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.action-btn-secondary:hover .btn-icon {
+  transform: scale(1.15) rotate(-5deg);
+  color: rgba(236, 72, 153, 0.7);
+}
+
+/* Медиа запросы */
+@media (max-width: 768px) {
+  .filters-container {
+    @apply mx-2 rounded-lg;
+  }
+
+  .filters-header {
+    @apply px-3 py-3;
+  }
+
+  .filter-main-title {
+    @apply text-base;
+  }
+
+  .filters-content {
+    @apply p-3 space-y-2;
+    max-height: calc(100vh - 180px);
+  }
+
+  .filter-section {
+    @apply rounded-lg;
+  }
+
+  .filter-actions {
+    padding: 12px 16px;
+    gap: 10px;
+  }
+
+  .action-btn-primary {
+    padding: 12px 16px;
+    min-width: 60px;
+    min-height: 48px;
+  }
+
+  .btn-text-full {
+    display: none;
+  }
+
+  .btn-text-short {
+    display: block;
+  }
+
+  .btn-icon {
+    @apply w-5 h-5;
+  }
+
+  .btn-badge {
+    min-width: 26px;
+    height: 26px;
+    font-size: 12px;
+    margin-left: 6px;
+  }
+
+  .action-btn-secondary {
+    padding: 12px 14px;
+    min-width: 52px;
+  }
+
+  .action-btn-secondary .btn-icon {
+    @apply w-4 h-4;
+  }
+}
+
+@media (max-width: 480px) {
+  .filter-actions {
+    padding: 10px 12px;
+    gap: 8px;
+    justify-content: center;
+  }
+
+  .action-btn-primary,
+  .action-btn-secondary {
+    min-height: 44px;
+  }
+
+  .action-btn-primary {
+    padding: 10px 14px;
+    min-width: 56px;
+  }
+
+  .action-btn-secondary {
+    padding: 10px 12px;
+    min-width: 48px;
+  }
+
+  .btn-content {
+    gap: 6px;
+  }
+
+  .btn-badge {
+    min-width: 24px;
+    height: 24px;
+    font-size: 11px;
+    margin-left: 4px;
+  }
+
+  .btn-icon {
+    @apply w-4 h-4;
+  }
+
+  .action-btn-secondary .btn-icon {
+    @apply w-4 h-4;
+  }
+}
+
+/* Улучшенная типография для кнопок */
+.action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.action-btn-primary {
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+/* Дополнительные анимации */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.filter-section:nth-child(1) {
+  animation-delay: 0.1s;
+}
+.filter-section:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.filter-section:nth-child(3) {
+  animation-delay: 0.3s;
+}
+.filter-section:nth-child(4) {
+  animation-delay: 0.4s;
+}
+.filter-section:nth-child(5) {
+  animation-delay: 0.5s;
+}
+.filter-section:nth-child(6) {
+  animation-delay: 0.6s;
+}
+.filter-section:nth-child(7) {
+  animation-delay: 0.7s;
+}
+.filter-section:nth-child(8) {
+  animation-delay: 0.8s;
+}
+.filter-section:nth-child(9) {
+  animation-delay: 0.9s;
+}
+.filter-section:nth-child(10) {
+  animation-delay: 1s;
+}
+
+/* Дополнительные анимации для кнопок */
+.action-btn-primary::after {
   content: "";
   position: absolute;
   top: 0;
@@ -1356,136 +1973,204 @@ const onPriceRangeChange = (range) => {
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(255, 255, 255, 0.2),
+    rgba(255, 255, 255, 0.4),
     transparent
   );
-  transition: all 0.6s ease;
+  transition: left 0.8s ease;
 }
 
-.action-btn:hover::before {
+.action-btn-primary:hover::after {
   left: 100%;
 }
 
-.action-btn-primary:hover {
-  transform: translateY(-2px) scale(1.02);
-  box-shadow: 0 6px 20px rgba(236, 72, 153, 0.3);
-  background: linear-gradient(135deg, rgb(219, 39, 119), rgb(236, 72, 153));
+/* Дополнительные эффекты наведения */
+.filter-section:hover .filter-title {
+  color: rgba(236, 72, 153, 0.8);
 }
 
-.action-btn-secondary:hover {
-  @apply bg-gray-100 border-gray-300 text-gray-800;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
+/* Улучшенная доступность */
+.option-checkbox:focus,
+.search-input:focus,
 .action-btn:focus {
-  outline: none;
+  outline: 2px solid rgba(236, 72, 153, 0.5);
+  outline-offset: 2px;
 }
 
-.action-btn-primary:focus {
-  box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.3);
+/* Дополнительные улучшения для badge */
+.btn-badge-animate {
+  animation: badgeCountUpdate 0.3s ease-out;
 }
 
-.action-btn-secondary:focus {
-  box-shadow: 0 0 0 3px rgba(156, 163, 175, 0.3);
-}
-
-.btn-disabled {
-  @apply cursor-not-allowed opacity-60;
-  background: linear-gradient(
-    135deg,
-    rgb(156, 163, 175),
-    rgb(209, 213, 219)
-  ) !important;
-  border-color: rgba(156, 163, 175, 0.3) !important;
-  box-shadow: none !important;
-  transform: none !important;
-}
-
-.btn-disabled:hover {
-  transform: none !important;
-  box-shadow: none !important;
-}
-
-.btn-disabled::before {
-  display: none;
-}
-
-@keyframes pulse-glow {
-  0%,
-  100% {
-    box-shadow: 0 4px 12px rgba(236, 72, 153, 0.2);
+@keyframes badgeCountUpdate {
+  0% {
+    transform: scale(1);
   }
   50% {
-    box-shadow: 0 6px 20px rgba(236, 72, 153, 0.4);
+    transform: scale(1.2);
+    background: rgba(255, 255, 255, 0.5);
+  }
+  100% {
+    transform: scale(1);
   }
 }
 
-.action-btn-primary:focus {
-  animation: pulse-glow 2s infinite;
+/* Индикатор пустого поиска */
+.empty-search-result {
+  @apply text-center py-8 px-4;
+  animation: fadeInUp 0.4s ease-out;
 }
 
-.btn-icon {
-  @apply w-4 h-4;
+.empty-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.6;
+  animation: pulse 2s infinite;
+}
+
+.empty-text {
+  @apply text-gray-600 font-medium mb-2;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 15px;
+}
+
+.empty-hint {
+  @apply text-gray-400 text-sm;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+/* Улучшенная анимация для чекбоксов брендов */
+.checkbox-option {
+  @apply flex items-center gap-3 p-2 rounded-lg cursor-pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  animation: slideInFromLeft 0.4s ease-out;
+}
+
+@keyframes slideInFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Секция фильтра */
+.filter-section {
+  @apply border border-gray-100 rounded-lg overflow-hidden;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.9),
+    rgba(248, 250, 252, 0.9)
+  );
+  position: relative;
+  animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.filter-section::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(236, 72, 153, 0.02), transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.filter-section:hover {
+  border-color: rgba(236, 72, 153, 0.15);
+  box-shadow: 0 2px 8px rgba(236, 72, 153, 0.06);
+  transform: translateY(-1px);
+}
+
+.filter-header {
+  @apply flex items-center justify-between p-3 cursor-pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  z-index: 2;
+}
+
+.filter-header:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(248, 250, 252, 0.95),
+    rgba(236, 72, 153, 0.03)
+  );
+}
+
+.filter-title {
+  @apply text-sm font-medium text-gray-700 flex items-center gap-2;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  letter-spacing: -0.01em;
+}
+
+.filter-icon {
+  @apply w-4 h-4 text-gray-500;
   transition: all 0.3s ease;
 }
 
-.action-btn:hover .btn-icon {
+.filter-header:hover .filter-icon {
+  color: rgba(236, 72, 153, 0.7);
+  transform: scale(1.1) rotate(5deg);
+}
+
+/* Стрелка аккордеона */
+.accordion-arrow {
+  @apply w-4 h-4 text-gray-400 transition-all duration-500 ease-in-out;
+  transform-origin: center;
+}
+
+.accordion-arrow.rotate-180 {
+  transform: rotate(180deg);
+}
+
+.filter-header:hover .accordion-arrow {
+  color: rgba(236, 72, 153, 0.7);
   transform: scale(1.1);
-  filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.5));
 }
 
-.btn-text {
-  @apply text-sm font-medium;
+.filter-header:hover .accordion-arrow.rotate-180 {
+  transform: rotate(180deg) scale(1.1);
 }
 
-.btn-badge {
-  @apply bg-pink-500 text-white px-2 py-1 rounded-full text-xs font-medium;
-  min-width: 20px;
-  text-align: center;
-  box-shadow: 0 2px 4px rgba(236, 72, 153, 0.2);
-  animation: fadeInScale 0.3s ease-out;
+/* Тело фильтра */
+.filter-body {
+  @apply border-t border-gray-100;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.95),
+    rgba(248, 250, 252, 0.95)
+  );
+  animation: slideDown 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Адаптивность */
-@media (max-width: 768px) {
-  .color-grid {
-    @apply grid-cols-4;
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+    transform: translateY(-10px);
   }
-
-  .price-range {
-    @apply flex-col gap-2;
+  to {
+    opacity: 1;
+    max-height: 500px;
+    transform: translateY(0);
   }
-
-  .filter-actions {
-    @apply flex-col;
-  }
-
-  .filter-section:hover {
-    transform: none;
-  }
-
-  .checkbox-option:hover {
-    transform: scale(1.01);
-  }
-}
-
-/* Прокрутка */
-.options-list::-webkit-scrollbar {
-  width: 4px;
-}
-
-.options-list::-webkit-scrollbar-track {
-  background: rgba(236, 72, 153, 0.1);
-  border-radius: 2px;
-}
-
-.options-list::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, rgb(236, 72, 153), rgb(219, 39, 119));
-  border-radius: 2px;
-}
-
-.options-list::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, rgb(219, 39, 119), rgb(190, 24, 93));
 }
 </style>
