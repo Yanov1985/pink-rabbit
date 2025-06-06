@@ -1,7 +1,16 @@
 <template>
-  <div class="filters-container">
+  <!-- Семантический aside для фильтров с сохранением всех CSS классов -->
+  <aside
+    class="filters-container"
+    role="complementary"
+    aria-label="Фильтры товаров"
+  >
     <!-- Skeleton при загрузке -->
-    <div v-if="isLoading" class="pink-rabbit-filters-skeleton">
+    <div
+      v-if="isLoading"
+      class="pink-rabbit-filters-skeleton"
+      aria-hidden="true"
+    >
       <!-- Заголовок skeleton с минимальным дизайном -->
       <div class="skeleton-header">
         <div class="skeleton-header-content">
@@ -45,60 +54,101 @@
       </div>
     </div>
 
-    <!-- Основной контент (отображается после загрузки) -->
-    <div v-else>
-      <!-- Заголовок фильтров -->
-      <div class="filters-header">
+    <!-- Основной контент как form для семантики фильтрации -->
+    <form
+      v-else
+      @submit.prevent="applyFilters"
+      role="search"
+      aria-label="Форма фильтрации товаров"
+    >
+      <!-- Заголовок фильтров как header -->
+      <header class="filters-header">
         <div class="header-main">
-          <h3 class="filter-main-title">
-            <FunnelIcon class="w-5 h-5 text-pink-500" />
+          <h2 class="filter-main-title" id="filters-heading">
+            <FunnelIcon class="w-5 h-5 text-pink-500" aria-hidden="true" />
             Фильтры товаров
-          </h3>
-          <div class="filters-counter" v-if="hasActiveFilters">
-            <span class="counter-badge">{{ activeFiltersCount }}</span>
+          </h2>
+          <div
+            class="filters-counter"
+            v-if="hasActiveFilters"
+            role="status"
+            aria-live="polite"
+          >
+            <span
+              class="counter-badge"
+              :aria-label="`Активных фильтров: ${activeFiltersCount}`"
+              >{{ activeFiltersCount }}</span
+            >
           </div>
         </div>
-        <div class="header-controls">
+        <nav
+          class="header-controls"
+          role="navigation"
+          aria-label="Управление фильтрами"
+        >
           <button
             @click="toggleAllAccordions"
             class="control-btn control-btn-secondary"
-            :title="
+            type="button"
+            :aria-label="
               allAccordionsOpen
                 ? 'Свернуть все разделы'
                 : 'Развернуть все разделы'
             "
+            :aria-expanded="allAccordionsOpen"
           >
             <ChevronDownIcon
               class="w-4 h-4 transition-transform duration-300"
               :class="{ 'rotate-180': allAccordionsOpen }"
+              aria-hidden="true"
             />
           </button>
           <button
             v-if="hasActiveFilters"
             @click="resetAllFilters"
             class="control-btn control-btn-danger"
-            title="Сбросить все фильтры"
+            type="button"
+            aria-label="Сбросить все фильтры"
           >
-            <TrashIcon class="w-4 h-4" />
+            <TrashIcon class="w-4 h-4" aria-hidden="true" />
           </button>
-        </div>
-      </div>
+        </nav>
+      </header>
 
-      <!-- Область фильтров -->
-      <div class="filters-content">
-        <!-- Фильтр по цене -->
-        <div class="filter-section">
-          <div @click="toggleAccordion('price')" class="filter-header">
-            <h4 class="filter-title">
-              <CurrencyDollarIcon class="filter-icon" />
+      <!-- Область фильтров как main -->
+      <main class="filters-content" aria-labelledby="filters-heading">
+        <!-- Фильтр по цене как fieldset -->
+        <fieldset class="filter-section">
+          <legend class="sr-only">Фильтр по цене</legend>
+          <button
+            @click="toggleAccordion('price')"
+            class="filter-header"
+            type="button"
+            :aria-expanded="accordionState.price"
+            aria-controls="price-filter-content"
+            :aria-label="
+              accordionState.price
+                ? 'Свернуть фильтр по цене'
+                : 'Развернуть фильтр по цене'
+            "
+          >
+            <h3 class="filter-title">
+              <CurrencyDollarIcon class="filter-icon" aria-hidden="true" />
               Цена
-            </h4>
+            </h3>
             <ChevronDownIcon
               class="accordion-arrow"
               :class="{ 'rotate-180': accordionState.price }"
+              aria-hidden="true"
             />
-          </div>
-          <div v-if="accordionState.price" class="filter-body">
+          </button>
+          <div
+            v-if="accordionState.price"
+            class="filter-body"
+            id="price-filter-content"
+            role="region"
+            aria-labelledby="price-filter-title"
+          >
             <!-- Профессиональный слайдер для диапазона цен -->
             <PriceRangeSlider
               v-model="priceRange"
@@ -106,37 +156,70 @@
               :max="250000"
               :step="100"
               @change="onPriceRangeChange"
+              aria-label="Диапазон цен от 0 до 250000 рублей"
             />
           </div>
-        </div>
+        </fieldset>
 
-        <!-- Фильтр по бренду -->
-        <div class="filter-section">
-          <div @click="toggleAccordion('brand')" class="filter-header">
-            <h4 class="filter-title">
-              <TagIcon class="filter-icon" />
+        <!-- Фильтр по бренду как fieldset -->
+        <fieldset class="filter-section">
+          <legend class="sr-only">Фильтр по бренду</legend>
+          <button
+            @click="toggleAccordion('brand')"
+            class="filter-header"
+            type="button"
+            :aria-expanded="accordionState.brand"
+            aria-controls="brand-filter-content"
+            :aria-label="
+              accordionState.brand
+                ? 'Свернуть фильтр по бренду'
+                : 'Развернуть фильтр по бренду'
+            "
+          >
+            <h3 class="filter-title" id="brand-filter-title">
+              <TagIcon class="filter-icon" aria-hidden="true" />
               Бренд
-            </h4>
+            </h3>
             <ChevronDownIcon
               class="accordion-arrow"
               :class="{ 'rotate-180': accordionState.brand }"
+              aria-hidden="true"
             />
-          </div>
-          <div v-if="accordionState.brand" class="filter-body">
+          </button>
+          <div
+            v-if="accordionState.brand"
+            class="filter-body"
+            id="brand-filter-content"
+            role="region"
+            aria-labelledby="brand-filter-title"
+          >
             <div class="search-wrapper">
+              <label for="brand-search" class="sr-only">Поиск бренда</label>
               <input
+                id="brand-search"
                 v-model="brandSearch"
                 type="text"
                 placeholder="Поиск бренда..."
                 class="search-input"
+                aria-describedby="brand-search-help"
+                role="searchbox"
               />
+              <div id="brand-search-help" class="sr-only">
+                Введите название бренда для поиска в списке
+              </div>
             </div>
-            <div class="options-list">
+            <div
+              class="options-list"
+              role="group"
+              aria-labelledby="brand-filter-title"
+            >
               <div
                 v-if="filteredBrands.length === 0 && brandSearch.trim()"
                 class="empty-search-result"
+                role="status"
+                aria-live="polite"
               >
-                <div class="empty-icon">🔍</div>
+                <div class="empty-icon" aria-hidden="true">🔍</div>
                 <p class="empty-text">Бренды не найдены</p>
                 <p class="empty-hint">Попробуйте изменить поисковый запрос</p>
               </div>
@@ -144,342 +227,631 @@
                 v-for="brand in filteredBrands"
                 :key="brand.id"
                 class="checkbox-option"
+                :for="`brand-${brand.id}`"
               >
                 <input
+                  :id="`brand-${brand.id}`"
                   v-model="filters.selectedBrands"
                   :value="brand.id"
                   type="checkbox"
                   class="option-checkbox"
+                  :aria-describedby="`brand-${brand.id}-count`"
                 />
                 <span class="option-label">{{ brand.name }}</span>
-                <span class="option-count">({{ brand.count }})</span>
+                <span class="option-count" :id="`brand-${brand.id}-count`"
+                  >({{ brand.count }})</span
+                >
               </label>
             </div>
           </div>
-        </div>
+        </fieldset>
 
-        <!-- Фильтр по материалу -->
-        <div class="filter-section">
-          <div @click="toggleAccordion('material')" class="filter-header">
-            <h4 class="filter-title">
-              <CubeIcon class="filter-icon" />
+        <!-- Фильтр по материалу как fieldset -->
+        <fieldset class="filter-section">
+          <legend class="sr-only">Фильтр по материалу</legend>
+          <button
+            @click="toggleAccordion('material')"
+            class="filter-header"
+            type="button"
+            :aria-expanded="accordionState.material"
+            aria-controls="material-filter-content"
+            :aria-label="
+              accordionState.material
+                ? 'Свернуть фильтр по материалу'
+                : 'Развернуть фильтр по материалу'
+            "
+          >
+            <h3 class="filter-title" id="material-filter-title">
+              <CubeIcon class="filter-icon" aria-hidden="true" />
               Материал
-            </h4>
+            </h3>
             <ChevronDownIcon
               class="accordion-arrow"
               :class="{ 'rotate-180': accordionState.material }"
+              aria-hidden="true"
             />
-          </div>
-          <div v-if="accordionState.material" class="filter-body">
-            <div class="options-list">
+          </button>
+          <div
+            v-if="accordionState.material"
+            class="filter-body"
+            id="material-filter-content"
+            role="region"
+            aria-labelledby="material-filter-title"
+          >
+            <div
+              class="options-list"
+              role="group"
+              aria-labelledby="material-filter-title"
+            >
               <label
                 v-for="material in materials"
                 :key="material.id"
                 class="checkbox-option"
+                :for="`material-${material.id}`"
               >
                 <input
+                  :id="`material-${material.id}`"
                   v-model="filters.selectedMaterials"
                   :value="material.id"
                   type="checkbox"
                   class="option-checkbox"
+                  :aria-describedby="`material-${material.id}-count`"
                 />
                 <span class="option-label">{{ material.name }}</span>
-                <span class="option-count">({{ material.count }})</span>
+                <span class="option-count" :id="`material-${material.id}-count`"
+                  >({{ material.count }})</span
+                >
               </label>
             </div>
           </div>
-        </div>
+        </fieldset>
 
-        <!-- Фильтр по цвету -->
-        <div class="filter-section">
-          <div @click="toggleAccordion('color')" class="filter-header">
-            <h4 class="filter-title">
-              <SwatchIcon class="filter-icon" />
+        <!-- Фильтр по цвету как fieldset -->
+        <fieldset class="filter-section">
+          <legend class="sr-only">Фильтр по цвету</legend>
+          <button
+            @click="toggleAccordion('color')"
+            class="filter-header"
+            type="button"
+            :aria-expanded="accordionState.color"
+            aria-controls="color-filter-content"
+            :aria-label="
+              accordionState.color
+                ? 'Свернуть фильтр по цвету'
+                : 'Развернуть фильтр по цвету'
+            "
+          >
+            <h3 class="filter-title" id="color-filter-title">
+              <SwatchIcon class="filter-icon" aria-hidden="true" />
               Цвет
-            </h4>
+            </h3>
             <ChevronDownIcon
               class="accordion-arrow"
               :class="{ 'rotate-180': accordionState.color }"
+              aria-hidden="true"
             />
-          </div>
-          <div v-if="accordionState.color" class="filter-body">
-            <div class="color-grid">
-              <div
+          </button>
+          <div
+            v-if="accordionState.color"
+            class="filter-body"
+            id="color-filter-content"
+            role="region"
+            aria-labelledby="color-filter-title"
+          >
+            <div
+              class="color-grid"
+              role="group"
+              aria-labelledby="color-filter-title"
+            >
+              <button
                 v-for="color in colors"
                 :key="color.id"
+                type="button"
                 class="color-option"
                 :class="{ active: filters.selectedColors.includes(color.id) }"
                 @click="toggleColor(color.id)"
-                :title="color.name"
+                :aria-label="`${
+                  filters.selectedColors.includes(color.id)
+                    ? 'Убрать'
+                    : 'Выбрать'
+                } цвет ${color.name}`"
+                :aria-pressed="filters.selectedColors.includes(color.id)"
                 :style="{ backgroundColor: color.value }"
+                :aria-describedby="`color-${color.id}-name`"
               >
                 <CheckIcon
                   v-if="filters.selectedColors.includes(color.id)"
                   class="color-check"
+                  aria-hidden="true"
                 />
-              </div>
+                <span class="sr-only" :id="`color-${color.id}-name`">{{
+                  color.name
+                }}</span>
+              </button>
             </div>
           </div>
-        </div>
+        </fieldset>
 
-        <!-- Фильтр по длине -->
-        <div class="filter-section">
-          <div @click="toggleAccordion('length')" class="filter-header">
-            <h4 class="filter-title">
-              <ArrowsPointingOutIcon class="filter-icon" />
+        <!-- Фильтр по длине как fieldset -->
+        <fieldset class="filter-section">
+          <legend class="sr-only">Фильтр по длине</legend>
+          <button
+            @click="toggleAccordion('length')"
+            class="filter-header"
+            type="button"
+            :aria-expanded="accordionState.length"
+            aria-controls="length-filter-content"
+            :aria-label="
+              accordionState.length
+                ? 'Свернуть фильтр по длине'
+                : 'Развернуть фильтр по длине'
+            "
+          >
+            <h3 class="filter-title" id="length-filter-title">
+              <ArrowsPointingOutIcon class="filter-icon" aria-hidden="true" />
               Длина, см
-            </h4>
+            </h3>
             <ChevronDownIcon
               class="accordion-arrow"
               :class="{ 'rotate-180': accordionState.length }"
+              aria-hidden="true"
             />
-          </div>
-          <div v-if="accordionState.length" class="filter-body">
-            <div class="options-list">
+          </button>
+          <div
+            v-if="accordionState.length"
+            class="filter-body"
+            id="length-filter-content"
+            role="region"
+            aria-labelledby="length-filter-title"
+          >
+            <div
+              class="options-list"
+              role="group"
+              aria-labelledby="length-filter-title"
+            >
               <label
                 v-for="length in lengths"
                 :key="length.value"
                 class="checkbox-option"
+                :for="`length-${length.value}`"
               >
                 <input
+                  :id="`length-${length.value}`"
                   v-model="filters.selectedLengths"
                   :value="length.value"
                   type="checkbox"
                   class="option-checkbox"
+                  :aria-describedby="`length-${length.value}-count`"
                 />
                 <span class="option-label">{{ length.label }}</span>
-                <span class="option-count">({{ length.count }})</span>
+                <span class="option-count" :id="`length-${length.value}-count`"
+                  >({{ length.count }})</span
+                >
               </label>
             </div>
           </div>
-        </div>
+        </fieldset>
 
-        <!-- Фильтр по диаметру -->
-        <div class="filter-section">
-          <div @click="toggleAccordion('diameter')" class="filter-header">
-            <h4 class="filter-title">
-              <ArrowsRightLeftIcon class="filter-icon" />
+        <!-- Фильтр по диаметру как fieldset -->
+        <fieldset class="filter-section">
+          <legend class="sr-only">Фильтр по диаметру</legend>
+          <button
+            @click="toggleAccordion('diameter')"
+            class="filter-header"
+            type="button"
+            :aria-expanded="accordionState.diameter"
+            aria-controls="diameter-filter-content"
+            :aria-label="
+              accordionState.diameter
+                ? 'Свернуть фильтр по диаметру'
+                : 'Развернуть фильтр по диаметру'
+            "
+          >
+            <h3 class="filter-title" id="diameter-filter-title">
+              <ArrowsRightLeftIcon class="filter-icon" aria-hidden="true" />
               Диаметр, см
-            </h4>
+            </h3>
             <ChevronDownIcon
               class="accordion-arrow"
               :class="{ 'rotate-180': accordionState.diameter }"
+              aria-hidden="true"
             />
-          </div>
-          <div v-if="accordionState.diameter" class="filter-body">
-            <div class="options-list">
+          </button>
+          <div
+            v-if="accordionState.diameter"
+            class="filter-body"
+            id="diameter-filter-content"
+            role="region"
+            aria-labelledby="diameter-filter-title"
+          >
+            <div
+              class="options-list"
+              role="group"
+              aria-labelledby="diameter-filter-title"
+            >
               <label
                 v-for="diameter in diameters"
                 :key="diameter.value"
                 class="checkbox-option"
+                :for="`diameter-${diameter.value}`"
               >
                 <input
+                  :id="`diameter-${diameter.value}`"
                   v-model="filters.selectedDiameters"
                   :value="diameter.value"
                   type="checkbox"
                   class="option-checkbox"
+                  :aria-describedby="`diameter-${diameter.value}-count`"
                 />
                 <span class="option-label">{{ diameter.label }}</span>
-                <span class="option-count">({{ diameter.count }})</span>
+                <span
+                  class="option-count"
+                  :id="`diameter-${diameter.value}-count`"
+                  >({{ diameter.count }})</span
+                >
               </label>
             </div>
           </div>
-        </div>
+        </fieldset>
 
-        <!-- Фильтр по количеству режимов вибрации -->
-        <div class="filter-section">
-          <div @click="toggleAccordion('vibrationModes')" class="filter-header">
-            <h4 class="filter-title">
-              <WaveIcon class="filter-icon" />
+        <!-- Фильтр по количеству режимов вибрации как fieldset -->
+        <fieldset class="filter-section">
+          <legend class="sr-only">Фильтр по количеству режимов вибрации</legend>
+          <button
+            @click="toggleAccordion('vibrationModes')"
+            class="filter-header"
+            type="button"
+            :aria-expanded="accordionState.vibrationModes"
+            aria-controls="vibration-filter-content"
+            :aria-label="
+              accordionState.vibrationModes
+                ? 'Свернуть фильтр по количеству режимов вибрации'
+                : 'Развернуть фильтр по количеству режимов вибрации'
+            "
+          >
+            <h3 class="filter-title" id="vibration-filter-title">
+              <WaveIcon class="filter-icon" aria-hidden="true" />
               Количество режимов вибрации
-            </h4>
+            </h3>
             <ChevronDownIcon
               class="accordion-arrow"
               :class="{ 'rotate-180': accordionState.vibrationModes }"
+              aria-hidden="true"
             />
-          </div>
-          <div v-if="accordionState.vibrationModes" class="filter-body">
-            <div class="options-list">
+          </button>
+          <div
+            v-if="accordionState.vibrationModes"
+            class="filter-body"
+            id="vibration-filter-content"
+            role="region"
+            aria-labelledby="vibration-filter-title"
+          >
+            <div
+              class="options-list"
+              role="group"
+              aria-labelledby="vibration-filter-title"
+            >
               <label
                 v-for="mode in vibrationModes"
                 :key="mode.value"
                 class="checkbox-option"
+                :for="`vibration-${mode.value}`"
               >
                 <input
+                  :id="`vibration-${mode.value}`"
                   v-model="filters.selectedVibrationModes"
                   :value="mode.value"
                   type="checkbox"
                   class="option-checkbox"
+                  :aria-describedby="`vibration-${mode.value}-count`"
                 />
                 <span class="option-label">{{ mode.label }}</span>
-                <span class="option-count">({{ mode.count }})</span>
+                <span class="option-count" :id="`vibration-${mode.value}-count`"
+                  >({{ mode.count }})</span
+                >
               </label>
             </div>
           </div>
-        </div>
+        </fieldset>
 
-        <!-- Фильтр по водонепроницаемости -->
-        <div class="filter-section">
-          <div @click="toggleAccordion('waterproof')" class="filter-header">
-            <h4 class="filter-title">
-              <BeakerIcon class="filter-icon" />
+        <!-- Фильтр по водонепроницаемости как fieldset -->
+        <fieldset class="filter-section">
+          <legend class="sr-only">Фильтр по водонепроницаемости</legend>
+          <button
+            @click="toggleAccordion('waterproof')"
+            class="filter-header"
+            type="button"
+            :aria-expanded="accordionState.waterproof"
+            aria-controls="waterproof-filter-content"
+            :aria-label="
+              accordionState.waterproof
+                ? 'Свернуть фильтр по водонепроницаемости'
+                : 'Развернуть фильтр по водонепроницаемости'
+            "
+          >
+            <h3 class="filter-title" id="waterproof-filter-title">
+              <BeakerIcon class="filter-icon" aria-hidden="true" />
               Водонепроницаемость
-            </h4>
+            </h3>
             <ChevronDownIcon
               class="accordion-arrow"
               :class="{ 'rotate-180': accordionState.waterproof }"
+              aria-hidden="true"
             />
-          </div>
-          <div v-if="accordionState.waterproof" class="filter-body">
-            <div class="options-list">
+          </button>
+          <div
+            v-if="accordionState.waterproof"
+            class="filter-body"
+            id="waterproof-filter-content"
+            role="region"
+            aria-labelledby="waterproof-filter-title"
+          >
+            <div
+              class="options-list"
+              role="group"
+              aria-labelledby="waterproof-filter-title"
+            >
               <label
                 v-for="level in waterproofLevels"
                 :key="level.value"
                 class="checkbox-option"
+                :for="`waterproof-${level.value}`"
               >
                 <input
+                  :id="`waterproof-${level.value}`"
                   v-model="filters.selectedWaterproofLevels"
                   :value="level.value"
                   type="checkbox"
                   class="option-checkbox"
+                  :aria-describedby="`waterproof-${level.value}-count`"
                 />
                 <span class="option-label">{{ level.label }}</span>
-                <span class="option-count">({{ level.count }})</span>
+                <span
+                  class="option-count"
+                  :id="`waterproof-${level.value}-count`"
+                  >({{ level.count }})</span
+                >
               </label>
             </div>
           </div>
-        </div>
+        </fieldset>
 
-        <!-- Фильтр по функции нагрева -->
-        <div class="filter-section">
-          <div @click="toggleAccordion('heating')" class="filter-header">
-            <h4 class="filter-title">
-              <FireIcon class="filter-icon" />
+        <!-- Фильтр по функции нагрева как fieldset -->
+        <fieldset class="filter-section">
+          <legend class="sr-only">Фильтр по функции нагрева</legend>
+          <button
+            @click="toggleAccordion('heating')"
+            class="filter-header"
+            type="button"
+            :aria-expanded="accordionState.heating"
+            aria-controls="heating-filter-content"
+            :aria-label="
+              accordionState.heating
+                ? 'Свернуть фильтр по функции нагрева'
+                : 'Развернуть фильтр по функции нагрева'
+            "
+          >
+            <h3 class="filter-title" id="heating-filter-title">
+              <FireIcon class="filter-icon" aria-hidden="true" />
               Функция нагрева
-            </h4>
+            </h3>
             <ChevronDownIcon
               class="accordion-arrow"
               :class="{ 'rotate-180': accordionState.heating }"
+              aria-hidden="true"
             />
-          </div>
-          <div v-if="accordionState.heating" class="filter-body">
+          </button>
+          <div
+            v-if="accordionState.heating"
+            class="filter-body"
+            id="heating-filter-content"
+            role="region"
+            aria-labelledby="heating-filter-title"
+          >
             <div class="toggle-options">
               <label class="toggle-option">
                 <input
                   v-model="filters.hasHeating"
                   type="checkbox"
                   class="option-checkbox"
+                  :aria-describedby="`heating-count`"
                 />
                 <span class="option-label">Есть функция нагрева</span>
               </label>
             </div>
           </div>
-        </div>
+        </fieldset>
 
-        <!-- Фильтр по количеству моторов -->
-        <div class="filter-section">
-          <div @click="toggleAccordion('motors')" class="filter-header">
-            <h4 class="filter-title">
-              <CogIcon class="filter-icon" />
+        <!-- Фильтр по количеству моторов как fieldset -->
+        <fieldset class="filter-section">
+          <legend class="sr-only">Фильтр по количеству моторов</legend>
+          <button
+            @click="toggleAccordion('motors')"
+            class="filter-header"
+            type="button"
+            :aria-expanded="accordionState.motors"
+            aria-controls="motors-filter-content"
+            :aria-label="
+              accordionState.motors
+                ? 'Свернуть фильтр по количеству моторов'
+                : 'Развернуть фильтр по количеству моторов'
+            "
+          >
+            <h3 class="filter-title" id="motors-filter-title">
+              <CogIcon class="filter-icon" aria-hidden="true" />
               Количество моторов
-            </h4>
+            </h3>
             <ChevronDownIcon
               class="accordion-arrow"
               :class="{ 'rotate-180': accordionState.motors }"
+              aria-hidden="true"
             />
-          </div>
-          <div v-if="accordionState.motors" class="filter-body">
-            <div class="options-list">
+          </button>
+          <div
+            v-if="accordionState.motors"
+            class="filter-body"
+            id="motors-filter-content"
+            role="region"
+            aria-labelledby="motors-filter-title"
+          >
+            <div
+              class="options-list"
+              role="group"
+              aria-labelledby="motors-filter-title"
+            >
               <label
                 v-for="count in motorCounts"
                 :key="count.value"
                 class="checkbox-option"
+                :for="`motor-${count.value}`"
               >
                 <input
+                  :id="`motor-${count.value}`"
                   v-model="filters.selectedMotorCounts"
                   :value="count.value"
                   type="checkbox"
                   class="option-checkbox"
+                  :aria-describedby="`motor-${count.value}-count`"
                 />
                 <span class="option-label">{{ count.label }}</span>
-                <span class="option-count">({{ count.count }})</span>
+                <span class="option-count" :id="`motor-${count.value}-count`"
+                  >({{ count.count }})</span
+                >
               </label>
             </div>
           </div>
-        </div>
+        </fieldset>
 
-        <!-- Фильтр по аромату -->
-        <div class="filter-section">
-          <div @click="toggleAccordion('aroma')" class="filter-header">
-            <h4 class="filter-title">
-              <SparklesIcon class="filter-icon" />
+        <!-- Фильтр по аромату как fieldset -->
+        <fieldset class="filter-section">
+          <legend class="sr-only">Фильтр по аромату</legend>
+          <button
+            @click="toggleAccordion('aroma')"
+            class="filter-header"
+            type="button"
+            :aria-expanded="accordionState.aroma"
+            aria-controls="aroma-filter-content"
+            :aria-label="
+              accordionState.aroma
+                ? 'Свернуть фильтр по аромату'
+                : 'Развернуть фильтр по аромату'
+            "
+          >
+            <h3 class="filter-title" id="aroma-filter-title">
+              <SparklesIcon class="filter-icon" aria-hidden="true" />
               Аромат
-            </h4>
+            </h3>
             <ChevronDownIcon
               class="accordion-arrow"
               :class="{ 'rotate-180': accordionState.aroma }"
+              aria-hidden="true"
             />
-          </div>
-          <div v-if="accordionState.aroma" class="filter-body">
-            <div class="options-list">
+          </button>
+          <div
+            v-if="accordionState.aroma"
+            class="filter-body"
+            id="aroma-filter-content"
+            role="region"
+            aria-labelledby="aroma-filter-title"
+          >
+            <div
+              class="options-list"
+              role="group"
+              aria-labelledby="aroma-filter-title"
+            >
               <label
                 v-for="aroma in aromas"
                 :key="aroma.id"
                 class="checkbox-option"
+                :for="`aroma-${aroma.id}`"
               >
                 <input
+                  :id="`aroma-${aroma.id}`"
                   v-model="filters.selectedAromas"
                   :value="aroma.id"
                   type="checkbox"
                   class="option-checkbox"
+                  :aria-describedby="`aroma-${aroma.id}-count`"
                 />
                 <span class="option-label">{{ aroma.name }}</span>
-                <span class="option-count">({{ aroma.count }})</span>
+                <span class="option-count" :id="`aroma-${aroma.id}-count`"
+                  >({{ aroma.count }})</span
+                >
               </label>
             </div>
           </div>
-        </div>
+        </fieldset>
 
-        <!-- Фильтр съедобный -->
-        <div class="filter-section">
-          <div @click="toggleAccordion('edible')" class="filter-header">
-            <h4 class="filter-title">
-              <HeartIcon class="filter-icon" />
+        <!-- Фильтр съедобный как fieldset -->
+        <fieldset class="filter-section">
+          <legend class="sr-only">Фильтр съедобный</legend>
+          <button
+            @click="toggleAccordion('edible')"
+            class="filter-header"
+            type="button"
+            :aria-expanded="accordionState.edible"
+            aria-controls="edible-filter-content"
+            :aria-label="
+              accordionState.edible
+                ? 'Свернуть фильтр съедобный'
+                : 'Развернуть фильтр съедобный'
+            "
+          >
+            <h3 class="filter-title" id="edible-filter-title">
+              <HeartIcon class="filter-icon" aria-hidden="true" />
               Съедобный
-            </h4>
+            </h3>
             <ChevronDownIcon
               class="accordion-arrow"
               :class="{ 'rotate-180': accordionState.edible }"
+              aria-hidden="true"
             />
-          </div>
-          <div v-if="accordionState.edible" class="filter-body">
+          </button>
+          <div
+            v-if="accordionState.edible"
+            class="filter-body"
+            id="edible-filter-content"
+            role="region"
+            aria-labelledby="edible-filter-title"
+          >
             <div class="toggle-options">
               <label class="toggle-option">
                 <input
                   v-model="filters.isEdible"
                   type="checkbox"
                   class="option-checkbox"
+                  :aria-describedby="`edible-count`"
                 />
                 <span class="option-label">Съедобный продукт</span>
               </label>
             </div>
           </div>
-        </div>
-      </div>
+        </fieldset>
+      </main>
 
-      <!-- Кнопки действий -->
-      <div class="filter-actions">
+      <!-- Кнопки действий как footer -->
+      <footer class="filter-actions" role="contentinfo">
         <button
           @click="applyFilters"
+          type="submit"
           class="action-btn action-btn-primary"
           :disabled="!hasChanges"
           :class="{ 'btn-disabled': !hasChanges }"
+          :aria-label="`Применить фильтры${
+            activeFiltersCount > 0
+              ? ' (' + activeFiltersCount + ' активных)'
+              : ''
+          }`"
         >
           <div class="btn-content">
             <div class="btn-main">
-              <MagnifyingGlassIcon class="btn-icon" />
+              <MagnifyingGlassIcon class="btn-icon" aria-hidden="true" />
             </div>
-            <span v-if="activeFiltersCount > 0" class="btn-badge">
+            <span
+              v-if="activeFiltersCount > 0"
+              class="btn-badge"
+              aria-hidden="true"
+            >
               {{ formatBadgeCount(activeFiltersCount) }}
             </span>
           </div>
@@ -487,17 +859,20 @@
         <button
           v-if="hasActiveFilters"
           @click="resetAllFilters"
+          type="button"
           class="action-btn action-btn-secondary"
+          aria-label="Сбросить все фильтры"
         >
-          <TrashIcon class="btn-icon" />
+          <TrashIcon class="btn-icon" aria-hidden="true" />
         </button>
-      </div>
-    </div>
-  </div>
+      </footer>
+    </form>
+  </aside>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, watch } from "vue";
+import { useHead } from "#app";
 import {
   CheckIcon,
   ChevronDownIcon,
@@ -517,6 +892,262 @@ import {
   HeartIcon,
 } from "@heroicons/vue/24/solid";
 import PriceRangeSlider from "@/components/PriceRangeSlider.vue";
+
+// SEO: Добавляем Schema.org разметку для структурированных данных
+// Это как паспорт для поисковых систем - рассказываем что у нас есть фильтры для интернет-магазина
+useHead({
+  title: "Фильтры товаров - Pink Rabbit",
+  meta: [
+    // Основные SEO метатеги
+    {
+      name: "description",
+      content:
+        "Умная система фильтров для поиска интимных товаров по цене, бренду, материалу, цвету и размеру. Более 500 товаров премиум качества.",
+    },
+    {
+      name: "keywords",
+      content:
+        "фильтры товаров, поиск интимных товаров, вибраторы по цене, бренды LELO Lovense, силиконовые игрушки",
+    },
+    // Open Graph для социальных сетей (как визитка магазина в соцсетях)
+    {
+      property: "og:title",
+      content: "Система фильтров интимных товаров - Pink Rabbit",
+    },
+    {
+      property: "og:description",
+      content:
+        "Найдите идеальный товар с помощью умных фильтров: цена, бренд, материал, размер. Премиум качество и быстрая доставка.",
+    },
+    {
+      property: "og:type",
+      content: "website",
+    },
+    {
+      property: "og:url",
+      content: "https://pink-rabbit.ru/catalog",
+    },
+    {
+      property: "og:image",
+      content: "https://pink-rabbit.ru/images/filters-preview.jpg",
+    },
+    // Twitter Card для Twitter (как превью в твиттере)
+    {
+      name: "twitter:card",
+      content: "summary_large_image",
+    },
+    {
+      name: "twitter:title",
+      content: "Фильтры интимных товаров - Pink Rabbit",
+    },
+    {
+      name: "twitter:description",
+      content: "Умная система поиска и фильтрации товаров для взрослых",
+    },
+    // Дополнительные метатеги для поисковых систем
+    {
+      name: "robots",
+      content: "index, follow, max-image-preview:large",
+    },
+    {
+      name: "googlebot",
+      content: "index, follow",
+    },
+    // Языковые метатеги
+    {
+      httpEquiv: "content-language",
+      content: "ru-RU",
+    },
+  ],
+  script: [
+    {
+      type: "application/ld+json",
+      children: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        name: "Pink Rabbit - Интернет-магазин интимных товаров",
+        url: "https://pink-rabbit.ru",
+        description:
+          "Премиальные товары для взрослых с системой умных фильтров",
+        potentialAction: {
+          "@type": "SearchAction",
+          target: {
+            "@type": "EntryPoint",
+            urlTemplate:
+              "https://pink-rabbit.ru/catalog?q={search_term_string}&price_min={price_min}&price_max={price_max}&brand={brand}&material={material}&color={color}",
+            actionPlatform: [
+              "http://schema.org/DesktopWebPlatform",
+              "http://schema.org/MobileWebPlatform",
+            ],
+          },
+          "query-input": [
+            "name=search_term_string",
+            "name=price_min",
+            "name=price_max",
+            "name=brand",
+            "name=material",
+            "name=color",
+          ],
+        },
+        // Описываем доступные фильтры как свойства товаров
+        offers: {
+          "@type": "AggregateOffer",
+          priceCurrency: "RUB",
+          lowPrice: "500",
+          highPrice: "25000",
+          offerCount: "500+",
+          availability: "https://schema.org/InStock",
+        },
+        // Категории товаров для фильтрации
+        additionalProperty: [
+          {
+            "@type": "PropertyValue",
+            name: "Бренды",
+            value: [
+              "Lovense",
+              "LELO",
+              "Satisfyer",
+              "We-Vibe",
+              "Fun Factory",
+              "Jimmyjane",
+            ],
+            description: "Премиальные бренды интимных товаров",
+          },
+          {
+            "@type": "PropertyValue",
+            name: "Материалы",
+            value: [
+              "Медицинский силикон",
+              "Боросиликатное стекло",
+              "ABS пластик",
+              "Металл",
+            ],
+            description: "Безопасные материалы для интимных товаров",
+          },
+          {
+            "@type": "PropertyValue",
+            name: "Цвета",
+            value: [
+              "Розовый",
+              "Фиолетовый",
+              "Черный",
+              "Белый",
+              "Красный",
+              "Синий",
+            ],
+            description: "Доступные цвета товаров",
+          },
+          {
+            "@type": "PropertyValue",
+            name: "Размеры",
+            value: [
+              "S (до 12 см)",
+              "M (12-18 см)",
+              "L (18-25 см)",
+              "XL (25+ см)",
+            ],
+            description: "Размерная линейка товаров",
+          },
+          {
+            "@type": "PropertyValue",
+            name: "Функции",
+            value: [
+              "Вибрация",
+              "Пульсация",
+              "Вращение",
+              "Нагрев",
+              "Приложение",
+            ],
+            description: "Доступные функции и возможности",
+          },
+        ],
+        // SEO теги для лучшего понимания контента
+        keywords:
+          "интимные товары, вибраторы, фильтры товаров, интернет магазин, взрослые товары",
+        inLanguage: "ru-RU",
+        author: {
+          "@type": "Organization",
+          name: "Pink Rabbit",
+        },
+      }),
+    },
+    // Дополнительная разметка для каталога товаров как коллекции
+    // Это как каталог в библиотеке - описываем что у нас есть организованная коллекция товаров
+    {
+      type: "application/ld+json",
+      children: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        name: "Каталог интимных товаров с фильтрами",
+        description:
+          "Структурированный каталог товаров для взрослых с возможностью фильтрации по различным параметрам",
+        url: "https://pink-rabbit.ru/catalog",
+        mainEntity: {
+          "@type": "ItemList",
+          name: "Фильтруемый список товаров",
+          description:
+            "Интерактивная система фильтров для поиска подходящих товаров",
+          numberOfItems: "500+",
+          itemListOrder: "https://schema.org/ItemListOrderAscending",
+          itemListElement: [
+            {
+              "@type": "ListItem",
+              position: 1,
+              name: "Фильтр по цене",
+              description: "Диапазон цен от 500 до 25000 рублей",
+            },
+            {
+              "@type": "ListItem",
+              position: 2,
+              name: "Фильтр по брендам",
+              description: "Выбор из премиальных брендов интимных товаров",
+            },
+            {
+              "@type": "ListItem",
+              position: 3,
+              name: "Фильтр по материалам",
+              description: "Безопасные материалы: силикон, стекло, металл",
+            },
+            {
+              "@type": "ListItem",
+              position: 4,
+              name: "Фильтр по цветам",
+              description: "Широкая цветовая палитра товаров",
+            },
+            {
+              "@type": "ListItem",
+              position: 5,
+              name: "Фильтр по размерам",
+              description: "Различные размеры для комфортного использования",
+            },
+          ],
+        },
+        breadcrumb: {
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            {
+              "@type": "ListItem",
+              position: 1,
+              name: "Главная",
+              item: "https://pink-rabbit.ru",
+            },
+            {
+              "@type": "ListItem",
+              position: 2,
+              name: "Каталог",
+              item: "https://pink-rabbit.ru/catalog",
+            },
+          ],
+        },
+        publisher: {
+          "@type": "Organization",
+          name: "Pink Rabbit",
+          url: "https://pink-rabbit.ru",
+        },
+      }),
+    },
+  ],
+});
 
 // Псевдо-икона для волн (заменить на реальную если нужно)
 const WaveIcon = CogIcon;
@@ -2196,6 +2827,20 @@ watch(
   );
   position: relative;
   animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  /* Сбрасываем стандартные стили fieldset */
+  margin: 0;
+  padding: 0;
+  border: 1px solid #f3f4f6;
+  min-width: 0;
+  /* Убираем стандартные отступы fieldset */
+  -webkit-margin-start: 0;
+  -webkit-margin-end: 0;
+  -webkit-padding-start: 0;
+  margin-inline-start: 0;
+  margin-inline-end: 0;
+  padding-inline-start: 0;
+  padding-block-start: 0;
+  padding-block-end: 0;
 }
 
 .filter-section::before {
@@ -2221,20 +2866,41 @@ watch(
   transition: all 0.3s ease;
   position: relative;
   z-index: 2;
-}
-
-.filter-header:hover {
-  background: linear-gradient(
-    135deg,
-    rgba(248, 250, 252, 0.95),
-    rgba(236, 72, 153, 0.03)
-  );
+  /* Сбрасываем стили кнопки */
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: inherit;
+  width: 100%;
+  text-align: left;
+  outline: none;
+  margin: 0;
+  padding: 12px;
+  /* Убираем стандартные стили кнопки */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
 }
 
 .filter-title {
   @apply text-sm font-medium text-gray-700 flex items-center gap-2;
   font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
   letter-spacing: -0.01em;
+  /* Сбрасываем все стандартные отступы браузера для h3 */
+  margin: 0;
+  padding: 0;
+  font-size: 0.875rem; /* 14px */
+  font-weight: 500;
+  line-height: 1.2;
+  /* Убираем стандартные стили заголовков */
+  -webkit-margin-before: 0;
+  -webkit-margin-after: 0;
+  -webkit-margin-start: 0;
+  -webkit-margin-end: 0;
+  margin-block-start: 0;
+  margin-block-end: 0;
+  margin-inline-start: 0;
+  margin-inline-end: 0;
 }
 
 .filter-icon {
@@ -2289,4 +2955,72 @@ watch(
     transform: translateY(0);
   }
 }
+
+/* Класс для скрытия элементов от визуального отображения, но доступных для screen readers */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Фокус для интерактивных элементов - улучшенная видимость для клавиатурной навигации */
+.filter-header:focus,
+.action-btn:focus,
+.option-checkbox:focus,
+.search-input:focus,
+.color-option:focus {
+  outline: 2px solid rgba(236, 72, 153, 0.6);
+  outline-offset: 2px;
+}
+
+/* Медиа-запросы для пользователей с ограниченной подвижностью */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Поддержка высокого контраста для пользователей с ослабленным зрением */
+@media (prefers-contrast: high) {
+  .filter-section {
+    border-color: #000;
+  }
+
+  .filter-header {
+    background: #fff;
+    color: #000;
+  }
+
+  .action-btn-primary {
+    background: #000;
+    color: #fff;
+    border: 2px solid #000;
+  }
+
+  .action-btn-secondary {
+    background: #fff;
+    color: #000;
+    border: 2px solid #000;
+  }
+}
+
+.filter-header:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(248, 250, 252, 0.95),
+    rgba(236, 72, 153, 0.03)
+  );
+}
+
+/* Удален дублирующийся блок .filter-title */
 </style>
