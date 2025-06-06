@@ -1171,9 +1171,9 @@ watch(
   }
 }
 
-/* Основной контейнер фильтров */
+/* Основной контейнер фильтров с улучшенной интеграцией скрола */
 .filters-container {
-  @apply bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden;
+  @apply bg-white rounded-lg border border-gray-200 shadow-sm;
   transition: all 0.3s ease;
   backdrop-filter: blur(10px);
   background: linear-gradient(
@@ -1185,6 +1185,8 @@ watch(
   height: 100%;
   display: flex;
   flex-direction: column;
+  /* Убираем overflow hidden чтобы скрол отображался корректно */
+  overflow: visible;
   /* Добавляем отступ снизу для липкой кнопки */
   padding-bottom: 80px;
 }
@@ -1303,17 +1305,87 @@ watch(
   box-shadow: 0 4px 12px rgba(236, 72, 153, 0.2);
 }
 
-/* Контент фильтров с правильной прокруткой */
+/* Контент фильтров с единственным элегантным скролом */
 .filters-content {
   @apply p-4 space-y-3;
   flex: 1;
   overflow-y: auto;
-  scrollbar-width: none;
+  overflow-x: hidden;
+  /* Делаем тонкий элегантный скрол */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(236, 72, 153, 0.4) transparent;
   /* Обеспечиваем прокрутку с учетом липкой кнопки */
   max-height: calc(100vh - 200px);
+  /* Оптимизированные отступы для единственного скрола */
+  padding-right: 16px;
+  margin-right: 2px;
+  /* Добавляем плавную прокрутку */
+  scroll-behavior: smooth;
 }
 
-/* Обертка поиска */
+/* Улучшенный webkit скрол для основного контейнера */
+.filters-content::-webkit-scrollbar {
+  width: 5px;
+  background: transparent;
+}
+
+.filters-content::-webkit-scrollbar-track {
+  background: rgba(243, 244, 246, 0.2);
+  border-radius: 3px;
+  margin: 8px 0;
+}
+
+.filters-content::-webkit-scrollbar-thumb {
+  background: linear-gradient(
+    180deg,
+    rgba(236, 72, 153, 0.5),
+    rgba(236, 72, 153, 0.3)
+  );
+  border-radius: 3px;
+  transition: all 0.3s ease;
+  min-height: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.filters-content::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(
+    180deg,
+    rgba(236, 72, 153, 0.7),
+    rgba(236, 72, 153, 0.5)
+  );
+  width: 6px;
+  box-shadow: 0 2px 8px rgba(236, 72, 153, 0.3);
+}
+
+.filters-content::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(
+    180deg,
+    rgba(236, 72, 153, 0.8),
+    rgba(236, 72, 153, 0.6)
+  );
+}
+
+/* Дополнительные улучшения для скрола */
+.filters-content:hover::-webkit-scrollbar-thumb {
+  opacity: 1;
+  background: linear-gradient(
+    180deg,
+    rgba(236, 72, 153, 0.6),
+    rgba(236, 72, 153, 0.4)
+  );
+}
+
+/* Плавное появление скрола при наведении на контейнер */
+.filters-content::-webkit-scrollbar {
+  opacity: 0.8;
+  transition: opacity 0.3s ease, width 0.2s ease;
+}
+
+.filters-content:hover::-webkit-scrollbar {
+  opacity: 1;
+}
+
+/* Обертка поиска оптимизированная для единственного скрола */
 .search-wrapper {
   @apply p-3 border-b border-gray-100;
   position: sticky;
@@ -1325,6 +1397,9 @@ watch(
   );
   backdrop-filter: blur(8px);
   z-index: 10;
+  /* Оптимизированные отступы для единственного скрола */
+  margin-right: 0;
+  padding-right: 12px;
 }
 
 .search-input {
@@ -1354,56 +1429,58 @@ watch(
   font-style: italic;
 }
 
-/* Список опций - улучшенный */
+/* Улучшенный список опций БЕЗ собственного скрола */
 .options-list {
   @apply p-3 space-y-2;
-  max-height: 320px;
-  overflow-y: auto;
-  overflow-x: hidden;
+  /* Убираем ограничение по высоте и скрол */
+  /* max-height: 280px; */
+  /* overflow-y: auto; */
+  /* overflow-x: hidden; */
   position: relative;
+  /* Убираем отступы для скрола так как теперь скрол только основной */
+  margin-right: 0;
+  padding-right: 12px;
 }
 
-.options-list::-webkit-scrollbar {
-  width: 8px;
+/* Убираем все стили скрола для списков опций */
+/* .options-list::-webkit-scrollbar {
+  width: 3px;
+  background: transparent;
 }
 
 .options-list::-webkit-scrollbar-track {
-  background: linear-gradient(
-    135deg,
-    rgba(236, 72, 153, 0.03),
-    rgba(236, 72, 153, 0.08)
-  );
-  border-radius: 4px;
-  margin: 4px 0;
+  background: rgba(243, 244, 246, 0.3);
+  border-radius: 2px;
+  margin: 2px 0;
 }
 
 .options-list::-webkit-scrollbar-thumb {
   background: linear-gradient(
-    135deg,
-    rgba(236, 72, 153, 0.2),
-    rgba(236, 72, 153, 0.4)
+    180deg,
+    rgba(236, 72, 153, 0.4),
+    rgba(236, 72, 153, 0.25)
   );
-  border-radius: 4px;
-  border: 1px solid rgba(236, 72, 153, 0.1);
-  transition: all 0.3s ease;
+  border-radius: 2px;
+  transition: all 0.2s ease;
+  min-height: 20px;
 }
 
 .options-list::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(
-    135deg,
-    rgba(236, 72, 153, 0.4),
-    rgba(236, 72, 153, 0.6)
+    180deg,
+    rgba(236, 72, 153, 0.6),
+    rgba(236, 72, 153, 0.4)
   );
-  box-shadow: 0 2px 4px rgba(236, 72, 153, 0.2);
+  width: 4px;
 }
 
 .options-list::-webkit-scrollbar-thumb:active {
   background: linear-gradient(
-    135deg,
-    rgba(236, 72, 153, 0.6),
-    rgba(236, 72, 153, 0.8)
+    180deg,
+    rgba(236, 72, 153, 0.8),
+    rgba(236, 72, 153, 0.6)
   );
-}
+} */
 
 /* Опция чекбокса */
 .checkbox-option {
@@ -1876,6 +1953,28 @@ watch(
 
   .action-btn-secondary .btn-icon {
     @apply w-4 h-4;
+  }
+
+  /* Улучшения для мобильных устройств */
+  .filters-content {
+    /* На мобильных делаем скрол еще тоньше но оставляем единственным */
+    padding-right: 12px;
+    margin-right: 1px;
+  }
+
+  .filters-content::-webkit-scrollbar {
+    width: 3px;
+  }
+
+  .options-list {
+    /* Убираем все отступы связанные со скролом */
+    padding-right: 8px;
+    margin-right: 0;
+  }
+
+  .search-wrapper {
+    margin-right: 0;
+    padding-right: 8px;
   }
 }
 
