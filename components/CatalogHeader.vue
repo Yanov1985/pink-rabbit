@@ -1,49 +1,119 @@
 <template>
-  <div
+  <!-- Семантический заголовок каталога с Schema.org разметкой -->
+  <header
     class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6 catalog-header"
     ref="headerRef"
+    role="banner"
+    aria-label="Заголовок каталога товаров"
+    itemscope
+    itemtype="https://schema.org/WebPageElement"
   >
     <!-- Skeleton состояние при загрузке -->
-    <div v-if="isLoading" class="pink-rabbit-header-skeleton">
+    <section
+      v-if="isLoading"
+      class="pink-rabbit-header-skeleton"
+      role="status"
+      aria-label="Загружается заголовок каталога"
+      aria-live="polite"
+    >
       <div class="skeleton-content">
         <!-- Заголовок skeleton -->
-        <div class="skeleton-title"></div>
+        <div
+          class="skeleton-title"
+          aria-label="Загружается заголовок категории"
+        ></div>
         <!-- Счетчик товаров skeleton -->
-        <div class="skeleton-counter"></div>
+        <div
+          class="skeleton-counter"
+          aria-label="Загружается счетчик товаров"
+        ></div>
       </div>
 
       <!-- Элементы управления skeleton -->
       <div class="skeleton-controls">
         <!-- Переключатель видов skeleton -->
-        <div class="skeleton-view-toggle">
+        <div
+          class="skeleton-view-toggle"
+          aria-label="Загружается переключатель видов"
+        >
           <div class="skeleton-view-btn"></div>
           <div class="skeleton-view-btn"></div>
         </div>
         <!-- Сортировка skeleton -->
-        <div class="skeleton-sort-dropdown"></div>
+        <div
+          class="skeleton-sort-dropdown"
+          aria-label="Загружается элемент сортировки"
+        ></div>
       </div>
-    </div>
+    </section>
 
-    <!-- Основное содержимое -->
-    <div
+    <!-- Основное содержимое с семантической разметкой -->
+    <section
       v-else
       class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+      role="main"
+      aria-label="Управление каталогом товаров"
     >
-      <!-- Заголовок и счетчик -->
-      <div class="catalog-info">
-        <h1 class="text-2xl font-bold text-gray-900 catalog-title">
+      <!-- Информация о каталоге -->
+      <section
+        class="catalog-info"
+        role="region"
+        aria-labelledby="catalog-title"
+        itemscope
+        itemtype="https://schema.org/CollectionPage"
+      >
+        <h1
+          id="catalog-title"
+          class="text-2xl font-bold text-gray-900 catalog-title"
+          itemprop="name"
+          role="heading"
+          aria-level="1"
+        >
           {{ categoryTitle }}
         </h1>
-        <p class="text-gray-600 mt-1 catalog-count">
+        <p
+          class="text-gray-600 mt-1 catalog-count"
+          itemprop="description"
+          role="status"
+          aria-live="polite"
+          :aria-label="`Найдено ${totalCount} ${getProductsWord(
+            totalCount
+          )} в категории ${categoryTitle}`"
+        >
           Найдено {{ totalCount }}
           {{ getProductsWord(totalCount) }}
         </p>
-      </div>
 
-      <!-- Элементы управления -->
-      <div class="flex items-center gap-4 catalog-controls">
-        <!-- Переключатель видов -->
-        <div class="flex bg-gray-100 rounded-lg p-1" ref="viewToggleRef">
+        <!-- Скрытая информация для поисковых систем -->
+        <meta itemprop="numberOfItems" :content="totalCount" />
+        <meta
+          itemprop="itemListOrder"
+          content="https://schema.org/ItemListOrderAscending"
+        />
+      </section>
+
+      <!-- Элементы управления каталогом -->
+      <nav
+        class="flex items-center gap-4 catalog-controls"
+        role="navigation"
+        aria-label="Элементы управления каталогом"
+        itemscope
+        itemtype="https://schema.org/SiteNavigationElement"
+      >
+        <!-- Переключатель видов отображения -->
+        <fieldset
+          class="flex bg-gray-100 rounded-lg p-1"
+          ref="viewToggleRef"
+          role="radiogroup"
+          aria-label="Выбор количества колонок для отображения товаров"
+          aria-describedby="view-mode-description"
+        >
+          <legend class="sr-only">Режим отображения товаров</legend>
+          <span id="view-mode-description" class="sr-only">
+            Выберите как отображать товары: в 4 колонки как витрина супермаркета
+            или в 3 колонки как в интернет-магазине
+          </span>
+
           <button
             @click="$emit('changeViewMode', 4)"
             :class="[
@@ -54,9 +124,18 @@
             ]"
             title="4 колонки - как витрина супермаркета"
             :disabled="isLoading"
+            role="radio"
+            :aria-checked="viewMode === 4"
+            aria-label="Отображать товары в 4 колонки"
+            :aria-pressed="viewMode === 4"
           >
             <!-- Иконка 4 колонки с Heroicons -->
-            <Squares2X2Icon class="w-5 h-5" />
+            <Squares2X2Icon
+              class="w-5 h-5"
+              aria-hidden="true"
+              role="img"
+              aria-label="Иконка сетки 4 колонки"
+            />
           </button>
           <button
             @click="$emit('changeViewMode', 3)"
@@ -68,20 +147,44 @@
             ]"
             title="3 колонки - как в интернет-магазине"
             :disabled="isLoading"
+            role="radio"
+            :aria-checked="viewMode === 3"
+            aria-label="Отображать товары в 3 колонки"
+            :aria-pressed="viewMode === 3"
           >
             <!-- Иконка 3 колонки с Heroicons -->
-            <ViewColumnsIcon class="w-5 h-5" />
+            <ViewColumnsIcon
+              class="w-5 h-5"
+              aria-hidden="true"
+              role="img"
+              aria-label="Иконка сетки 3 колонки"
+            />
           </button>
-        </div>
+        </fieldset>
 
-        <!-- Сортировка с иконками Heroicons -->
-        <div class="relative sort-wrapper">
+        <!-- Сортировка с семантической разметкой -->
+        <div
+          class="relative sort-wrapper"
+          role="region"
+          aria-label="Сортировка товаров"
+          itemscope
+          itemtype="https://schema.org/SortAction"
+        >
+          <label for="sort-select" class="sr-only">
+            Выберите способ сортировки товаров в каталоге
+          </label>
           <select
+            id="sort-select"
             :value="sortBy"
             @change="$emit('changeSorting', $event.target.value)"
             class="px-4 py-2 pl-10 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-custom-pink focus:border-custom-pink sort-select appearance-none"
             ref="sortRef"
             :disabled="isLoading"
+            role="combobox"
+            aria-label="Сортировка товаров"
+            aria-describedby="sort-description"
+            :aria-expanded="false"
+            itemprop="name"
           >
             <option value="popularity">По популярности</option>
             <option value="price-asc">Цена: по возрастанию</option>
@@ -90,31 +193,51 @@
             <option value="newest">Сначала новые</option>
           </select>
 
+          <span id="sort-description" class="sr-only">
+            Выберите как сортировать товары: по популярности как в Tinder, по
+            цене, рейтингу или новизне
+          </span>
+
           <!-- Иконка сортировки с Heroicons - динамическая для каждого типа -->
           <div
             class="absolute left-3 top-1/2 transform -translate-y-1/2 pointer-events-none"
+            aria-hidden="true"
           >
             <component
               :is="sortIcon"
               :class="['w-4 h-4 transition-all duration-300', sortIconColor]"
               title="Иконка текущей сортировки"
+              role="img"
+              :aria-label="`Иконка сортировки: ${getSortIconDescription(
+                sortBy
+              )}`"
             />
           </div>
 
           <!-- Стрелка выпадающего списка с Heroicons -->
           <div
             class="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none"
+            aria-hidden="true"
           >
-            <ChevronDownIcon class="w-4 h-4 text-gray-400" />
+            <ChevronDownIcon
+              class="w-4 h-4 text-gray-400"
+              role="img"
+              aria-label="Стрелка раскрытия списка сортировки"
+            />
           </div>
+
+          <!-- Скрытая Schema.org информация о сортировке -->
+          <meta itemprop="actionStatus" content="PotentialActionStatus" />
+          <meta itemprop="object" :content="categoryTitle" />
         </div>
-      </div>
-    </div>
-  </div>
+      </nav>
+    </section>
+  </header>
 </template>
 
 <script setup>
 import { ref, computed } from "vue";
+import { useHead, useRoute } from "#app";
 // Импорт иконок Heroicons в едином стиле с фильтрами
 import {
   Squares2X2Icon,
@@ -174,6 +297,9 @@ const headerRef = ref(null);
 const viewToggleRef = ref(null);
 const sortRef = ref(null);
 
+// Получаем текущий маршрут в setup контексте
+const route = useRoute();
+
 /**
  * Функция склонения слова "товар" в зависимости от количества
  * Как в магазине: 1 товар, 2-4 товара, 5+ товаров
@@ -231,6 +357,155 @@ const sortIconColor = computed(() => {
     default:
       return "text-gray-400"; // Серый по умолчанию
   }
+});
+
+/**
+ * Функция для описания иконки сортировки для screen readers
+ * Делает интерфейс доступным для людей с ограниченными возможностями
+ */
+const getSortIconDescription = (sortType) => {
+  switch (sortType) {
+    case "popularity":
+      return "огонь популярности";
+    case "price-asc":
+      return "стрелка вверх, цена по возрастанию";
+    case "price-desc":
+      return "стрелка вниз, цена по убыванию";
+    case "rating":
+      return "звезда рейтинга";
+    case "newest":
+      return "искорки новинок";
+    default:
+      return "иконка сортировки";
+  }
+};
+
+// SEO оптимизация через useHead
+useHead({
+  title: computed(() => `${props.categoryTitle} - Pink Rabbit`),
+  meta: [
+    {
+      name: "description",
+      content: computed(
+        () =>
+          `Каталог ${props.categoryTitle.toLowerCase()} с удобной сортировкой и фильтрацией. Найдено ${
+            props.totalCount
+          } товаров. Интернет-магазин Pink Rabbit - качественные товары для взрослых.`
+      ),
+    },
+    {
+      name: "keywords",
+      content: computed(
+        () =>
+          `${props.categoryTitle}, интимные товары, сортировка, каталог, Pink Rabbit, ${props.sortBy}`
+      ),
+    },
+    // Open Graph для социальных сетей
+    {
+      property: "og:title",
+      content: computed(
+        () =>
+          `${props.categoryTitle} - ${props.totalCount} товаров | Pink Rabbit`
+      ),
+    },
+    {
+      property: "og:description",
+      content: computed(
+        () =>
+          `Каталог ${props.categoryTitle.toLowerCase()} с ${
+            props.totalCount
+          } товарами. Удобная сортировка и переключение видов отображения.`
+      ),
+    },
+    {
+      property: "og:type",
+      content: "website",
+    },
+    // Twitter Cards
+    {
+      name: "twitter:card",
+      content: "summary",
+    },
+    {
+      name: "twitter:title",
+      content: computed(() => `${props.categoryTitle} - Pink Rabbit`),
+    },
+    {
+      name: "twitter:description",
+      content: computed(
+        () =>
+          `${props.totalCount} товаров в категории ${props.categoryTitle}. Удобная навигация и сортировка.`
+      ),
+    },
+    // Дополнительные SEO метатеги
+    {
+      name: "robots",
+      content: "index, follow, max-image-preview:large",
+    },
+    {
+      name: "googlebot",
+      content: "index, follow",
+    },
+    {
+      name: "format-detection",
+      content: "telephone=no",
+    },
+    // Языковые метатеги
+    {
+      httpEquiv: "content-language",
+      content: "ru-RU",
+    },
+  ],
+  // Структурированные данные для поисковых систем
+  script: [
+    {
+      type: "application/ld+json",
+      children: computed(() =>
+        JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            {
+              "@type": "ListItem",
+              position: 1,
+              name: "Главная",
+              item: "https://pink-rabbit.ru",
+            },
+            {
+              "@type": "ListItem",
+              position: 2,
+              name: props.categoryTitle,
+              item: `https://pink-rabbit.ru${route.path}`,
+            },
+          ],
+        })
+      ),
+    },
+    {
+      type: "application/ld+json",
+      children: computed(() =>
+        JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "CollectionPage",
+          name: props.categoryTitle,
+          description: `Каталог ${props.categoryTitle.toLowerCase()} с системой сортировки и фильтрации`,
+          numberOfItems: props.totalCount,
+          isPartOf: {
+            "@type": "WebSite",
+            name: "Pink Rabbit",
+            url: "https://pink-rabbit.ru",
+          },
+          offers: {
+            "@type": "AggregateOffer",
+            priceCurrency: "RUB",
+            lowPrice: "500",
+            highPrice: "25000",
+            offerCount: props.totalCount,
+          },
+        })
+      ),
+    },
+  ],
 });
 
 // Экспорт ссылок для возможного использования родительским компонентом
