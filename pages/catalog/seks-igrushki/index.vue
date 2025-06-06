@@ -34,7 +34,9 @@
           <aside class="lg:w-1/4 space-y-6" ref="filtersRef">
             <!-- Фильтры для товаров для взрослых -->
             <AdultToysFilters
-              :is-loading="isInitialLoading"
+              class="filters-sidebar"
+              @update-filters="applyFilters"
+              :is-loading="isFilterLoading"
               :initial-filters="{
                 priceMin,
                 priceMax,
@@ -53,7 +55,6 @@
                 onlyWithDiscount,
                 onlyNew,
               }"
-              @update-filters="applyFilters"
               @reset-filters="resetFilters"
             />
           </aside>
@@ -73,12 +74,23 @@
             ref="catalogHeaderRef"
           />
 
-          <!-- Skeleton загрузка -->
+          <!-- Skeleton загрузка при начальной загрузке -->
           <div
             v-if="isInitialLoading"
             :class="viewMode === 4 ? 'product-grid-4' : 'product-grid-3'"
           >
             <ProductSkeleton v-for="i in 12" :key="i" />
+          </div>
+
+          <!-- Skeleton загрузка при применении фильтров -->
+          <div
+            v-else-if="isFilterLoading"
+            :class="viewMode === 4 ? 'product-grid-4' : 'product-grid-3'"
+          >
+            <ProductSkeleton
+              v-for="i in Math.min(paginatedProducts.length || 12, 12)"
+              :key="`filter-skeleton-${i}`"
+            />
           </div>
 
           <!-- Сетка товаров -->
@@ -215,6 +227,7 @@ gsap.registerPlugin(ScrollTrigger);
 // Основные реактивные переменные
 const isInitialLoading = ref(true); // Начальная загрузка
 const isLoading = ref(false); // Загрузка при фильтрации
+const isFilterLoading = ref(false); // Загрузка при применении фильтров
 const currentPage = ref(1);
 const itemsPerPage = ref(50); // Увеличиваем до 50 товаров на странице для лучшего UX
 const viewMode = ref(4); // 4 или 3 колонки
@@ -1150,24 +1163,43 @@ const resetFilters = () => {
   console.log("✅ Все фильтры сброшены");
 };
 
-const changePage = (page) => {
+const changePage = async (page) => {
   if (page >= 1 && page <= totalPages.value) {
+    console.log("📄 Переходим на страницу:", page);
+
+    // Включаем состояние загрузки для смены страницы
+    isFilterLoading.value = true;
+
+    // Имитируем время загрузки новой страницы
+    await new Promise((resolve) => setTimeout(resolve, 400));
+
     currentPage.value = page;
 
-    // Анимация смены страницы
+    // Выключаем состояние загрузки
+    isFilterLoading.value = false;
+
+    // Ждем следующий tick для обновления DOM
+    await nextTick();
+
+    // Анимация появления новых карточек
     gsap.fromTo(
       ".product-card",
       {
         y: 30,
         opacity: 0,
+        scale: 0.95,
       },
       {
         y: 0,
         opacity: 1,
+        scale: 1,
         duration: 0.5,
-        stagger: 0.1,
+        stagger: 0.07,
+        ease: "power2.out",
       }
     );
+
+    console.log("✅ Страница загружена:", page);
   }
 };
 
@@ -1570,9 +1602,43 @@ const openProductDetails = (product) => {
   alert(`Переход к товару: ${product.name}\nID: ${product.id}`);
 };
 
-const handleSortingChange = (newSortBy) => {
+const handleSortingChange = async (newSortBy) => {
+  console.log("🔄 Изменяем сортировку:", newSortBy);
+
+  // Включаем состояние загрузки фильтров
+  isFilterLoading.value = true;
+
+  // Имитируем время обработки сортировки (как в реальном API)
+  await new Promise((resolve) => setTimeout(resolve, 600));
+
   sortBy.value = newSortBy;
   applySorting();
+
+  // Выключаем состояние загрузки
+  isFilterLoading.value = false;
+
+  // Ждем следующий tick для обновления DOM
+  await nextTick();
+
+  // Анимация появления отсортированных карточек
+  gsap.fromTo(
+    ".product-card",
+    {
+      y: 20,
+      opacity: 0,
+      scale: 0.95,
+    },
+    {
+      y: 0,
+      opacity: 1,
+      scale: 1,
+      duration: 0.5,
+      stagger: 0.06,
+      ease: "power2.out",
+    }
+  );
+
+  console.log("✅ Сортировка применена:", newSortBy);
 };
 
 // Новые методы для работы с AdultToysFilters
@@ -1615,26 +1681,38 @@ const updateFilters = (filters) => {
   );
 };
 
-const applyFilters = (filters) => {
+const applyFilters = async (filters) => {
   console.log("🎯 Применяем фильтры:", filters);
+
+  // Включаем состояние загрузки фильтров
+  isFilterLoading.value = true;
+
+  // Имитируем время обработки фильтров (как в реальном API)
+  await new Promise((resolve) => setTimeout(resolve, 800));
 
   // Применяем фильтры и обновляем состояние
   updateFilters(filters);
 
-  // Анимация применения фильтров с GSAP
+  // Выключаем состояние загрузки
+  isFilterLoading.value = false;
+
+  // Ждем следующий tick для обновления DOM
+  await nextTick();
+
+  // Анимация появления отфильтрованных карточек с GSAP
   gsap.fromTo(
     ".product-card",
     {
-      y: 20,
+      y: 30,
       opacity: 0,
-      scale: 0.95,
+      scale: 0.9,
     },
     {
       y: 0,
       opacity: 1,
       scale: 1,
-      duration: 0.4,
-      stagger: 0.05,
+      duration: 0.6,
+      stagger: 0.08,
       ease: "power2.out",
     }
   );
