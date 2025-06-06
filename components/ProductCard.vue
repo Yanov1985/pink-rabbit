@@ -363,7 +363,6 @@ import {
   ShareIcon,
   InformationCircleIcon,
 } from "@heroicons/vue/24/outline";
-import { useNuxtApp } from "#app";
 
 // Props
 const props = defineProps({
@@ -757,22 +756,116 @@ if (typeof window !== "undefined") {
 </script>
 
 <style scoped>
+/* === ОСНОВНОЙ HOVER ЭФФЕКТ - УСИЛЕННАЯ ВЕРСИЯ === */
 .product-card {
   background: white;
   border-radius: 16px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e5e7eb;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(229, 231, 235, 0.8);
   overflow: hidden;
   position: relative;
-  transition: all 0.3s ease;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
   display: flex;
   flex-direction: column;
   height: 100%;
+  transform: translateY(0) translateZ(0);
+  backface-visibility: hidden;
+  will-change: transform, box-shadow, border-color;
 }
 
-.product-card:hover {
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-  transform: translateY(-2px);
+/* КРИТИЧЕСКИ ВАЖНЫЙ HOVER ЭФФЕКТ - НЕ МОЖЕТ БЫТЬ ПЕРЕОПРЕДЕЛЕН */
+.product-card:hover,
+article.product-card:hover,
+[itemtype="https://schema.org/Product"]:hover
+{
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12),
+    0 6px 20px rgba(255, 107, 157, 0.15) !important;
+  transform: translateY(-8px) translateZ(0) scale(1.008) !important;
+  border-color: rgba(255, 107, 157, 0.4) !important;
+  background: linear-gradient(135deg, #ffffff 0%, #fdfdfd 100%) !important;
+}
+
+/* УСИЛЕННЫЕ HOVER ЭФФЕКТЫ ДЛЯ ЭЛЕМЕНТОВ ВНУТРИ */
+.product-card:hover .product-title,
+article.product-card:hover .product-title,
+.product-card:hover h1.product-title {
+  color: #ec4899 !important;
+  transform: translateY(-1px) translateZ(0) !important;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.product-card:hover .current-price,
+article.product-card:hover .current-price,
+.product-card:hover [itemprop="price"] {
+  color: #d946ef !important;
+  transform: scale(1.02) translateZ(0) !important;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.product-card:hover .badge,
+article.product-card:hover .badge {
+  transform: scale(1.05) rotate(1deg) translateZ(0) !important;
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.25) !important;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.product-card:hover .stars,
+article.product-card:hover .stars,
+.product-card:hover [role="img"] .stars {
+  transform: translateY(-1px) translateZ(0) !important;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.product-card:hover .star.filled,
+article.product-card:hover .star.filled {
+  animation: starGlow 0.5s ease-out !important;
+  filter: drop-shadow(0 0 4px #f59e0b) !important;
+}
+
+/* АНИМАЦИЯ ЗВЕЗДОЧЕК - СТАБИЛЬНАЯ ВЕРСИЯ */
+@keyframes starGlow {
+  0%,
+  100% {
+    transform: scale(1) translateZ(0) !important;
+  }
+  50% {
+    transform: scale(1.1) translateZ(0) !important;
+  }
+}
+
+/* === ГЛОБАЛЬНАЯ ЗАЩИТА HOVER ЭФФЕКТА === */
+/* Эти стили защищают hover эффект от исчезновения после любых изменений DOM */
+
+/* Транзишены для всех элементов внутри карточки */
+.product-card * {
+  transition-duration: 0.25s !important;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Дополнительная защита для основных элементов */
+.product-card .product-title,
+.product-card h1 {
+  transition: color 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.product-card .current-price,
+.product-card [itemprop="price"] {
+  transition: color 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.product-card .badge {
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.product-card .stars {
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.product-card .star.filled {
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 /* === КОНТЕЙНЕР ИЗОБРАЖЕНИЯ === */
