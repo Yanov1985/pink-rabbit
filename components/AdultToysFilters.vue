@@ -1171,7 +1171,7 @@ watch(
   }
 }
 
-/* Основной контейнер */
+/* Основной контейнер фильтров */
 .filters-container {
   @apply bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden;
   transition: all 0.3s ease;
@@ -1181,6 +1181,12 @@ watch(
     rgba(255, 255, 255, 0.95),
     rgba(248, 250, 252, 0.9)
   );
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  /* Добавляем отступ снизу для липкой кнопки */
+  padding-bottom: 80px;
 }
 
 .filters-container:hover {
@@ -1297,11 +1303,14 @@ watch(
   box-shadow: 0 4px 12px rgba(236, 72, 153, 0.2);
 }
 
-/* Контент фильтров */
+/* Контент фильтров с правильной прокруткой */
 .filters-content {
   @apply p-4 space-y-3;
-  overflow-y: visible;
+  flex: 1;
+  overflow-y: auto;
   scrollbar-width: none;
+  /* Обеспечиваем прокрутку с учетом липкой кнопки */
+  max-height: calc(100vh - 200px);
 }
 
 /* Обертка поиска */
@@ -1565,7 +1574,12 @@ watch(
 
 /* Улучшенные стили для кнопок действий */
 .filter-actions {
-  @apply sticky bottom-0 bg-white border-t border-gray-200 p-4;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  @apply bg-white border-t border-gray-200 p-4;
   background: linear-gradient(
     135deg,
     rgba(255, 255, 255, 0.95),
@@ -1577,6 +1591,9 @@ watch(
   align-items: center;
   justify-content: center;
   gap: 12px;
+  /* Добавляем анимацию появления */
+  transform: translateY(0);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .action-btn {
