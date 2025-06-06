@@ -363,6 +363,7 @@ import {
   ShareIcon,
   InformationCircleIcon,
 } from "@heroicons/vue/24/outline";
+import { useNuxtApp } from "#app";
 
 // Props
 const props = defineProps({
