@@ -2941,6 +2941,7 @@ watch(
     rgba(248, 250, 252, 0.95)
   );
   animation: slideDown 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 16px 20px 20px 20px; /* Добавляем комфортные отступы со всех сторон */
 }
 
 @keyframes slideDown {
@@ -2954,6 +2955,11 @@ watch(
     max-height: 500px;
     transform: translateY(0);
   }
+}
+
+/* Специальный стиль для price фильтра с дополнительным отступом снизу */
+#price-filter-content {
+  padding-bottom: 24px; /* Дополнительный отступ снизу для слайдера цены */
 }
 
 /* Класс для скрытия элементов от визуального отображения, но доступных для screen readers */
