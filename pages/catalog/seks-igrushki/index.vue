@@ -27,6 +27,9 @@
       </div>
     </nav>
 
+    <!-- Секция категорий товаров -->
+    <ProductCategoriesCards @navigate-to-category="handleCategoryNavigation" />
+
     <div class="container mx-auto px-4 py-6">
       <div class="flex flex-col lg:flex-row gap-6">
         <!-- Липкий sidebar только с фильтрами -->
@@ -209,6 +212,7 @@ import ProductSkeleton from "~/components/categories/ProductSkeleton.vue";
 import CatalogHeader from "~/components/categories/CatalogHeader.vue";
 import AdultToysFilters from "~/components/categories/AdultToysFilters.vue";
 import ProductCard from "~/components/categories/ProductCard.vue";
+import ProductCategoriesCards from "~/components/categories/ProductCategoriesCards.vue";
 
 // Импорт иконок
 import {
@@ -1722,6 +1726,53 @@ const applyFilters = async (filters) => {
     "🎉 Фильтрация завершена, показано товаров:",
     filteredProducts.value.length
   );
+};
+
+const handleCategoryNavigation = (categoryData) => {
+  console.log("🎯 Навигация по категории:", categoryData);
+
+  // Сбрасываем текущие фильтры перед применением новых
+  resetFilters();
+
+  // Применяем фильтры в зависимости от выбранной категории
+  switch (categoryData.category) {
+    case "women":
+      console.log("💄 Фильтрация для женщин");
+      // Здесь можно добавить специфические фильтры для женщин
+      // Например, исключить товары только для мужчин
+      break;
+
+    case "men":
+      console.log("💪 Фильтрация для мужчин");
+      // Здесь можно добавить специфические фильтры для мужчин
+      break;
+
+    case "couples":
+      console.log("💕 Фильтрация для пар");
+      // Фильтры для товаров для пар
+      break;
+
+    case "all":
+      console.log("🌟 Показать все категории");
+      // Ничего дополнительного не делаем, показываем все товары
+      break;
+
+    default:
+      console.warn("Неизвестная категория:", categoryData.category);
+  }
+
+  // Прокручиваем к началу списка товаров для лучшего UX
+  nextTick(() => {
+    if (productsGridRef.value) {
+      productsGridRef.value.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }
+  });
+
+  // Уведомляем пользователя о примененной фильтрации
+  console.log(`✨ Примена фильтрация для категории: ${categoryData.category}`);
 };
 </script>
 
