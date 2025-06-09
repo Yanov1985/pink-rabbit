@@ -1,187 +1,434 @@
 <!--
-  Главная страница каталога интимных товаров
+  🏪 Главная страница каталога интернет-магазина Pink Rabbit
+  🎯 Современный дизайн как Amazon + Apple + Instagram
+  ✨ Компонентная архитектура, accessibility, производительность
 -->
 <template>
-  <div class="catalog-section">
-    <h1>Каталог товаров</h1>
-    <p>
-      Добро пожаловать в наш каталог интимных товаров. Выберите интересующую вас
-      категорию:
-    </p>
+  <div class="catalog-page" role="main">
+    <!-- 🌈 Героическая секция с градиентом -->
+    <CatalogHero
+      :is-loading="isInitialLoading"
+      :total-categories="totalCategories"
+      :total-products="totalProducts"
+    />
 
-    <div class="categories-grid">
-      <!-- Основные категории товаров для взрослых -->
-      <NuxtLink to="/catalog/seks-igrushki" class="category-link featured">
-        <h2>Интимные игрушки</h2>
-        <p>Широкий выбор товаров для взрослых: для женщин, мужчин и пар</p>
-      </NuxtLink>
+    <!-- 🛍️ Сетка категорий товаров -->
+    <CatalogCategoriesGrid
+      :is-loading="isInitialLoading"
+      @category-selected="handleCategorySelection"
+    />
 
-      <NuxtLink
-        to="/catalog/seks-igrushki/vibratory"
-        class="category-link featured"
-      >
-        <h2>Вибраторы</h2>
-        <p>Элитные, Hi-tech, многофункциональные и другие типы вибраторов</p>
-      </NuxtLink>
+    <!-- 📱 Дополнительная информация -->
+    <section class="catalog-features" aria-labelledby="features-heading">
+      <div class="container">
+        <h2 id="features-heading" class="sr-only">
+          Преимущества нашего интернет-магазина
+        </h2>
 
-      <NuxtLink to="/catalog/geli-i-smazki" class="category-link">
-        <h2>Смазки и лубриканты</h2>
-        <p>Интимные гели, лубриканты, вкусовые и увлажняющие средства</p>
-      </NuxtLink>
+        <div class="features-grid">
+          <!-- 🚚 Быстрая доставка -->
+          <div class="feature-card">
+            <div class="feature-icon" aria-hidden="true">
+              🚚
+            </div>
+            <h3 class="feature-title">Быстрая доставка</h3>
+            <p class="feature-description">
+              Доставляем по всей России в течение 1-3 дней
+            </p>
+          </div>
 
-      <NuxtLink to="/catalog/prezervativy" class="category-link">
-        <h2>Презервативы</h2>
-        <p>Классические, ультратонкие, продлевающие и специальные виды</p>
-      </NuxtLink>
+          <!-- 🔒 Конфиденциальность -->
+          <div class="feature-card">
+            <div class="feature-icon" aria-hidden="true">
+              🔒
+            </div>
+            <h3 class="feature-title">100% конфиденциальность</h3>
+            <p class="feature-description">
+              Дискретная упаковка без опознавательных знаков
+            </p>
+          </div>
 
-      <NuxtLink to="/catalog/afrodiziaki-i-kapsuly" class="category-link">
-        <h2>Афродизиаки и капсулы</h2>
-        <p>Натуральные средства для повышения либидо и потенции</p>
-      </NuxtLink>
+          <!-- ⭐ Качество -->
+          <div class="feature-card">
+            <div class="feature-icon" aria-hidden="true">
+              ⭐
+            </div>
+            <h3 class="feature-title">Только оригинал</h3>
+            <p class="feature-description">
+              Работаем напрямую с официальными поставщиками
+            </p>
+          </div>
 
-      <NuxtLink to="/catalog/kosmetika-i-feromony" class="category-link">
-        <h2>Косметика и феромоны</h2>
-        <p>Интимная косметика, феромоны и средства по уходу</p>
-      </NuxtLink>
+          <!-- 💳 Оплата -->
+          <div class="feature-card">
+            <div class="feature-icon" aria-hidden="true">
+              💳
+            </div>
+            <h3 class="feature-title">Удобная оплата</h3>
+            <p class="feature-description">
+              Банковские карты, электронные кошельки, наличные
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
 
-      <NuxtLink to="/catalog/eroticheskie-igry" class="category-link">
-        <h2>Эротические игры</h2>
-        <p>Игры для пар, карты, кубики и другие развлечения</p>
-      </NuxtLink>
-
-      <NuxtLink to="/catalog/podarki-i-aksessuary" class="category-link">
-        <h2>Подарки и аксессуары</h2>
-        <p>Эротические подарки, украшения и аксессуары</p>
-      </NuxtLink>
-
-      <NuxtLink to="/catalog/bdsm-fetish" class="category-link">
-        <h2>БДСМ и фетиш</h2>
-        <p>Товары для ролевых игр, фетиша и БДСМ практик</p>
-      </NuxtLink>
-
-      <NuxtLink to="/catalog/eroticheskoe-bele" class="category-link">
-        <h2>Эротическое белье</h2>
-        <p>Соблазнительное женское и мужское белье</p>
-      </NuxtLink>
-
-      <NuxtLink to="/catalog/seks-kukly" class="category-link">
-        <h2>Секс куклы</h2>
-        <p>Реалистичные секс куклы и мастурбаторы</p>
-      </NuxtLink>
-
-      <NuxtLink to="/catalog/analnye-igrushki" class="category-link">
-        <h2>Анальные игрушки</h2>
-        <p>Анальные пробки, стимуляторы и специальные игрушки</p>
-      </NuxtLink>
-
-      <NuxtLink to="/catalog/stimulyatory-klitora" class="category-link">
-        <h2>Стимуляторы клитора</h2>
-        <p>Специализированные стимуляторы для женщин</p>
-      </NuxtLink>
-
-      <NuxtLink to="/catalog/masturbatory" class="category-link">
-        <h2>Мастурбаторы</h2>
-        <p>Мужские мастурбаторы и искусственные вагины</p>
-      </NuxtLink>
-
-      <NuxtLink to="/catalog/massazhery" class="category-link">
-        <h2>Массажёры</h2>
-        <p>Интимные массажёры и стимуляторы</p>
-      </NuxtLink>
-
-      <NuxtLink to="/catalog/koltsa-dlya-chlena" class="category-link">
-        <h2>Кольца для члена</h2>
-        <p>Эрекционные кольца и насадки</p>
-      </NuxtLink>
-
-      <NuxtLink to="/catalog/falloimitatory" class="category-link">
-        <h2>Фаллоимитаторы</h2>
-        <p>Реалистичные фаллоимитаторы различных размеров</p>
-      </NuxtLink>
-
-      <NuxtLink to="/catalog/strapony" class="category-link">
-        <h2>Страпоны</h2>
-        <p>Страпоны и системы для пар</p>
-      </NuxtLink>
-
-      <NuxtLink to="/catalog/pompy" class="category-link">
-        <h2>Помпы</h2>
-        <p>Помпы для увеличения и стимуляции</p>
-      </NuxtLink>
-
-      <NuxtLink to="/catalog/vaginalnye-shariki" class="category-link">
-        <h2>Вагинальные шарики</h2>
-        <p>Тренажёры для укрепления интимных мышц</p>
-      </NuxtLink>
-    </div>
+    <!-- 📞 Контактная информация -->
+    <section class="catalog-contact" aria-labelledby="contact-heading">
+      <div class="container">
+        <div class="contact-content">
+          <h2 id="contact-heading" class="contact-title">
+            Нужна помощь в выборе?
+          </h2>
+          <p class="contact-description">
+            Наши консультанты помогут подобрать идеальный товар
+          </p>
+          <div class="contact-actions">
+            <a
+              href="tel:+78001234567"
+              class="contact-button primary"
+              aria-label="Позвонить по телефону 8 800 123 45 67"
+            >
+              📞 8 800 123 45 67
+            </a>
+            <a
+              href="mailto:support@pinkrabbit.ru"
+              class="contact-button secondary"
+              aria-label="Написать на email support@pinkrabbit.ru"
+            >
+              ✉️ Написать нам
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
   </div>
 </template>
 
-<script setup lang="ts">
-// Метаданные страницы для SEO - как визитная карточка в Tinder
+<script setup>
+// 🎯 Метаданные для SEO
 definePageMeta({
-  title: "Каталог интимных товаров - Интернет-магазин для взрослых",
-  description:
-    "Полный каталог интимных товаров: вибраторы, мастурбаторы, презервативы, смазки, БДСМ, белье и многое другое.",
+  title: "Каталог интимных товаров - Интернет-магазин для взрослых Pink Rabbit",
+  description: "Полный каталог интимных товаров: вибраторы, мастурбаторы, презервативы, смазки, БДСМ, белье и многое другое. Быстрая доставка по России.",
+  keywords: "интимные товары, секс шоп, вибраторы, презервативы, смазки, эротическое белье, БДСМ",
 });
 
-// Хлебные крошки для навигации
+// 🌐 SEO мета теги как в Amazon
 useSeoMeta({
-  title: "Каталог товаров",
-  ogTitle: "Каталог товаров PinkRabbit",
-  description: "Каталог интимных товаров для взрослых",
-  ogDescription: "Каталог интимных товаров для взрослых",
+  title: "Каталог товаров - Pink Rabbit",
+  ogTitle: "Каталог интимных товаров - Pink Rabbit",
+  description: "Каталог интимных товаров для взрослых с быстрой доставкой",
+  ogDescription: "Широкий выбор качественных товаров для взрослых с доставкой по России",
+  ogImage: "/images/catalog-hero.jpg",
+  twitterCard: "summary_large_image",
+
+  // Schema.org разметка для поисковиков
+  structuredData: {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": "Каталог товаров Pink Rabbit",
+    "description": "Интернет-магазин интимных товаров для взрослых",
+    "url": "https://pinkrabbit.ru/catalog",
+    "mainEntity": {
+      "@type": "ItemList",
+      "numberOfItems": 20,
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Интимные игрушки"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Вибраторы"
+        }
+      ]
+    }
+  }
+});
+
+// 📊 Реактивные данные состояния
+const isInitialLoading = ref(true);
+const totalCategories = ref(20);
+const totalProducts = ref(1547);
+
+// 🎭 Жизненный цикл компонента
+onMounted(async () => {
+  // Имитируем загрузку данных как в реальном приложении
+  console.log("🏪 Инициализация главной страницы каталога");
+
+  try {
+    // Симуляция загрузки статистики каталога
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
+    // Обновляем счетчики
+    totalCategories.value = 20;
+    totalProducts.value = 1547;
+
+    console.log("📊 Данные каталога загружены:", {
+      categories: totalCategories.value,
+      products: totalProducts.value
+    });
+
+  } catch (error) {
+    console.error("❌ Ошибка загрузки каталога:", error);
+  } finally {
+    isInitialLoading.value = false;
+    console.log("✅ Страница каталога готова");
+  }
+});
+
+// 🎯 Обработчик выбора категории
+const handleCategorySelection = (category) => {
+  console.log("🛍️ Выбрана категория:", category.title);
+
+  // Отправляем аналитику как в Google Analytics
+  if (typeof gtag !== 'undefined') {
+    gtag('event', 'category_selected', {
+      'category_name': category.title,
+      'category_slug': category.slug,
+      'page_location': '/catalog'
+    });
+  }
+
+  // Уведомление для screen readers
+  announceToScreenReader(`Переход в категорию ${category.title}`);
+};
+
+// 📢 Accessibility функция для screen readers
+const announceToScreenReader = (message) => {
+  const announcement = document.createElement('div');
+  announcement.setAttribute('aria-live', 'polite');
+  announcement.setAttribute('aria-atomic', 'true');
+  announcement.className = 'sr-only';
+  announcement.textContent = message;
+
+  document.body.appendChild(announcement);
+
+  setTimeout(() => {
+    if (document.body.contains(announcement)) {
+      document.body.removeChild(announcement);
+    }
+  }, 1000);
+};
+
+// 🔄 Cleanup при размонтировании
+onUnmounted(() => {
+  console.log("🧹 Очистка ресурсов страницы каталога");
 });
 </script>
 
 <style scoped>
-.catalog-section {
-  padding: 2rem;
-  max-width: 1200px;
-  margin: 0 auto;
+/* 🎨 Основная страница */
+.catalog-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
 }
 
-.categories-grid {
+/* 🛍️ Контейнер */
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+/* ✨ Секция преимуществ */
+.catalog-features {
+  padding: 4rem 0;
+  background: white;
+  border-top: 1px solid #e2e8f0;
+}
+
+.features-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
   margin-top: 2rem;
 }
 
-.category-link {
-  padding: 1.5rem;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  text-decoration: none;
-  color: inherit;
-  background: white;
+.feature-card {
+  text-align: center;
+  padding: 2rem 1rem;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
   transition: all 0.3s ease;
 }
 
-.category-link:hover {
-  transform: translateY(-2px);
+.feature-card:hover {
+  transform: translateY(-4px);
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  border-color: #cbd5e1;
 }
 
-.category-link.featured {
-  background: linear-gradient(135deg, #fff5f5 0%, #fef7ff 100%);
-  border-color: #e91e63;
+.feature-icon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  display: block;
 }
 
-.category-link h2 {
-  margin: 0 0 0.5rem 0;
-  color: #333;
-  font-size: 1.2rem;
+.feature-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 0.75rem 0;
 }
 
-.category-link.featured h2 {
-  color: #e91e63;
-}
-
-.category-link p {
+.feature-description {
+  color: #6b7280;
+  line-height: 1.6;
   margin: 0;
-  color: #666;
-  font-size: 0.9rem;
-  line-height: 1.4;
+}
+
+/* 📞 Контактная секция */
+.catalog-contact {
+  padding: 4rem 0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  text-align: center;
+}
+
+.contact-content {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.contact-title {
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-weight: 900;
+  margin: 0 0 1rem 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.contact-description {
+  font-size: 1.1rem;
+  margin: 0 0 2rem 0;
+  opacity: 0.9;
+  line-height: 1.6;
+}
+
+.contact-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.contact-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1.5rem;
+  border-radius: 12px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.contact-button.primary {
+  background: white;
+  color: #667eea;
+}
+
+.contact-button.primary:hover {
+  background: #f8fafc;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(255, 255, 255, 0.3);
+}
+
+.contact-button.secondary {
+  background: transparent;
+  color: white;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.contact-button.secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: white;
+  transform: translateY(-2px);
+}
+
+/* 🔍 Accessibility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* 📱 Адаптивность */
+@media (max-width: 768px) {
+  .features-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .feature-card {
+    padding: 1.5rem 1rem;
+  }
+
+  .catalog-contact {
+    padding: 3rem 0;
+  }
+
+  .contact-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .contact-button {
+    width: 100%;
+    max-width: 280px;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .feature-icon {
+    font-size: 2rem;
+  }
+
+  .feature-title {
+    font-size: 1.1rem;
+  }
+
+  .feature-description {
+    font-size: 0.9rem;
+  }
+}
+
+/* 🎭 Анимации загрузки */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.catalog-features,
+.catalog-contact {
+  animation: fadeInUp 0.8s ease-out;
+}
+
+/* 🎯 Performance оптимизации */
+.feature-card,
+.contact-button {
+  will-change: transform;
+}
+
+/* 🌟 Улучшенные переходы */
+* {
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 </style>

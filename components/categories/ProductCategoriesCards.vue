@@ -1,31 +1,55 @@
 <template>
-  <!-- Семантическая секция категорий товаров -->
+  <!-- Семантическая секция категорий товаров с Schema.org микроданными -->
   <section
     class="product-categories-content"
     aria-labelledby="categories-heading"
     role="region"
+    aria-label="Категории товаров интернет-магазина"
+    itemscope
+    itemtype="https://schema.org/ItemList"
   >
+    <!-- Schema.org метаданные для всего списка -->
+    <meta itemprop="name" content="Категории товаров для взрослых" />
+    <meta
+      itemprop="description"
+      content="Каталог категорий интимных товаров интернет-магазина Pink Rabbit"
+    />
+    <meta itemprop="numberOfItems" :content="categories.length" />
+
+    <!-- Скрытый заголовок для screen readers -->
+    <h2 id="categories-heading" class="sr-only" itemprop="headline">
+      Категории товаров для взрослых
+    </h2>
+
     <!-- Skeleton при загрузке в стилистике AdultToysFilters -->
     <div
       v-if="isLoading"
       class="pink-rabbit-categories-skeleton"
       aria-hidden="true"
+      aria-label="Загрузка категорий товаров"
+      role="status"
     >
       <!-- Заголовок skeleton -->
       <div class="skeleton-container">
         <!-- Сетка карточек skeleton -->
-        <div class="skeleton-grid">
+        <div
+          class="skeleton-grid"
+          role="grid"
+          aria-label="Загрузка сетки категорий"
+        >
           <!-- 8 карточек для имитации полной сетки -->
           <div
             v-for="n in 8"
             :key="n"
             class="skeleton-category-card"
             :style="{ animationDelay: `${n * 0.15}s` }"
+            role="gridcell"
+            :aria-label="`Загрузка категории ${n}`"
           >
-            <div class="skeleton-icon-container">
+            <div class="skeleton-icon-container" aria-hidden="true">
               <div class="skeleton-icon"></div>
             </div>
-            <div class="skeleton-card-content">
+            <div class="skeleton-card-content" aria-hidden="true">
               <div class="skeleton-card-title"></div>
               <div class="skeleton-card-count"></div>
             </div>
@@ -34,59 +58,150 @@
       </div>
 
       <!-- Кнопка skeleton -->
-      <div class="skeleton-controls">
+      <div class="skeleton-controls" aria-hidden="true">
         <div class="skeleton-show-more-btn" style="animation-delay: 1.2s"></div>
       </div>
     </div>
 
-    <!-- Основной контент -->
-    <div v-else class="categories-content">
-      <!-- Сетка категорий с анимацией -->
-      <TransitionGroup
-        name="category-list"
-        tag="div"
-        class="categories-grid"
-        appear
+    <!-- Основной контент с Schema.org разметкой -->
+    <main v-else class="categories-content" role="main">
+      <!-- Навигация по категориям с Schema.org -->
+      <nav
+        class="categories-navigation"
+        aria-label="Навигация по категориям товаров"
+        role="navigation"
+        itemscope
+        itemtype="https://schema.org/SiteNavigationElement"
+        itemid="#categoriesNavigation"
       >
-        <div
-          v-for="(category, index) in displayedCategories"
-          :key="category.id"
-          @click="selectCategory(category)"
-          class="category-card"
-          :class="{
-            'category-selected': selectedCategory?.id === category.id,
-          }"
-          :style="{ '--i': index }"
-        >
-          <!-- Контейнер иконки -->
-          <div class="category-icon-container">
-            <component
-              :is="category.icon"
-              class="category-icon lucide-icon"
-              :class="`icon-${category.slug}`"
-            />
-          </div>
+        <meta itemprop="name" content="Навигация по категориям товаров" />
+        <meta
+          itemprop="description"
+          content="Навигация по категориям интимных товаров"
+        />
 
-          <!-- Название категории -->
-          <div class="category-name">
-            {{ category.name }}
-          </div>
-        </div>
-      </TransitionGroup>
+        <!-- Сетка категорий с анимацией и Schema.org -->
+        <TransitionGroup
+          name="category-list"
+          tag="ul"
+          class="categories-grid"
+          appear
+          role="grid"
+          :aria-rowcount="Math.ceil(displayedCategories.length / 4)"
+          aria-label="Сетка категорий товаров"
+        >
+          <li
+            v-for="(category, index) in displayedCategories"
+            :key="category.id"
+            class="category-card"
+            :class="{
+              'category-selected': selectedCategory?.id === category.id,
+            }"
+            :style="{ '--i': index }"
+            :aria-rowindex="Math.floor(index / 4) + 1"
+            :aria-colindex="(index % 4) + 1"
+            :aria-selected="selectedCategory?.id === category.id"
+            :tabindex="index === 0 ? 0 : -1"
+            itemscope
+            itemtype="https://schema.org/ListItem"
+            itemprop="itemListElement"
+            :itemid="`#listitem-${category.slug}`"
+          >
+            <!-- Schema.org метаданные для элемента списка -->
+            <meta itemprop="position" :content="index + 1" />
+            <meta itemprop="name" :content="category.name" />
+            <meta
+              itemprop="url"
+              :content="`/catalog/seks-igrushki/${category.slug}/`"
+            />
+
+            <!-- Кнопка категории с Schema.org -->
+            <button
+              @click="selectCategory(category)"
+              @keydown.enter="selectCategory(category)"
+              @keydown.space.prevent="selectCategory(category)"
+              @keydown="handleKeyboardNavigation($event, category, index)"
+              class="category-button"
+              :aria-label="`Выбрать категорию: ${category.name}`"
+              :aria-describedby="`category-desc-${category.id}`"
+              :aria-pressed="selectedCategory?.id === category.id"
+              :tabindex="index === 0 ? 0 : -1"
+              type="button"
+              itemscope
+              itemtype="https://schema.org/Thing"
+              itemprop="item"
+              :itemid="`#category-${category.slug}`"
+            >
+              <!-- Schema.org метаданные для категории -->
+              <meta itemprop="name" :content="category.name" />
+              <meta itemprop="identifier" :content="category.slug" />
+              <meta
+                itemprop="description"
+                :content="`Товары категории ${category.name} в интернет-магазине Pink Rabbit`"
+              />
+              <meta
+                itemprop="url"
+                :content="`/catalog/seks-igrushki/${category.slug}/`"
+              />
+              <meta
+                itemprop="additionalType"
+                content="https://schema.org/ProductGroup"
+              />
+              <meta itemprop="category" content="Adult Products" />
+
+              <!-- Контейнер иконки -->
+              <div class="category-icon-container" aria-hidden="true">
+                <component
+                  :is="category.icon"
+                  class="category-icon lucide-icon"
+                  :class="`icon-${category.slug}`"
+                  :aria-label="`Иконка категории ${category.name}`"
+                />
+              </div>
+
+              <!-- Название категории с Schema.org -->
+              <span
+                class="category-name"
+                :id="`category-desc-${category.id}`"
+                itemprop="name"
+              >
+                {{ category.name }}
+              </span>
+            </button>
+          </li>
+        </TransitionGroup>
+      </nav>
 
       <!-- Кнопки управления отображением -->
       <Transition name="button-fade" mode="out-in">
-        <div class="categories-controls" :key="showAll">
+        <footer
+          class="categories-controls"
+          :key="showAll"
+          role="contentinfo"
+          aria-label="Управление отображением категорий"
+        >
           <!-- Элегантная центральная кнопка -->
           <button
             v-if="categories.length > visibleCount"
             @click="toggleCategories"
+            @keydown.enter="toggleCategories"
+            @keydown.space.prevent="toggleCategories"
             class="elegant-control-button"
+            type="button"
+            :aria-label="
+              showAll
+                ? 'Свернуть список категорий'
+                : `Показать ещё ${categories.length - visibleCount} категорий`
+            "
+            :aria-expanded="showAll"
+            aria-controls="categories-grid"
           >
-            <div class="button-content">
+            <span class="button-content">
               <component
                 :is="showAll ? ChevronUp : ChevronDown"
                 class="button-icon"
+                :aria-label="showAll ? 'Стрелка вверх' : 'Стрелка вниз'"
+                aria-hidden="true"
               />
               <span class="button-text">
                 {{
@@ -95,16 +210,16 @@
                     : `Показать ещё ${categories.length - visibleCount}`
                 }}
               </span>
-            </div>
+            </span>
           </button>
-        </div>
+        </footer>
       </Transition>
-    </div>
+    </main>
   </section>
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 // 🎨 ИМПОРТ ПРОФЕССИОНАЛЬНЫХ LUCIDE ИКОНОК
 import {
   Heart, // Для женщин
@@ -231,7 +346,242 @@ const toggleCategories = () => {
 const selectCategory = (category) => {
   selectedCategory.value = category;
   console.log(`Выбрана категория: ${category.slug}`);
+
+  // Уведомляем родительский компонент о выборе
+  emit("category-selected", category);
+
+  // Анонсируем изменение для screen readers
+  announceSelection(category.name);
 };
+
+// Объявляем emits для Vue 3
+const emit = defineEmits(["category-selected"]);
+
+// Функция для анонсирования выбора категории
+const announceSelection = (categoryName) => {
+  // Создаем живое уведомление для screen readers
+  const announcement = document.createElement("div");
+  announcement.setAttribute("aria-live", "polite");
+  announcement.setAttribute("aria-atomic", "true");
+  announcement.className = "sr-only";
+  announcement.textContent = `Выбрана категория: ${categoryName}`;
+
+  document.body.appendChild(announcement);
+
+  // Удаляем через 1 секунду
+  setTimeout(() => {
+    document.body.removeChild(announcement);
+  }, 1000);
+};
+
+// Навигация с клавиатуры
+const handleKeyboardNavigation = (event, category, index) => {
+  const grid = displayedCategories.value;
+  const currentRow = Math.floor(index / 4);
+  const currentCol = index % 4;
+  let targetIndex = index;
+
+  switch (event.key) {
+    case "ArrowRight":
+      event.preventDefault();
+      targetIndex = index + 1 < grid.length ? index + 1 : index;
+      break;
+    case "ArrowLeft":
+      event.preventDefault();
+      targetIndex = index - 1 >= 0 ? index - 1 : index;
+      break;
+    case "ArrowDown":
+      event.preventDefault();
+      targetIndex = Math.min(index + 4, grid.length - 1);
+      break;
+    case "ArrowUp":
+      event.preventDefault();
+      targetIndex = Math.max(index - 4, 0);
+      break;
+    case "Home":
+      event.preventDefault();
+      targetIndex = currentRow * 4; // Начало текущей строки
+      break;
+    case "End":
+      event.preventDefault();
+      targetIndex = Math.min((currentRow + 1) * 4 - 1, grid.length - 1); // Конец текущей строки
+      break;
+  }
+
+  if (targetIndex !== index) {
+    // Фокусируемся на новой карточке
+    const targetButton = document.querySelector(
+      `[aria-describedby="category-desc-${grid[targetIndex].id}"]`
+    );
+    if (targetButton) {
+      targetButton.focus();
+    }
+  }
+};
+
+// Schema.org структурированные данные
+const generateSchemaOrgData = () => {
+  return {
+    "@context": "https://schema.org",
+    "@graph": [
+      // Основной ItemList для категорий
+      {
+        "@type": "ItemList",
+        "@id": "#categoriesList",
+        name: "Категории товаров для взрослых",
+        description:
+          "Каталог категорий интимных товаров интернет-магазина Pink Rabbit",
+        url:
+          typeof window !== "undefined" && window.location
+            ? window.location.href
+            : "/catalog/seks-igrushki/",
+        numberOfItems: categories.value.length,
+        itemListOrder: "https://schema.org/ItemListOrderAscending",
+        mainEntity: "#webPage",
+        itemListElement: categories.value.map((category, index) => ({
+          "@type": "ListItem",
+          position: index + 1,
+          name: category.name,
+          url: `/catalog/seks-igrushki/${category.slug}/`,
+          item: {
+            "@type": ["Thing", "ProductGroup"],
+            "@id": `#category-${category.slug}`,
+            name: category.name,
+            identifier: category.slug,
+            description: `Товары категории ${category.name} в интернет-магазине Pink Rabbit`,
+            url: `/catalog/seks-igrushki/${category.slug}/`,
+            category: "Adult Products",
+            isPartOf: "#categoriesList",
+          },
+        })),
+      },
+      // WebPage контекст
+      {
+        "@type": "WebPage",
+        "@id": "#webPage",
+        name: "Каталог товаров для взрослых",
+        description:
+          "Интимные товары и секс-игрушки в интернет-магазине Pink Rabbit",
+        url:
+          typeof window !== "undefined" && window.location
+            ? window.location.href
+            : "/catalog/seks-igrushki/",
+        mainEntity: "#categoriesList",
+        breadcrumb: "#breadcrumbList",
+        isPartOf: {
+          "@type": "WebSite",
+          "@id": "#website",
+          name: "Pink Rabbit",
+          description: "Интернет-магазин товаров для взрослых",
+          url: "https://pink-rabbit.ru",
+          potentialAction: {
+            "@type": "SearchAction",
+            target: "https://pink-rabbit.ru/search?q={search_term_string}",
+            "query-input": "required name=search_term_string",
+          },
+        },
+      },
+      // Хлебные крошки
+      {
+        "@type": "BreadcrumbList",
+        "@id": "#breadcrumbList",
+        itemListElement: [
+          {
+            "@type": "ListItem",
+            position: 1,
+            name: "Главная",
+            item: "https://pink-rabbit.ru/",
+          },
+          {
+            "@type": "ListItem",
+            position: 2,
+            name: "Каталог",
+            item: "https://pink-rabbit.ru/catalog/",
+          },
+          {
+            "@type": "ListItem",
+            position: 3,
+            name: "Товары для взрослых",
+            item: "https://pink-rabbit.ru/catalog/seks-igrushki/",
+          },
+        ],
+      },
+      // Навигационный элемент
+      {
+        "@type": "SiteNavigationElement",
+        "@id": "#categoriesNavigation",
+        name: "Навигация по категориям товаров",
+        description: "Навигация по категориям интимных товаров",
+        url:
+          typeof window !== "undefined" && window.location
+            ? window.location.href
+            : "/catalog/seks-igrushki/",
+        hasPart: categories.value.map(
+          (category) => `#category-${category.slug}`
+        ),
+      },
+    ],
+  };
+};
+
+// Функция для обновления Schema.org данных
+const updateSchemaOrg = () => {
+  if (typeof window !== "undefined") {
+    // Удаляем старый script если есть
+    const existingScript = document.querySelector("#schema-org-categories");
+    if (existingScript) {
+      existingScript.remove();
+    }
+
+    // Создаем новый script с обновленными данными
+    const script = document.createElement("script");
+    script.id = "schema-org-categories";
+    script.type = "application/ld+json";
+    script.textContent = JSON.stringify(generateSchemaOrgData());
+    document.head.appendChild(script);
+  }
+};
+
+// Функция для обновления head через Nuxt useHead
+const updateNuxtHead = () => {
+  useHead({
+    script: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify(generateSchemaOrgData()),
+        key: "schema-org-categories",
+      },
+    ],
+  });
+};
+
+// Lifecycle hooks для Schema.org
+onMounted(() => {
+  // Обновляем Schema.org данные при монтировании компонента
+  updateSchemaOrg();
+  // Также добавляем через useHead для Nuxt 3
+  updateNuxtHead();
+});
+
+onUnmounted(() => {
+  // Очищаем Schema.org данные при размонтировании
+  if (typeof window !== "undefined") {
+    const existingScript = document.querySelector("#schema-org-categories");
+    if (existingScript) {
+      existingScript.remove();
+    }
+  }
+});
+
+// Отслеживаем изменения в категориях и обновляем Schema.org
+watch(
+  [categories, selectedCategory, showAll],
+  () => {
+    updateSchemaOrg();
+    updateNuxtHead();
+  },
+  { deep: true }
+);
 </script>
 
 <style scoped>
@@ -253,6 +603,27 @@ const selectCategory = (category) => {
   overflow-x: hidden;
   overflow-y: visible;
   box-sizing: border-box;
+}
+
+/* === СЕМАНТИЧЕСКАЯ ДОСТУПНОСТЬ === */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* === НАВИГАЦИЯ ПО КАТЕГОРИЯМ === */
+.categories-navigation {
+  /* Прозрачный контейнер для семантики */
+  background: transparent;
+  border: none;
+  outline: none;
 }
 
 /* === ФИКСИРОВАННАЯ СЕТКА 4 КАРТОЧКИ В РЯД === */
@@ -298,6 +669,8 @@ const selectCategory = (category) => {
   width: 100%;
   /* ИСПРАВЛЕНИЕ: Добавляем z-index для правильного отображения теней */
   z-index: 1;
+  /* НОВОЕ: Убираем list-style для семантического li */
+  list-style: none;
 }
 
 .category-card::before {
@@ -1276,5 +1649,37 @@ html {
   transition: height 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
   position: relative;
+}
+
+/* === КНОПКА КАТЕГОРИИ === */
+.category-button {
+  /* Наследуем все свойства от родительской карточки */
+  background: transparent;
+  border: none;
+  border-radius: inherit;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  cursor: inherit;
+  transition: inherit;
+  position: relative;
+  overflow: inherit;
+  box-shadow: none;
+  /* Убираем стандартные стили кнопки */
+  outline: none;
+  appearance: none;
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+  text-align: inherit;
+  /* Делаем кнопку блочной */
+  display: block;
+}
+
+/* Фокус для доступности */
+.category-button:focus-visible {
+  outline: 2px solid #ec4899;
+  outline-offset: 2px;
 }
 </style>
