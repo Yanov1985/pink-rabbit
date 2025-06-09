@@ -41,16 +41,22 @@
 
     <!-- Основной контент -->
     <div v-else class="categories-content">
-      <!-- Сетка категорий -->
-      <div class="categories-grid">
+      <!-- Сетка категорий с анимацией -->
+      <TransitionGroup
+        name="category-list"
+        tag="div"
+        class="categories-grid"
+        appear
+      >
         <div
-          v-for="category in displayedCategories"
+          v-for="(category, index) in displayedCategories"
           :key="category.id"
           @click="selectCategory(category)"
           class="category-card"
           :class="{
             'category-selected': selectedCategory?.id === category.id,
           }"
+          :style="{ '--i': index }"
         >
           <!-- Контейнер иконки -->
           <div class="category-icon-container">
@@ -66,31 +72,33 @@
             {{ category.name }}
           </div>
         </div>
-      </div>
+      </TransitionGroup>
 
       <!-- Кнопки управления отображением -->
-      <div class="categories-controls">
-        <!-- Элегантная центральная кнопка -->
-        <button
-          v-if="categories.length > visibleCount"
-          @click="toggleCategories"
-          class="elegant-control-button"
-        >
-          <div class="button-content">
-            <component
-              :is="showAll ? ChevronUp : ChevronDown"
-              class="button-icon"
-            />
-            <span class="button-text">
-              {{
-                showAll
-                  ? "Свернуть"
-                  : `Показать ещё ${categories.length - visibleCount}`
-              }}
-            </span>
-          </div>
-        </button>
-      </div>
+      <Transition name="button-fade" mode="out-in">
+        <div class="categories-controls" :key="showAll">
+          <!-- Элегантная центральная кнопка -->
+          <button
+            v-if="categories.length > visibleCount"
+            @click="toggleCategories"
+            class="elegant-control-button"
+          >
+            <div class="button-content">
+              <component
+                :is="showAll ? ChevronUp : ChevronDown"
+                class="button-icon"
+              />
+              <span class="button-text">
+                {{
+                  showAll
+                    ? "Свернуть"
+                    : `Показать ещё ${categories.length - visibleCount}`
+                }}
+              </span>
+            </div>
+          </button>
+        </div>
+      </Transition>
     </div>
   </section>
 </template>
@@ -265,6 +273,10 @@ const selectCategory = (category) => {
   box-sizing: border-box;
   /* Разрешаем видимость теней и анимаций */
   overflow: visible;
+  /* НОВОЕ: Поддержка анимаций переходов */
+  position: relative;
+  /* НОВОЕ: Плавная анимация для изменения размеров */
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .category-card {
@@ -794,17 +806,19 @@ const selectCategory = (category) => {
 }
 
 .button-icon {
-  width: 16px;
-  height: 16px;
-  color: #64748b;
-  /* ИСПРАВЛЕНИЕ: Упрощенная transition */
-  transition: color 0.2s ease;
+  /* ИСПРАВЛЕНИЕ: Плавная анимация поворота иконки */
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 18px;
+  height: 18px;
+  margin-right: 8px;
   flex-shrink: 0;
+  /* Базовое состояние - стрелка вниз */
+  transform: rotate(0deg);
 }
 
-/* ИСПРАВЛЕНИЕ: Минимальный эффект при hover */
+/* Когда показываем "Свернуть" - поворачиваем иконку */
 .elegant-control-button:hover .button-icon {
-  color: #475569;
+  transform: rotate(180deg) scale(1.1);
 }
 
 /* === АДАПТИВНОСТЬ ДЛЯ СЕТКИ 4×3 === */
@@ -1209,5 +1223,58 @@ html {
 .elegant-control-button:focus-visible {
   outline: 3px solid rgba(236, 72, 153, 0.5);
   outline-offset: 2px;
+}
+
+/* === АНИМАЦИИ ДЛЯ РАСКРЫТИЯ/СВЕРТЫВАНИЯ КАРТОЧЕК === */
+/* Анимация для появления карточек */
+.category-list-enter-active {
+  transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+  transition-delay: calc(var(--i) * 0.1s);
+}
+
+.category-list-leave-active {
+  transition: all 0.4s cubic-bezier(0.55, 0, 0.1, 1);
+  transition-delay: calc(var(--i) * 0.05s);
+}
+
+.category-list-enter-from {
+  opacity: 0;
+  transform: translateY(30px) scale(0.9);
+  filter: blur(4px);
+}
+
+.category-list-leave-to {
+  opacity: 0;
+  transform: translateY(-15px) scale(0.95);
+  filter: blur(2px);
+}
+
+/* Анимация для перестановки карточек */
+.category-list-move {
+  transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+/* === АНИМАЦИЯ КНОПКИ === */
+.button-fade-enter-active,
+.button-fade-leave-active {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.button-fade-enter-from {
+  opacity: 0;
+  transform: translateY(10px) scale(0.95);
+}
+
+.button-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-10px) scale(0.95);
+}
+
+/* Улучшенная сетка с поддержкой анимаций */
+.categories-content {
+  /* Плавная анимация изменения высоты */
+  transition: height 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  position: relative;
 }
 </style>
