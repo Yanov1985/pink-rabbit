@@ -1180,8 +1180,8 @@ const brandSearch = ref("");
 
 // Состояние аккордеона
 const accordionState = ref({
-  price: true,
-  brand: true,
+  price: false, // Закрыт по умолчанию
+  brand: false, // Закрыт по умолчанию
   material: false,
   color: false,
   length: false,
