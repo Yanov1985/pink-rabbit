@@ -891,7 +891,7 @@ import {
   SparklesIcon,
   HeartIcon,
 } from "@heroicons/vue/24/solid";
-import PriceRangeSlider from "@/components/PriceRangeSlider.vue";
+import PriceRangeSlider from "@/components/categories/PriceRangeSlider.vue";
 
 // SEO: Добавляем Schema.org разметку для структурированных данных
 // Это как паспорт для поисковых систем - рассказываем что у нас есть фильтры для интернет-магазина

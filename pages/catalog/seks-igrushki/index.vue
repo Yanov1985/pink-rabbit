@@ -205,9 +205,10 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 // Импорт компонентов
-import ProductSkeleton from "~/components/ProductSkeleton.vue";
-import CatalogHeader from "~/components/CatalogHeader.vue";
-import AdultToysFilters from "~/components/AdultToysFilters.vue";
+import ProductSkeleton from "~/components/categories/ProductSkeleton.vue";
+import CatalogHeader from "~/components/categories/CatalogHeader.vue";
+import AdultToysFilters from "~/components/categories/AdultToysFilters.vue";
+import ProductCard from "~/components/categories/ProductCard.vue";
 
 // Импорт иконок
 import {
