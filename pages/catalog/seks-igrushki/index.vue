@@ -28,7 +28,10 @@
     </nav>
 
     <!-- Секция категорий товаров -->
-    <ProductCategoriesCards @navigate-to-category="handleCategoryNavigation" />
+    <ProductCategoriesCards
+      :isLoading="isInitialLoading"
+      @navigate-to-category="handleCategoryNavigation"
+    />
 
     <div class="container mx-auto px-4 py-6">
       <div class="flex flex-col lg:flex-row gap-6">

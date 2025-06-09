@@ -1,13 +1,46 @@
 <template>
-  <!-- Убираем section wrapper и делаем простой div -->
-  <div class="product-categories-content">
-    <!-- Заголовок секции -->
-    <div class="section-header">
-      <h2 class="section-title">Категории товаров</h2>
+  <!-- Семантическая секция категорий товаров -->
+  <section
+    class="product-categories-content"
+    aria-labelledby="categories-heading"
+    role="region"
+  >
+    <!-- Skeleton при загрузке в стилистике AdultToysFilters -->
+    <div
+      v-if="isLoading"
+      class="pink-rabbit-categories-skeleton"
+      aria-hidden="true"
+    >
+      <!-- Заголовок skeleton -->
+      <div class="skeleton-container">
+        <!-- Сетка карточек skeleton -->
+        <div class="skeleton-grid">
+          <!-- 8 карточек для имитации полной сетки -->
+          <div
+            v-for="n in 8"
+            :key="n"
+            class="skeleton-category-card"
+            :style="{ animationDelay: `${n * 0.15}s` }"
+          >
+            <div class="skeleton-icon-container">
+              <div class="skeleton-icon"></div>
+            </div>
+            <div class="skeleton-card-content">
+              <div class="skeleton-card-title"></div>
+              <div class="skeleton-card-count"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Кнопка skeleton -->
+      <div class="skeleton-controls">
+        <div class="skeleton-show-more-btn" style="animation-delay: 1.2s"></div>
+      </div>
     </div>
 
-    <!-- Основной контент категорий -->
-    <div class="categories-content">
+    <!-- Основной контент -->
+    <div v-else class="categories-content">
       <!-- Сетка категорий -->
       <div class="categories-grid">
         <div
@@ -59,7 +92,7 @@
         </button>
       </div>
     </div>
-  </div>
+  </section>
 </template>
 
 <script setup>
@@ -67,20 +100,32 @@ import { ref, computed } from "vue";
 // 🎨 ИМПОРТ ПРОФЕССИОНАЛЬНЫХ LUCIDE ИКОНОК
 import {
   Heart, // Для женщин
-  Zap, // Для мужчин
+  User, // Для мужчин
   Users, // Для пар
-  Smartphone, // Вибраторы
-  Cylinder, // Фаллоимитаторы
-  Target, // Анальные игрушки
-  Flower2, // Стимуляторы клитора
-  Sparkles, // Стимуляторы точки G
-  Droplets, // Смазки и лубриканты
-  Shield, // Презервативы
-  ShoppingBag, // Косметика
-  Gamepad2, // Эротические игры
-  ChevronDown, // Показать больше
+  Zap, // Вибраторы
+  Target, // Клиторальные стимуляторы
+  Sparkles, // Анальные игрушки
+  Droplets, // Смазки
+  Palette, // Косметика
+  ChevronDown, // Показать ещё
   ChevronUp, // Показать меньше
 } from "lucide-vue-next";
+
+// Props компонента
+const props = defineProps({
+  categories: {
+    type: Array,
+    default: () => [],
+  },
+  selectedCategory: {
+    type: String,
+    default: null,
+  },
+  isLoading: {
+    type: Boolean,
+    default: false, // Возвращаем обратно к false
+  },
+});
 
 // Управление отображением категорий
 const showAll = ref(false);
@@ -111,13 +156,13 @@ const categories = ref([
     id: 4,
     name: "Вибраторы",
     slug: "vibratory",
-    icon: Smartphone,
+    icon: Zap,
   },
   {
     id: 5,
     name: "Фаллоимитаторы",
     slug: "falloimitatory",
-    icon: Cylinder,
+    icon: Heart,
   },
   {
     id: 6,
@@ -129,7 +174,7 @@ const categories = ref([
     id: 7,
     name: "Стимуляторы клитора",
     slug: "stimulyatory-klitora",
-    icon: Flower2,
+    icon: Heart,
   },
   {
     id: 8,
@@ -147,19 +192,19 @@ const categories = ref([
     id: 10,
     name: "Презервативы",
     slug: "prezervatiry",
-    icon: Shield,
+    icon: Palette,
   },
   {
     id: 11,
     name: "Косметика",
     slug: "kosmetika",
-    icon: ShoppingBag,
+    icon: Palette,
   },
   {
     id: 12,
     name: "Эротические игры",
     slug: "eroticheskie-igry",
-    icon: Gamepad2,
+    icon: User,
   },
 ]);
 
@@ -202,40 +247,6 @@ const selectCategory = (category) => {
   box-sizing: border-box;
 }
 
-/* === ЗАГОЛОВОК СЕКЦИИ В СТИЛЕ CATALOG HEADER === */
-.section-header {
-  margin-bottom: 2rem;
-  text-align: center;
-}
-
-.section-title {
-  color: #1f2937;
-  font-size: 2rem;
-  font-weight: 700;
-  text-align: center;
-  margin-bottom: 0.5rem;
-  /* ОБНОВЛЕНО: Используем палитру как в CatalogHeader */
-  background: linear-gradient(135deg, #ff6b9d 0%, #8b5cf6 50%, #06b6d4 100%);
-  background-size: 300% 300%;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: gradientShift 4s ease-in-out infinite,
-    textGlow 2s ease-in-out infinite alternate;
-  position: relative;
-  z-index: 2;
-}
-
-/* === КОНТЕНТ БЕЗ ДОПОЛНИТЕЛЬНЫХ ОТСТУПОВ === */
-.categories-content {
-  width: 100%;
-  /* ИСПРАВЛЕНИЕ: Строгий контроль размеров */
-  max-width: 100%;
-  /* Разрешаем видимость анимаций */
-  overflow: visible;
-  box-sizing: border-box;
-}
-
 /* === ФИКСИРОВАННАЯ СЕТКА 4 КАРТОЧКИ В РЯД === */
 .categories-grid {
   display: grid;
@@ -266,7 +277,8 @@ const selectCategory = (category) => {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
-  box-shadow: 0 4px 16px rgba(236, 72, 153, 0.08);
+  /* ИСПРАВЛЕНИЕ: Элегантная тонкая тень как у iPhone */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02);
   /* ИСПРАВЛЕНИЕ: Правильный box-sizing */
   box-sizing: border-box;
   /* ИСПРАВЛЕНИЕ: Предотвращаем переполнение */
@@ -298,16 +310,19 @@ const selectCategory = (category) => {
 }
 
 .category-card:hover {
-  transform: translateY(-8px) scale(1.02);
-  box-shadow: 0 20px 40px rgba(236, 72, 153, 0.15);
-  border-color: rgba(236, 72, 153, 0.3);
+  transform: translateY(-4px) scale(1.01);
+  /* ИСПРАВЛЕНИЕ: Нейтральные серые тени без свечения */
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06), 0 4px 12px rgba(0, 0, 0, 0.04);
+  border-color: rgba(203, 213, 225, 0.6);
   background: rgba(255, 255, 255, 1);
   /* ИСПРАВЛЕНИЕ: Поднимаем z-index при hover */
   z-index: 10;
 }
 
 .category-card:active {
-  transform: translateY(-4px) scale(0.98);
+  transform: translateY(-2px) scale(0.99);
+  /* ИСПРАВЛЕНИЕ: Минимальная тень при нажатии */
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
 }
 
 /* === СТИЛИ ДЛЯ ВЫБРАННОЙ КАТЕГОРИИ === */
@@ -316,9 +331,12 @@ const selectCategory = (category) => {
   background: linear-gradient(135deg, #ff6b9d, #8b5cf6) !important;
   color: white !important;
   border-color: #ff6b9d !important;
-  box-shadow: 0 8px 32px rgba(255, 107, 157, 0.3) !important;
-  transform: translateY(-8px) scale(1.05) !important;
-  animation: activeGlow 2s ease-in-out infinite alternate;
+  /* ИСПРАВЛЕНИЕ: Тонкая тень для выбранного состояния без свечения */
+  box-shadow: 0 8px 24px rgba(255, 107, 157, 0.08),
+    0 4px 12px rgba(255, 107, 157, 0.05) !important;
+  transform: translateY(-6px) scale(1.02) !important;
+  /* ИСПРАВЛЕНИЕ: Убираем анимацию свечения */
+  /* animation: activeGlow 2s ease-in-out infinite alternate; */
   /* ИСПРАВЛЕНИЕ: Высокий z-index для выбранной карточки */
   z-index: 15 !important;
 }
@@ -330,15 +348,6 @@ const selectCategory = (category) => {
     rgba(255, 255, 255, 0.1),
     transparent
   );
-}
-
-@keyframes activeGlow {
-  0% {
-    box-shadow: 0 8px 32px rgba(255, 107, 157, 0.3);
-  }
-  100% {
-    box-shadow: 0 12px 48px rgba(255, 107, 157, 0.5);
-  }
 }
 
 /* === ИКОНКИ КАТЕГОРИЙ В СТИЛЕ CATALOG HEADER - МНОГОЦВЕТНЫЕ === */
@@ -360,18 +369,20 @@ const selectCategory = (category) => {
 }
 
 .category-card:hover .category-icon-container {
-  /* ОБНОВЛЕНО: Более тонкий hover эффект */
+  /* ОБНОВЛЕНО: Убираем свечение, оставляем только подъем */
   background: rgba(255, 255, 255, 1);
-  border-color: rgba(156, 163, 175, 0.4);
-  transform: scale(1.1) rotate(5deg);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  border-color: rgba(203, 213, 225, 0.6);
+  transform: scale(1.05);
+  /* ИСПРАВЛЕНИЕ: Убираем цветные тени, оставляем нейтральные */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
 }
 
 .category-selected .category-icon-container {
   background: rgba(255, 255, 255, 0.2) !important;
   border-color: rgba(255, 255, 255, 0.3) !important;
-  transform: scale(1.1) rotate(10deg) !important;
-  box-shadow: 0 4px 20px rgba(255, 255, 255, 0.2) !important;
+  transform: scale(1.05) !important;
+  /* ИСПРАВЛЕНИЕ: Убираем свечение белой тенью */
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1) !important;
 }
 
 /* НОВОЕ: ЦВЕТНАЯ СХЕМА ДЛЯ ИКОНОК КАК В CATALOG HEADER */
@@ -446,74 +457,86 @@ const selectCategory = (category) => {
 /* HOVER эффекты для цветных иконок */
 .category-card:hover .icon-dlya-zhenshchin {
   color: #be185d;
-  transform: scale(1.2);
-  filter: drop-shadow(0 4px 8px rgba(236, 72, 153, 0.3));
+  transform: scale(1.1);
+  /* ИСПРАВЛЕНИЕ: Убираем цветное свечение */
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.08));
 }
 
 .category-card:hover .icon-dlya-muzhchin {
   color: #1d4ed8;
-  transform: scale(1.2);
-  filter: drop-shadow(0 4px 8px rgba(59, 130, 246, 0.3));
+  transform: scale(1.1);
+  /* ИСПРАВЛЕНИЕ: Убираем цветное свечение */
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.08));
 }
 
 .category-card:hover .icon-dlya-par {
   color: #7c3aed;
-  transform: scale(1.2);
-  filter: drop-shadow(0 4px 8px rgba(139, 92, 246, 0.3));
+  transform: scale(1.1);
+  /* ИСПРАВЛЕНИЕ: Убираем цветное свечение */
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.08));
 }
 
 .category-card:hover .icon-vibratory {
   color: #d97706;
-  transform: scale(1.2) rotate(10deg);
-  filter: drop-shadow(0 4px 8px rgba(245, 158, 11, 0.3));
+  transform: scale(1.1);
+  /* ИСПРАВЛЕНИЕ: Убираем цветное свечение и вращение */
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.08));
 }
 
 .category-card:hover .icon-falloimitatory {
   color: #dc2626;
-  transform: scale(1.2);
-  filter: drop-shadow(0 4px 8px rgba(239, 68, 68, 0.3));
+  transform: scale(1.1);
+  /* ИСПРАВЛЕНИЕ: Убираем цветное свечение */
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.08));
 }
 
 .category-card:hover .icon-analnye-igrushki {
   color: #0891b2;
-  transform: scale(1.2);
-  filter: drop-shadow(0 4px 8px rgba(6, 182, 212, 0.3));
+  transform: scale(1.1);
+  /* ИСПРАВЛЕНИЕ: Убираем цветное свечение */
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.08));
 }
 
 .category-card:hover .icon-stimulyatory-klitora {
   color: #ea580c;
-  transform: scale(1.2) rotate(-5deg);
-  filter: drop-shadow(0 4px 8px rgba(249, 115, 22, 0.3));
+  transform: scale(1.1);
+  /* ИСПРАВЛЕНИЕ: Убираем цветное свечение и вращение */
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.08));
 }
 
 .category-card:hover .icon-stimulyatory-tochki-g {
   color: #65a30d;
-  transform: scale(1.2);
-  filter: drop-shadow(0 4px 8px rgba(132, 204, 22, 0.3));
+  transform: scale(1.1);
+  /* ИСПРАВЛЕНИЕ: Убираем цветное свечение */
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.08));
 }
 
 .category-card:hover .icon-smazki-i-lubrikant {
   color: #0891b2;
-  transform: scale(1.2);
-  filter: drop-shadow(0 4px 8px rgba(6, 182, 212, 0.3));
+  transform: scale(1.1);
+  /* ИСПРАВЛЕНИЕ: Убираем цветное свечение */
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.08));
 }
 
 .category-card:hover .icon-prezervatiry {
   color: #059669;
-  transform: scale(1.2);
-  filter: drop-shadow(0 4px 8px rgba(16, 185, 129, 0.3));
+  transform: scale(1.1);
+  /* ИСПРАВЛЕНИЕ: Убираем цветное свечение */
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.08));
 }
 
 .category-card:hover .icon-kosmetika {
   color: #c026d3;
-  transform: scale(1.2);
-  filter: drop-shadow(0 4px 8px rgba(217, 70, 239, 0.3));
+  transform: scale(1.1);
+  /* ИСПРАВЛЕНИЕ: Убираем цветное свечение */
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.08));
 }
 
 .category-card:hover .icon-eroticheskie-igry {
   color: #4f46e5;
-  transform: scale(1.2);
-  filter: drop-shadow(0 4px 8px rgba(99, 102, 241, 0.3));
+  transform: scale(1.1);
+  /* ИСПРАВЛЕНИЕ: Убираем цветное свечение */
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.08));
 }
 
 /* БЕЛЫЕ иконки для выбранного состояния */
@@ -808,10 +831,6 @@ const selectCategory = (category) => {
     max-width: calc(100% - 1.5rem);
   }
 
-  .section-title {
-    font-size: 1.5rem;
-  }
-
   .category-card {
     padding: 1rem;
     /* ИСПРАВЛЕНИЕ: Уменьшаем padding на мобильных */
@@ -869,10 +888,6 @@ const selectCategory = (category) => {
     padding: 0.75rem 0.5rem 0.75rem 0.5rem;
     width: calc(100% - 1rem);
     max-width: calc(100% - 1rem);
-  }
-
-  .section-title {
-    font-size: 1.25rem;
   }
 
   .category-card {
@@ -964,33 +979,215 @@ html {
   display: none;
 }
 
-/* === АНИМАЦИИ ГРАДИЕНТОВ === */
-@keyframes gradientShift {
+/* === СКЕЛЕТОН ЗАГРУЗКИ === */
+.skeleton-container {
+  @apply animate-pulse;
+  padding: 1rem 1rem 2rem 1rem;
+  max-width: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.skeleton-category-card {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.9),
+    rgba(248, 250, 252, 0.9)
+  );
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  border-radius: 16px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1rem;
+  min-height: 160px;
+  opacity: 0;
+  animation: fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.skeleton-icon-container {
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(
+    90deg,
+    rgba(236, 72, 153, 0.08) 0%,
+    rgba(236, 72, 153, 0.2) 50%,
+    rgba(236, 72, 153, 0.08) 100%
+  );
+  background-size: 200% 100%;
+  border-radius: 50%;
+  animation: pinkRabbitShimmer 3.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.skeleton-icon {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    rgba(236, 72, 153, 0.05) 0%,
+    rgba(236, 72, 153, 0.15) 50%,
+    rgba(236, 72, 153, 0.05) 100%
+  );
+  background-size: 200% 100%;
+  border-radius: 50%;
+  animation: pinkRabbitShimmer 3.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.skeleton-card-content {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.skeleton-card-title {
+  width: 80%;
+  height: 18px;
+  margin: 0 auto;
+  background: linear-gradient(
+    90deg,
+    rgba(236, 72, 153, 0.08) 0%,
+    rgba(236, 72, 153, 0.25) 50%,
+    rgba(236, 72, 153, 0.08) 100%
+  );
+  background-size: 200% 100%;
+  border-radius: 9px;
+  animation: pinkRabbitShimmer 3.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.skeleton-card-count {
+  width: 60%;
+  height: 14px;
+  margin: 0 auto;
+  background: linear-gradient(
+    90deg,
+    rgba(236, 72, 153, 0.05) 0%,
+    rgba(236, 72, 153, 0.15) 50%,
+    rgba(236, 72, 153, 0.05) 100%
+  );
+  background-size: 200% 100%;
+  border-radius: 7px;
+  animation: pinkRabbitShimmer 3.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.skeleton-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 0.5rem;
+  padding: 0;
+}
+
+.skeleton-show-more-btn {
+  width: 200px;
+  height: 44px;
+  background: linear-gradient(
+    90deg,
+    rgba(236, 72, 153, 0.12) 0%,
+    rgba(236, 72, 153, 0.3) 50%,
+    rgba(236, 72, 153, 0.12) 100%
+  );
+  background-size: 200% 100%;
+  border-radius: 12px;
+  animation: pinkRabbitShimmer 3.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+/* === SKELETON АНИМАЦИИ === */
+@keyframes pinkRabbitShimmer {
   0% {
-    background-position: 0% 50%;
-  }
-  25% {
-    background-position: 100% 50%;
+    background-position: -200px 0;
+    opacity: 0.5;
   }
   50% {
-    background-position: 100% 100%;
-  }
-  75% {
-    background-position: 0% 100%;
+    background-position: calc(100px + 50%) 0;
+    opacity: 1;
   }
   100% {
-    background-position: 0% 50%;
+    background-position: calc(200px + 100%) 0;
+    opacity: 0.5;
   }
 }
 
-@keyframes textGlow {
-  0% {
-    filter: brightness(1) contrast(1);
-    transform: scale(1);
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
   }
-  100% {
-    filter: brightness(1.2) contrast(1.1);
-    transform: scale(1.02);
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* === АДАПТИВНОСТЬ SKELETON === */
+@media (max-width: 1024px) {
+  .skeleton-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.25rem;
+    padding: 1rem 1rem 1.25rem 1rem;
+    width: calc(100% - 2rem);
+    max-width: calc(100% - 2rem);
+  }
+}
+
+@media (max-width: 768px) {
+  .skeleton-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    padding: 1rem 0.75rem 1rem 0.75rem;
+    width: calc(100% - 1.5rem);
+    max-width: calc(100% - 1.5rem);
+  }
+
+  .skeleton-category-card {
+    padding: 1rem;
+    min-height: 140px;
+  }
+
+  .skeleton-icon-container {
+    width: 50px;
+    height: 50px;
+  }
+
+  .skeleton-show-more-btn {
+    width: 180px;
+    height: 40px;
+  }
+}
+
+@media (max-width: 480px) {
+  .skeleton-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.75rem;
+    padding: 0.75rem 0.5rem 0.75rem 0.5rem;
+    width: calc(100% - 1rem);
+    max-width: calc(100% - 1rem);
+  }
+
+  .skeleton-category-card {
+    padding: 0.875rem;
+    min-height: 120px;
+  }
+
+  .skeleton-show-more-btn {
+    width: 160px;
+    height: 36px;
+  }
+
+  .skeleton-title-categories {
+    width: 160px;
+    height: 28px;
   }
 }
 
