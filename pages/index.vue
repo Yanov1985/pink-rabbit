@@ -45,5 +45,5 @@
 
 <script setup>
 // Импортируем компонент фильтров
-import AdultToysFilters from "@/components/categories/AdultToysFilters.vue";
+import AdultToysFilters from "@/components/categories/sexIgrushki/AdultToysFilters.vue";
 </script>

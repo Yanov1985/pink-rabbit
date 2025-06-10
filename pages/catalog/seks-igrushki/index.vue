@@ -211,11 +211,11 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 // Импорт компонентов
-import ProductSkeleton from "~/components/categories/ProductSkeleton.vue";
-import CatalogHeader from "~/components/categories/CatalogHeader.vue";
-import AdultToysFilters from "~/components/categories/AdultToysFilters.vue";
-import ProductCard from "~/components/categories/ProductCard.vue";
-import ProductCategoriesCards from "~/components/categories/ProductCategoriesCards.vue";
+import ProductSkeleton from "~/components/categories/sexIgrushki/ProductSkeleton.vue";
+import CatalogHeader from "~/components/categories/sexIgrushki/CatalogHeader.vue";
+import AdultToysFilters from "~/components/categories/sexIgrushki/AdultToysFilters.vue";
+import ProductCard from "~/components/categories/sexIgrushki/ProductCard.vue";
+import ProductCategoriesCards from "~/components/categories/sexIgrushki/ProductCategoriesCards.vue";
 
 // Импорт иконок
 import {
