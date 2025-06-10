@@ -328,8 +328,8 @@
       aria-atomic="true"
       class="sr-only"
     ></div>
-  </div>
-</template>
+    </div>
+  </template>
 
 <script setup lang="ts">
 // 🎯 Интерфейсы

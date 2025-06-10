@@ -222,14 +222,21 @@
 import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 // 🎨 ИМПОРТ ПРОФЕССИОНАЛЬНЫХ LUCIDE ИКОНОК
 import {
-  Heart, // Для женщин
+  Heart, // Для женщин, Клиторные стимуляторы
   User, // Для мужчин
-  Users, // Для пар
+  Users, // Для двоих
   Zap, // Вибраторы
-  Target, // Клиторальные стимуляторы
-  Sparkles, // Анальные игрушки
-  Droplets, // Смазки
-  Palette, // Косметика
+  Target, // Фаллоимитаторы, Анальные стимуляторы
+  Sparkles, // Вагинальные тренажеры
+  ArrowUp, // Страпоны
+  Gauge, // Вакуумные помпы
+  Circle, // Эрекционные кольца
+  Hand, // Мастурбаторы
+  Shield, // Насадки на член
+  TrendingUp, // Увеличение пениса
+  UserX, // Секс куклы
+  Settings, // Секс-машины
+  Package, // Сопутствующие товары
   ChevronDown, // Показать ещё
   ChevronUp, // Показать меньше
 } from "lucide-vue-next";
@@ -255,7 +262,7 @@ const showAll = ref(false);
 const visibleCount = 8; // Показываем только 8 категорий по умолчанию
 const selectedCategory = ref(null);
 
-// МАССИВ КАТЕГОРИЙ С LUCIDE ИКОНКАМИ
+// 🎯 ОБНОВЛЕННЫЙ МАССИВ КАТЕГОРИЙ С НОВЫМИ ТРЕБОВАНИЯМИ
 const categories = ref([
   {
     id: 1,
@@ -267,12 +274,12 @@ const categories = ref([
     id: 2,
     name: "Для мужчин",
     slug: "dlya-muzhchin",
-    icon: Zap,
+    icon: User,
   },
   {
     id: 3,
-    name: "Для пар",
-    slug: "dlya-par",
+    name: "Для двоих",
+    slug: "dlya-dvoikh",
     icon: Users,
   },
   {
@@ -285,49 +292,79 @@ const categories = ref([
     id: 5,
     name: "Фаллоимитаторы",
     slug: "falloimitatory",
-    icon: Heart,
+    icon: Target,
   },
   {
     id: 6,
-    name: "Анальные игрушки",
-    slug: "analnye-igrushki",
+    name: "Анальные стимуляторы",
+    slug: "analnye-stimulyatory",
     icon: Target,
   },
   {
     id: 7,
-    name: "Стимуляторы клитора",
-    slug: "stimulyatory-klitora",
-    icon: Heart,
-  },
-  {
-    id: 8,
-    name: "Стимуляторы точки G",
-    slug: "stimulyatory-tochki-g",
+    name: "Вагинальные тренажеры",
+    slug: "vaginalnye-trenazhery",
     icon: Sparkles,
   },
   {
+    id: 8,
+    name: "Клиторные стимуляторы",
+    slug: "klitornye-stimulyatory",
+    icon: Heart,
+  },
+  {
     id: 9,
-    name: "Смазки и лубриканты",
-    slug: "smazki-i-lubrikant",
-    icon: Droplets,
+    name: "Страпоны",
+    slug: "strapony",
+    icon: ArrowUp,
   },
   {
     id: 10,
-    name: "Презервативы",
-    slug: "prezervatiry",
-    icon: Palette,
+    name: "Вакуумные помпы",
+    slug: "vakuumnye-pompy",
+    icon: Gauge,
   },
   {
     id: 11,
-    name: "Косметика",
-    slug: "kosmetika",
-    icon: Palette,
+    name: "Эрекционные кольца",
+    slug: "ereksionnye-koltsa",
+    icon: Circle,
   },
   {
     id: 12,
-    name: "Эротические игры",
-    slug: "eroticheskie-igry",
-    icon: User,
+    name: "Мастурбаторы",
+    slug: "masturbatory",
+    icon: Hand,
+  },
+  {
+    id: 13,
+    name: "Насадки на член",
+    slug: "nasadki-na-chlen",
+    icon: Shield,
+  },
+  {
+    id: 14,
+    name: "Увеличение пениса",
+    slug: "uvelichenie-penisa",
+    icon: TrendingUp,
+  },
+  {
+    id: 15,
+    name: "Секс куклы",
+    slug: "seks-kukly",
+    icon: UserX,
+  },
+  {
+    id: 16,
+    name: "Секс-машины",
+    slug: "seks-mashiny",
+    icon: Settings,
+  },
+  {
+    id: 17,
+    name: "Сопутствующие товары",
+    slug: "soputstvuyushchie-tovary",
+    icon: Package,
   },
 ]);
 
@@ -789,8 +826,8 @@ watch(
   animation: energyPulse 2s ease-in-out infinite;
 }
 
-.icon-dlya-par {
-  color: #8b5cf6; /* Фиолетовый для пар */
+.icon-dlya-dvoikh {
+  color: #8b5cf6; /* Фиолетовый для двоих */
   animation: gentleSway 3s ease-in-out infinite;
 }
 
@@ -804,39 +841,64 @@ watch(
   animation: steadyGlow 2.2s ease-in-out infinite;
 }
 
-.icon-analnye-igrushki {
+.icon-analnye-stimulyatory {
   color: #06b6d4; /* Голубой */
   animation: waveMotion 2.4s ease-in-out infinite;
 }
 
-.icon-stimulyatory-klitora {
-  color: #f97316; /* Оранжево-красный */
-  animation: sparkleEffect 1.9s ease-in-out infinite;
-}
-
-.icon-stimulyatory-tochki-g {
+.icon-vaginalnye-trenazhery {
   color: #84cc16; /* Лайм зеленый */
   animation: starTwinkle 1.8s ease-in-out infinite;
 }
 
-.icon-smazki-i-lubrikant {
-  color: #06b6d4; /* Голубой */
-  animation: liquidFlow 2.1s ease-in-out infinite;
+.icon-klitornye-stimulyatory {
+  color: #f97316; /* Оранжево-красный */
+  animation: sparkleEffect 1.9s ease-in-out infinite;
 }
 
-.icon-prezervatiry {
-  color: #10b981; /* Зеленый как в CatalogHeader */
-  animation: protectionGlow 2.3s ease-in-out infinite;
+.icon-strapony {
+  color: #7c3aed; /* Темно-фиолетовый */
+  animation: straponPower 2.1s ease-in-out infinite;
 }
 
-.icon-kosmetika {
-  color: #d946ef; /* Пурпурный */
-  animation: cosmericShimmer 2.5s ease-in-out infinite;
+.icon-vakuumnye-pompy {
+  color: #059669; /* Изумрудный */
+  animation: pumpMotion 2.3s ease-in-out infinite;
 }
 
-.icon-eroticheskie-igry {
-  color: #6366f1; /* Индиго */
-  animation: gameController 2.2s ease-in-out infinite;
+.icon-ereksionnye-koltsa {
+  color: #dc2626; /* Ярко-красный */
+  animation: ringRotation 2.8s ease-in-out infinite;
+}
+
+.icon-masturbatory {
+  color: #0891b2; /* Синий циан */
+  animation: handMotion 1.7s ease-in-out infinite;
+}
+
+.icon-nasadki-na-chlen {
+  color: #7c2d12; /* Коричневый */
+  animation: attachmentGlow 2.2s ease-in-out infinite;
+}
+
+.icon-uvelichenie-penisa {
+  color: #16a34a; /* Зеленый рост */
+  animation: growthPulse 2.6s ease-in-out infinite;
+}
+
+.icon-seks-kukly {
+  color: #db2777; /* Розово-малиновый */
+  animation: dollAnimation 3.2s ease-in-out infinite;
+}
+
+.icon-seks-mashiny {
+  color: #4338ca; /* Индиго */
+  animation: machineVibration 1.5s ease-in-out infinite;
+}
+
+.icon-soputstvuyushchie-tovary {
+  color: #9333ea; /* Пурпурный */
+  animation: packageFloat 2.4s ease-in-out infinite;
 }
 
 /* HOVER эффекты для цветных иконок */
@@ -854,7 +916,7 @@ watch(
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.08));
 }
 
-.category-card:hover .icon-dlya-par {
+.category-card:hover .icon-dlya-dvoikh {
   color: #7c3aed;
   transform: scale(1.1);
   /* ИСПРАВЛЕНИЕ: Убираем цветное свечение */
@@ -875,50 +937,85 @@ watch(
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.08));
 }
 
-.category-card:hover .icon-analnye-igrushki {
+.category-card:hover .icon-analnye-stimulyatory {
   color: #0891b2;
   transform: scale(1.1);
   /* ИСПРАВЛЕНИЕ: Убираем цветное свечение */
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.08));
 }
 
-.category-card:hover .icon-stimulyatory-klitora {
-  color: #ea580c;
-  transform: scale(1.1);
-  /* ИСПРАВЛЕНИЕ: Убираем цветное свечение и вращение */
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.08));
-}
-
-.category-card:hover .icon-stimulyatory-tochki-g {
+.category-card:hover .icon-vaginalnye-trenazhery {
   color: #65a30d;
   transform: scale(1.1);
   /* ИСПРАВЛЕНИЕ: Убираем цветное свечение */
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.08));
 }
 
-.category-card:hover .icon-smazki-i-lubrikant {
-  color: #0891b2;
+.category-card:hover .icon-klitornye-stimulyatory {
+  color: #ea580c;
   transform: scale(1.1);
-  /* ИСПРАВЛЕНИЕ: Убираем цветное свечение */
+  /* ИСПРАВЛЕНИЕ: Убираем цветное свечение и вращение */
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.08));
 }
 
-.category-card:hover .icon-prezervatiry {
+.category-card:hover .icon-strapony {
   color: #059669;
   transform: scale(1.1);
   /* ИСПРАВЛЕНИЕ: Убираем цветное свечение */
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.08));
 }
 
-.category-card:hover .icon-kosmetika {
-  color: #c026d3;
+.category-card:hover .icon-vakuumnye-pompy {
+  color: #059669;
   transform: scale(1.1);
   /* ИСПРАВЛЕНИЕ: Убираем цветное свечение */
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.08));
 }
 
-.category-card:hover .icon-eroticheskie-igry {
-  color: #4f46e5;
+.category-card:hover .icon-ereksionnye-koltsa {
+  color: #dc2626;
+  transform: scale(1.1);
+  /* ИСПРАВЛЕНИЕ: Убираем цветное свечение */
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.08));
+}
+
+.category-card:hover .icon-masturbatory {
+  color: #0891b2;
+  transform: scale(1.1);
+  /* ИСПРАВЛЕНИЕ: Убираем цветное свечение */
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.08));
+}
+
+.category-card:hover .icon-nasadki-na-chlen {
+  color: #7c2d12;
+  transform: scale(1.1);
+  /* ИСПРАВЛЕНИЕ: Убираем цветное свечение */
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.08));
+}
+
+.category-card:hover .icon-uvelichenie-penisa {
+  color: #16a34a;
+  transform: scale(1.1);
+  /* ИСПРАВЛЕНИЕ: Убираем цветное свечение */
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.08));
+}
+
+.category-card:hover .icon-seks-kukly {
+  color: #db2777;
+  transform: scale(1.1);
+  /* ИСПРАВЛЕНИЕ: Убираем цветное свечение */
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.08));
+}
+
+.category-card:hover .icon-seks-mashiny {
+  color: #4338ca;
+  transform: scale(1.1);
+  /* ИСПРАВЛЕНИЕ: Убираем цветное свечение */
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.08));
+}
+
+.category-card:hover .icon-soputstvuyushchie-tovary {
+  color: #9333ea;
   transform: scale(1.1);
   /* ИСПРАВЛЕНИЕ: Убираем цветное свечение */
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.08));
@@ -1015,18 +1112,6 @@ watch(
   }
 }
 
-@keyframes sparkleEffect {
-  0%,
-  100% {
-    transform: scale(1);
-    filter: drop-shadow(0 2px 4px rgba(249, 115, 22, 0.3)) brightness(1);
-  }
-  50% {
-    transform: scale(1.1);
-    filter: drop-shadow(0 4px 8px rgba(249, 115, 22, 0.5)) brightness(1.3);
-  }
-}
-
 @keyframes starTwinkle {
   0%,
   100% {
@@ -1043,50 +1128,183 @@ watch(
   }
 }
 
-@keyframes liquidFlow {
-  0%,
-  100% {
-    transform: scale(1) skewX(0deg);
-  }
-  50% {
-    transform: scale(1.05) skewX(5deg);
-  }
-}
-
-@keyframes protectionGlow {
+@keyframes sparkleEffect {
   0%,
   100% {
     transform: scale(1);
-    filter: drop-shadow(0 2px 4px rgba(16, 185, 129, 0.3));
+    filter: drop-shadow(0 2px 4px rgba(249, 115, 22, 0.3)) brightness(1);
   }
   50% {
-    transform: scale(1.08);
-    filter: drop-shadow(0 4px 8px rgba(16, 185, 129, 0.5));
+    transform: scale(1.1);
+    filter: drop-shadow(0 4px 8px rgba(249, 115, 22, 0.5)) brightness(1.3);
   }
 }
 
-@keyframes cosmericShimmer {
-  0%,
-  100% {
-    transform: scale(1);
-    filter: drop-shadow(0 2px 4px rgba(217, 70, 239, 0.3)) hue-rotate(0deg);
-  }
-  50% {
-    transform: scale(1.05);
-    filter: drop-shadow(0 4px 8px rgba(217, 70, 239, 0.5)) hue-rotate(15deg);
-  }
-}
-
-@keyframes gameController {
+@keyframes straponPower {
   0%,
   100% {
     transform: scale(1) rotate(0deg);
+    filter: drop-shadow(0 2px 4px rgba(124, 58, 237, 0.3));
+  }
+  50% {
+    transform: scale(1.08) rotate(3deg);
+    filter: drop-shadow(0 4px 8px rgba(124, 58, 237, 0.5)) brightness(1.1);
+  }
+}
+
+@keyframes pumpMotion {
+  0%,
+  100% {
+    transform: scale(1) translateY(0);
+    filter: drop-shadow(0 2px 4px rgba(5, 150, 105, 0.3));
   }
   25% {
-    transform: scale(1.05) rotate(3deg);
+    transform: scale(1.05) translateY(-2px);
+    filter: drop-shadow(0 4px 8px rgba(5, 150, 105, 0.4));
   }
   75% {
-    transform: scale(1.05) rotate(-3deg);
+    transform: scale(1.03) translateY(1px);
+    filter: drop-shadow(0 3px 6px rgba(5, 150, 105, 0.4));
+  }
+}
+
+@keyframes ringRotation {
+  0%,
+  100% {
+    transform: rotate(0deg) scale(1);
+    filter: drop-shadow(0 2px 4px rgba(220, 38, 38, 0.3));
+  }
+  25% {
+    transform: rotate(90deg) scale(1.05);
+    filter: drop-shadow(0 4px 8px rgba(220, 38, 38, 0.4));
+  }
+  50% {
+    transform: rotate(180deg) scale(1.08);
+    filter: drop-shadow(0 4px 8px rgba(220, 38, 38, 0.5));
+  }
+  75% {
+    transform: rotate(270deg) scale(1.05);
+    filter: drop-shadow(0 4px 8px rgba(220, 38, 38, 0.4));
+  }
+}
+
+@keyframes handMotion {
+  0%,
+  100% {
+    transform: scale(1) rotate(0deg);
+    filter: drop-shadow(0 2px 4px rgba(8, 145, 178, 0.3));
+  }
+  33% {
+    transform: scale(1.1) rotate(5deg);
+    filter: drop-shadow(0 4px 8px rgba(8, 145, 178, 0.4));
+  }
+  66% {
+    transform: scale(1.08) rotate(-3deg);
+    filter: drop-shadow(0 3px 6px rgba(8, 145, 178, 0.4));
+  }
+}
+
+@keyframes attachmentGlow {
+  0%,
+  100% {
+    transform: scale(1);
+    filter: drop-shadow(0 2px 4px rgba(124, 45, 18, 0.3)) brightness(1);
+  }
+  50% {
+    transform: scale(1.06);
+    filter: drop-shadow(0 4px 8px rgba(124, 45, 18, 0.5)) brightness(1.2);
+  }
+}
+
+@keyframes growthPulse {
+  0%,
+  100% {
+    transform: scale(1) rotate(0deg);
+    filter: drop-shadow(0 2px 4px rgba(22, 163, 74, 0.3));
+  }
+  25% {
+    transform: scale(1.1) rotate(-2deg);
+    filter: drop-shadow(0 4px 8px rgba(22, 163, 74, 0.4)) brightness(1.1);
+  }
+  75% {
+    transform: scale(1.15) rotate(2deg);
+    filter: drop-shadow(0 5px 10px rgba(22, 163, 74, 0.5)) brightness(1.2);
+  }
+}
+
+@keyframes dollAnimation {
+  0%,
+  100% {
+    transform: scale(1) rotate(0deg);
+    filter: drop-shadow(0 2px 4px rgba(219, 39, 119, 0.3));
+  }
+  25% {
+    transform: scale(1.05) rotate(1deg);
+    filter: drop-shadow(0 3px 6px rgba(219, 39, 119, 0.4));
+  }
+  50% {
+    transform: scale(1.08) rotate(0deg);
+    filter: drop-shadow(0 4px 8px rgba(219, 39, 119, 0.5));
+  }
+  75% {
+    transform: scale(1.05) rotate(-1deg);
+    filter: drop-shadow(0 3px 6px rgba(219, 39, 119, 0.4));
+  }
+}
+
+@keyframes machineVibration {
+  0%,
+  100% {
+    transform: scale(1);
+    filter: drop-shadow(0 2px 4px rgba(67, 56, 202, 0.3));
+  }
+  12.5% {
+    transform: scale(1.03) translateX(0.5px);
+    filter: drop-shadow(0 3px 6px rgba(67, 56, 202, 0.4));
+  }
+  25% {
+    transform: scale(1.05) translateX(-0.5px);
+    filter: drop-shadow(0 4px 8px rgba(67, 56, 202, 0.5));
+  }
+  37.5% {
+    transform: scale(1.04) translateX(0.5px);
+    filter: drop-shadow(0 3px 6px rgba(67, 56, 202, 0.4));
+  }
+  50% {
+    transform: scale(1.06);
+    filter: drop-shadow(0 4px 8px rgba(67, 56, 202, 0.5));
+  }
+  62.5% {
+    transform: scale(1.04) translateX(-0.5px);
+    filter: drop-shadow(0 3px 6px rgba(67, 56, 202, 0.4));
+  }
+  75% {
+    transform: scale(1.05) translateX(0.5px);
+    filter: drop-shadow(0 4px 8px rgba(67, 56, 202, 0.5));
+  }
+  87.5% {
+    transform: scale(1.03) translateX(-0.5px);
+    filter: drop-shadow(0 3px 6px rgba(67, 56, 202, 0.4));
+  }
+}
+
+@keyframes packageFloat {
+  0%,
+  100% {
+    transform: scale(1) translateY(0);
+    filter: drop-shadow(0 2px 4px rgba(147, 51, 234, 0.3));
+  }
+  25% {
+    transform: scale(1.03) translateY(-2px);
+    filter: drop-shadow(0 4px 8px rgba(147, 51, 234, 0.4));
+  }
+  50% {
+    transform: scale(1.05) translateY(-3px);
+    filter: drop-shadow(0 5px 10px rgba(147, 51, 234, 0.5));
+  }
+  75% {
+    transform: scale(1.03) translateY(-1px);
+    filter: drop-shadow(0 3px 6px rgba(147, 51, 234, 0.4));
   }
 }
 
