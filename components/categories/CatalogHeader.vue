@@ -499,7 +499,7 @@ useHead({
             "@type": "AggregateOffer",
             priceCurrency: "RUB",
             lowPrice: "500",
-            highPrice: "25000",
+            highPrice: "250000",
             offerCount: props.totalCount,
           },
         })
