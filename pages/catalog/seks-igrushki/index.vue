@@ -22,7 +22,7 @@
             </NuxtLink>
           </li>
           <li class="text-gray-400">/</li>
-          <li class="text-gray-900">Товары для взрослых</li>
+          <li class="text-gray-900">Секс игрушки</li>
         </ol>
       </div>
     </nav>
@@ -70,7 +70,7 @@
         <main class="lg:w-3/4 catalog-main">
           <!-- Заголовок каталога с компонентом -->
           <CatalogHeader
-            category-title="Товары для взрослых"
+            category-title="Секс игрушки"
             :total-count="filteredProducts.length"
             :view-mode="viewMode"
             :sort-by="sortBy"
@@ -198,11 +198,10 @@
 <script setup>
 // Метаданные для SEO
 useSeoMeta({
-  title: "Товары для взрослых - Pink Rabbit",
+  title: "Секс игрушки - Pink Rabbit",
   description:
-    "Широкий выбор качественных товаров для взрослых. Дискретная доставка, высокое качество, проверенные бренды.",
-  keywords:
-    "товары для взрослых, секс-игрушки, интимные товары, эротические товары",
+    "Широкий выбор качественных секс игрушек. Дискретная доставка, высокое качество, проверенные бренды.",
+  keywords: "секс-игрушки, интимные товары, эротические товары",
 });
 
 // Импорты

@@ -117,6 +117,66 @@
 
       <!-- Область фильтров как main -->
       <main class="filters-content" aria-labelledby="filters-heading">
+        <!-- Фильтр по полу как fieldset -->
+        <fieldset class="filter-section">
+          <legend class="sr-only">Фильтр по полу</legend>
+          <button
+            @click="toggleAccordion('gender')"
+            class="filter-header"
+            type="button"
+            :aria-expanded="accordionState.gender"
+            aria-controls="gender-filter-content"
+            :aria-label="
+              accordionState.gender
+                ? 'Свернуть фильтр по полу'
+                : 'Развернуть фильтр по полу'
+            "
+          >
+            <h3 class="filter-title">
+              <UserGroupIcon class="filter-icon" aria-hidden="true" />
+              Пол
+            </h3>
+            <ChevronDownIcon
+              class="accordion-arrow"
+              :class="{ 'rotate-180': accordionState.gender }"
+              aria-hidden="true"
+            />
+          </button>
+          <div
+            v-if="accordionState.gender"
+            class="filter-body"
+            id="gender-filter-content"
+            role="region"
+            aria-labelledby="gender-filter-title"
+          >
+            <div
+              class="options-list"
+              role="group"
+              aria-labelledby="gender-filter-title"
+            >
+              <label
+                v-for="gender in genders"
+                :key="gender.id"
+                class="checkbox-option gender-option"
+                :for="`gender-${gender.id}`"
+              >
+                <input
+                  :id="`gender-${gender.id}`"
+                  v-model="filters.selectedGenders"
+                  :value="gender.id"
+                  type="checkbox"
+                  class="option-checkbox"
+                  :aria-describedby="`gender-${gender.id}-count`"
+                />
+                <span class="option-label">{{ gender.name }}</span>
+                <span class="option-count" :id="`gender-${gender.id}-count`"
+                  >({{ gender.count }})</span
+                >
+              </label>
+            </div>
+          </div>
+        </fieldset>
+
         <!-- Фильтр по цене как fieldset -->
         <fieldset class="filter-section">
           <legend class="sr-only">Фильтр по цене</legend>
@@ -890,6 +950,7 @@ import {
   CogIcon,
   SparklesIcon,
   HeartIcon,
+  UserGroupIcon,
 } from "@heroicons/vue/24/solid";
 import PriceRangeSlider from "@/components/categories/sexIgrushki/PriceRangeSlider.vue";
 
@@ -1181,6 +1242,7 @@ const isLoading = ref(true);
 
 // Состояние фильтров
 const filters = ref({
+  selectedGenders: [], // Новый фильтр по полу: для мужчин, для женщин, для двоих
   priceMin: null,
   priceMax: null,
   selectedBrands: [],
@@ -1204,6 +1266,7 @@ const brandSearch = ref("");
 
 // Состояние аккордеона
 const accordionState = ref({
+  gender: false, // Новый фильтр по полу - закрыт по умолчанию
   price: false, // Закрыт по умолчанию
   brand: false, // Закрыт по умолчанию
   material: false,
@@ -1393,6 +1456,28 @@ const brands = ref([
   { id: 140, name: "Штучки-Дрючки", count: 22 },
 ]);
 
+// Данные для фильтра по полу (целевая аудитория)
+const genders = ref([
+  {
+    id: "men",
+    name: "Для мужчин",
+    count: 45,
+    description: "Товары, предназначенные специально для мужчин",
+  },
+  {
+    id: "women",
+    name: "Для женщин",
+    count: 67,
+    description: "Товары, предназначенные специально для женщин",
+  },
+  {
+    id: "couples",
+    name: "Для двоих",
+    count: 38,
+    description: "Товары для совместного использования парами",
+  },
+]);
+
 const materials = ref([
   { id: 1, name: "Медицинский силикон", count: 156 },
   { id: 2, name: "TPE", count: 89 },
@@ -1493,6 +1578,7 @@ const filteredBrands = computed(() => {
 
 const hasActiveFilters = computed(() => {
   return (
+    filters.value.selectedGenders.length > 0 ||
     filters.value.priceMin !== null ||
     filters.value.priceMax !== null ||
     filters.value.selectedBrands.length > 0 ||
@@ -1512,6 +1598,7 @@ const hasActiveFilters = computed(() => {
 const activeFiltersCount = computed(() => {
   let count = 0;
   // Подсчитываем активные фильтры
+  if (filters.value.selectedGenders.length > 0) count++;
   if (filters.value.priceMin !== null || filters.value.priceMax !== null)
     count++;
   count += filters.value.selectedBrands.length;
@@ -1566,6 +1653,7 @@ const resetAllFilters = () => {
   console.log("🔄 Сбрасываем все фильтры в компоненте AdultToysFilters");
 
   filters.value = {
+    selectedGenders: [], // Новый фильтр по полу: для мужчин, для женщин, для двоих
     priceMin: null,
     priceMax: null,
     selectedBrands: [],
@@ -1613,6 +1701,15 @@ const autoApplyFilters = () => {
 };
 
 // Watchers для автоматического применения фильтров
+watch(
+  () => filters.value.selectedGenders,
+  () => {
+    console.log("🔄 Изменён фильтр по полу:", filters.value.selectedGenders);
+    autoApplyFilters();
+  },
+  { deep: true }
+);
+
 watch(
   () => filters.value.selectedBrands,
   () => {
@@ -3174,4 +3271,76 @@ watch(
 }
 
 /* Удален дублирующийся блок .filter-title */
+
+/* === СТИЛИ ДЛЯ ФИЛЬТРА ПО ПОЛУ === */
+.gender-option {
+  @apply relative flex items-center gap-3 p-3 rounded-lg border border-gray-100 transition-all duration-200;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.9),
+    rgba(248, 250, 252, 0.8)
+  );
+}
+
+.gender-option:hover {
+  @apply border-pink-200 shadow-sm;
+  background: linear-gradient(
+    135deg,
+    rgba(236, 72, 153, 0.02),
+    rgba(248, 250, 252, 0.95)
+  );
+  transform: translateY(-1px);
+}
+
+.gender-option:has(.option-checkbox:checked) {
+  @apply border-pink-300 bg-pink-50;
+  background: linear-gradient(
+    135deg,
+    rgba(236, 72, 153, 0.08),
+    rgba(255, 255, 255, 0.9)
+  );
+  box-shadow: 0 2px 8px rgba(236, 72, 153, 0.1);
+}
+
+.gender-option .option-label {
+  @apply font-medium text-gray-800 flex-1;
+  font-size: 15px;
+}
+
+.gender-option .option-count {
+  @apply text-sm font-semibold text-pink-600 bg-pink-100 px-2 py-1 rounded-full;
+  min-width: 32px;
+  text-align: center;
+}
+
+.gender-option:has(.option-checkbox:checked) .option-count {
+  @apply bg-pink-200 text-pink-700;
+}
+
+/* Анимация для фильтра по полу */
+.gender-option {
+  animation: genderOptionFadeIn 0.3s ease-out;
+}
+
+@keyframes genderOptionFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 640px) {
+  .gender-option {
+    @apply p-2 gap-2;
+  }
+
+  .gender-option .option-label {
+    font-size: 14px;
+  }
+}
 </style>
