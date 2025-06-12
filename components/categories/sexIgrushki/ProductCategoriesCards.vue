@@ -241,6 +241,12 @@ import {
   ChevronUp, // Показать меньше
 } from "lucide-vue-next";
 
+// ДОБАВЛЯЕМ: Импорт нашего composable для работы с каталогом
+import { useCatalog } from "~/composables/useCatalog.js";
+
+// Инициализируем composable для работы с каталогом
+const { getCategoriesByLevel, catalogUtils } = useCatalog();
+
 // Props компонента
 const props = defineProps({
   categories: {
@@ -262,8 +268,68 @@ const showAll = ref(false);
 const visibleCount = 8; // Показываем только 8 категорий по умолчанию
 const selectedCategory = ref(null);
 
-// 🎯 ОБНОВЛЕННЫЙ МАССИВ КАТЕГОРИЙ С НОВЫМИ ТРЕБОВАНИЯМИ
-const categories = ref([
+// ОБНОВЛЯЕМ: Получаем категории из нашей детальной карты каталога
+const categories = ref([]);
+
+// Функция для получения иконки по slug категории
+const getIconForCategory = (slug) => {
+  const iconMap = {
+    "dlya-zhenshchin": Heart,
+    "dlya-muzhchin": User,
+    "dlya-dvoikh": Users,
+    vibratory: Zap,
+    falloimitatory: Target,
+    "analnye-stimulyatory": Target,
+    "vaginalnye-trenazhery": Sparkles,
+    "klitornye-stimulyatory": Heart,
+    strapony: ArrowUp,
+    "vakuumnye-pompy": Gauge,
+    "ereksionnye-koltsa": Circle,
+    masturbatory: Hand,
+    "nasadki-na-chlen": Shield,
+    "uvelichenie-penisa": TrendingUp,
+    "seks-kukly": UserX,
+    "seks-mashiny": Settings,
+    "soputstvuyushchie-tovary": Package,
+  };
+
+  return iconMap[slug] || Package; // По умолчанию Package
+};
+
+// Функция для загрузки категорий из карты каталога
+const loadCategories = () => {
+  try {
+    console.log("Загружаем категории из детальной карты каталога...");
+
+    // Получаем основные категории второго уровня (подкатегории секс-игрушек)
+    const mainCategories = getCategoriesByLevel(2);
+
+    console.log("Найдено категорий:", mainCategories.length);
+
+    // Преобразуем в формат, совместимый с существующим компонентом
+    categories.value = mainCategories.map((category, index) => ({
+      id: category.id,
+      name: category.name,
+      slug: category.slug,
+      icon: getIconForCategory(category.slug), // Функция для получения иконки
+      description: category.description,
+      url: category.url,
+      productCount: category.productCount,
+    }));
+
+    console.log(
+      "Загружены категории из карты каталога:",
+      categories.value.length
+    );
+  } catch (error) {
+    console.error("Ошибка загрузки категорий:", error);
+    // Fallback на статические данные в случае ошибки
+    categories.value = getStaticCategories();
+  }
+};
+
+// Fallback статические данные (на случай ошибки)
+const getStaticCategories = () => [
   {
     id: 1,
     name: "Для женщин",
@@ -366,7 +432,7 @@ const categories = ref([
     slug: "soputstvuyushchie-tovary",
     icon: Package,
   },
-]);
+];
 
 // Вычисляемые свойства
 const displayedCategories = computed(() => {
@@ -386,6 +452,16 @@ const selectCategory = (category) => {
 
   // Уведомляем родительский компонент о выборе
   emit("category-selected", category);
+
+  // ДОБАВЛЯЕМ: Реальная навигация на страницу категории
+  if (category.slug && category.slug !== "all") {
+    // Строим URL для навигации на основе slug категории
+    const categoryUrl = `/catalog/seks-igrushki/${category.slug}/`;
+    console.log(`Переход на страницу категории: ${categoryUrl}`);
+
+    // Используем Nuxt навигацию для перехода
+    navigateTo(categoryUrl);
+  }
 
   // Анонсируем изменение для screen readers
   announceSelection(category.name);
@@ -594,6 +670,9 @@ const updateNuxtHead = () => {
 
 // Lifecycle hooks для Schema.org
 onMounted(() => {
+  // ДОБАВЛЯЕМ: Загружаем категории из детальной карты каталога
+  loadCategories();
+
   // Обновляем Schema.org данные при монтировании компонента
   updateSchemaOrg();
   // Также добавляем через useHead для Nuxt 3
