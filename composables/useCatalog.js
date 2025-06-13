@@ -349,6 +349,17 @@ export const useCatalog = () => {
     return CATALOG_UTILS.getRelatedCategories(categoryId)
   }
 
+  // Функция для получения подкатегорий
+  const getSubcategories = (categoryPath) => {
+    try {
+      console.log('🏠 Получение подкатегорий для пути:', categoryPath);
+      return CATALOG_UTILS.getSubcategories(categoryPath);
+    } catch (error) {
+      console.error('Ошибка получения подкатегорий:', error);
+      return [];
+    }
+  };
+
   // Возвращаем все функции для использования в компонентах
   return {
     // Основные функции
@@ -356,6 +367,7 @@ export const useCatalog = () => {
     getCategoryProducts,
     getCategoryFilters,
     getCategorySEO,
+    getSubcategories,
 
     // Утилиты для работы с категориями
     getCategoryById,
