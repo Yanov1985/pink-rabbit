@@ -1,39 +1,7 @@
 <template>
   <div class="min-h-screen bg-gray-50">
-    <!-- Хлебные крошки для навигации -->
-    <nav class="bg-white border-b border-gray-200">
-      <div class="container mx-auto px-4 py-3">
-        <ol class="flex items-center space-x-2 text-sm">
-          <li>
-            <NuxtLink to="/" class="text-gray-500 hover:text-gray-700">
-              Главная
-            </NuxtLink>
-          </li>
-          <li class="text-gray-400">/</li>
-          <li>
-            <NuxtLink to="/catalog" class="text-gray-500 hover:text-gray-700">
-              Каталог
-            </NuxtLink>
-          </li>
-          <!-- Динамические хлебные крошки -->
-          <template v-for="(crumb, index) in breadcrumbs" :key="index">
-            <li class="text-gray-400">/</li>
-            <li>
-              <NuxtLink
-                v-if="index < breadcrumbs.length - 1"
-                :to="crumb.url"
-                class="text-gray-500 hover:text-gray-700"
-              >
-                {{ crumb.name }}
-              </NuxtLink>
-              <span v-else class="text-gray-900 font-medium">
-                {{ crumb.name }}
-              </span>
-            </li>
-          </template>
-        </ol>
-      </div>
-    </nav>
+    <!-- Хлебные крошки с новым компонентом -->
+    <Breadcrumbs :breadcrumbs="breadcrumbs" :isMainCatalog="false" />
 
     <!-- Подкатегории (если есть) - размещаем перед основным контентом, как на главной странице -->
     <ProductCategoriesCards
@@ -177,6 +145,7 @@ import CatalogHeader from "~/components/categories/sexIgrushki/CatalogHeader.vue
 import ProductCard from "~/components/categories/sexIgrushki/ProductCard.vue";
 import ProductSkeleton from "~/components/categories/sexIgrushki/ProductSkeleton.vue";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/vue/24/outline";
+import Breadcrumbs from "~/components/ui/Breadcrumbs.vue";
 
 // Композаблы и утилиты
 const {

@@ -1,22 +1,7 @@
 <template>
   <div class="min-h-screen bg-gray-50">
-    <!-- Хлебные крошки -->
-    <nav class="bg-white border-b border-gray-200 px-4 py-3">
-      <div class="container mx-auto">
-        <ol class="flex items-center space-x-2 text-sm">
-          <li>
-            <NuxtLink
-              to="/"
-              class="text-gray-500 hover:text-pink-500 transition-colors"
-            >
-              Главная
-            </NuxtLink>
-          </li>
-          <li class="text-gray-400">/</li>
-          <li class="text-gray-900">Каталог</li>
-        </ol>
-      </div>
-    </nav>
+    <!-- Хлебные крошки с новым компонентом -->
+    <Breadcrumbs :breadcrumbs="[]" :isMainCatalog="true" />
 
     <!-- Секция категорий товаров -->
     <ProductCategoriesCards
@@ -214,6 +199,7 @@ import CatalogHeader from "~/components/categories/sexIgrushki/CatalogHeader.vue
 import AdultToysFilters from "~/components/categories/sexIgrushki/AdultToysFilters.vue";
 import ProductCard from "~/components/categories/sexIgrushki/ProductCard.vue";
 import ProductCategoriesCards from "~/components/categories/sexIgrushki/ProductCategoriesCards.vue";
+import Breadcrumbs from "~/components/ui/Breadcrumbs.vue";
 
 // ДОБАВЛЯЕМ: Импорт composable для работы с каталогом
 import { useCatalog } from "~/composables/useCatalog.js";
