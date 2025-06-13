@@ -37,7 +37,7 @@
           role="grid"
           aria-label="Загрузка сетки категорий"
         >
-          <!-- 8 карточек для имитации полной сетки -->
+          <!-- 8 карточек для имитации полной сетки (возвращено к исходному значению) -->
           <div
             v-for="n in 8"
             :key="n"
@@ -265,11 +265,38 @@ const props = defineProps({
 
 // Управление отображением категорий
 const showAll = ref(false);
-const visibleCount = 8; // Показываем только 8 категорий по умолчанию
+const visibleCount = 8; // Показываем 8 категорий по умолчанию (возвращено к исходному значению)
 const selectedCategory = ref(null);
 
-// ОБНОВЛЯЕМ: Получаем категории из нашей детальной карты каталога
-const categories = ref([]);
+// ОБНОВЛЯЕМ: Получаем категории из пропсов или загружаем статические
+const categories = computed(() => {
+  // Если переданы категории через пропсы, используем их
+  if (props.categories && props.categories.length > 0) {
+    console.log("🎯 Используем переданные категории:", props.categories.length);
+
+    // Преобразуем переданные данные в нужный формат
+    return props.categories.map((category) => ({
+      id: category.id,
+      name: category.name,
+      slug: category.slug,
+      icon: getIconForCategory(category.slug),
+      description: category.description,
+      url: category.url,
+      productCount: category.productCount,
+      isMainCategory: false, // Подкатегории не являются главными
+    }));
+  }
+
+  // Иначе используем загруженные статические данные (для главной страницы)
+  console.log(
+    "🏠 Используем загруженные категории:",
+    loadedCategories.value.length
+  );
+  return loadedCategories.value;
+});
+
+// Реактивные данные для загруженных категорий
+const loadedCategories = ref([]);
 
 // Функция для получения иконки по slug категории
 const getIconForCategory = (slug) => {
@@ -320,7 +347,7 @@ const loadCategories = () => {
     console.log("🔄 Общее количество категорий:", allCategories.length);
 
     // Преобразуем в формат, совместимый с существующим компонентом
-    categories.value = allCategories.map((category, index) => ({
+    loadedCategories.value = allCategories.map((category, index) => ({
       id: category.id,
       name: category.name,
       slug: category.slug,
@@ -334,14 +361,14 @@ const loadCategories = () => {
 
     console.log(
       "✅ Загружены категории из карты каталога:",
-      categories.value.length,
+      loadedCategories.value.length,
       "из них главных:",
       mainCategories.length
     );
   } catch (error) {
     console.error("❌ Ошибка загрузки категорий:", error);
     // Fallback на статические данные в случае ошибки
-    categories.value = getStaticCategories();
+    loadedCategories.value = getStaticCategories();
   }
 };
 

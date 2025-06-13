@@ -2,45 +2,72 @@
 // Интеграция с детальной картой каталога Pink Rabbit
 import { DETAILED_CATALOG_MAP, CATALOG_UTILS } from './catalogMapDetailed.js'
 
-export const useCatalog = () => {
+export const useCatalog = (initialPath = null) => {
   // Используем нашу детальную карту каталога
   const catalogStructure = DETAILED_CATALOG_MAP
 
   // Функция для разбора пути и получения категории
   const parseCategoryPath = (pathArray) => {
     try {
+      // ИСПРАВЛЯЕМ: Очищаем путь от пустых элементов в самом начале
+      const cleanedPath = pathArray ? pathArray.filter(segment => segment && segment.trim() !== '') : [];
+
+      console.log('🧹 Очистка пути:', pathArray, '→', cleanedPath);
+
       // Если путь пустой, возвращаем основные категории
-      if (!pathArray || pathArray.length === 0) {
+      if (!cleanedPath || cleanedPath.length === 0) {
+        console.log('🏠 Главная страница каталога - показываем все подкатегории');
+
+        // ИСПРАВЛЯЕМ: Получаем все подкатегории для главной страницы каталога
+        const allSubcategories = CATALOG_UTILS.getSubcategories([]);
+
+        console.log('📦 Все подкатегории для главной:', allSubcategories.length);
+
         return {
           breadcrumbs: [],
           currentCategory: null,
-          availableSubcategories: [
-            DETAILED_CATALOG_MAP.forWomen,
-            DETAILED_CATALOG_MAP.forMen,
-            DETAILED_CATALOG_MAP.forCouples
-          ],
+          availableSubcategories: allSubcategories, // Возвращаем все подкатегории
           categoryPath: [],
           fullPath: '/catalog/'
         }
       }
 
-      // Строим полный URL из массива путей
-      const fullPath = `/catalog/${pathArray.join('/')}`
+      // НОВАЯ ЛОГИКА: Обработка прямых путей для основных гендерных категорий
+      // Если путь содержит только одну из основных категорий, преобразуем его
+      let actualPath = [...cleanedPath];
+
+      if (cleanedPath.length === 1 && ['dlya-nee', 'dlya-nego', 'dlya-par'].includes(cleanedPath[0])) {
+        // Внутренне добавляем seks-igrushki для корректной работы системы
+        actualPath = ['seks-igrushki', cleanedPath[0]];
+        console.log('🔄 Преобразование прямого пути:', cleanedPath, '→', actualPath);
+      }
+
+      // Строим полный URL из фактического массива путей
+      const fullPath = `/catalog/${actualPath.join('/')}`
 
       // Используем утилиты из детальной карты для поиска категории
       const categoryData = CATALOG_UTILS.findByUrl(fullPath)
 
-      // Генерируем хлебные крошки используя массив пути (НЕ ID!)
-      const breadcrumbs = CATALOG_UTILS.generateBreadcrumbs(pathArray)
+      // Генерируем хлебные крошки используя фактический массив пути
+      const breadcrumbs = CATALOG_UTILS.generateBreadcrumbs(actualPath)
 
       // Получаем подкатегории текущей категории
-      const subcategories = CATALOG_UTILS.getSubcategories(pathArray)
+      const subcategories = CATALOG_UTILS.getSubcategories(actualPath)
+
+      console.log('📊 Результат parseCategoryPath:', {
+        cleanedPath,
+        actualPath,
+        fullPath,
+        breadcrumbsCount: breadcrumbs.length,
+        subcategoriesCount: subcategories.length
+      });
 
       return {
         breadcrumbs,
         currentCategory: categoryData,
         availableSubcategories: subcategories,
-        categoryPath: pathArray,
+        categoryPath: actualPath, // Возвращаем фактический путь для внутренней работы
+        originalPath: cleanedPath,  // Сохраняем очищенный оригинальный путь для URL
         fullPath
       }
     } catch (error) {
@@ -50,6 +77,7 @@ export const useCatalog = () => {
         currentCategory: null,
         availableSubcategories: [],
         categoryPath: pathArray || [],
+        originalPath: pathArray || [],
         fullPath: '/catalog/'
       }
     }

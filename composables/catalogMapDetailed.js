@@ -604,7 +604,7 @@ export const SEPARATE_CATEGORIES = {
 // 🔍 УТИЛИТЫ ДЛЯ РАБОТЫ С ДЕТАЛЬНОЙ КАРТОЙ
 export const CATALOG_UTILS = {
   // Поиск категории по URL
-  findByUrl: function(url) {
+  findByUrl: function (url) {
     // Нормализуем URL - убираем лишние слэши и приводим к единому формату
     const normalizedUrl = url.replace(/\/+/g, '/').replace(/\/$/, '');
 
@@ -698,7 +698,7 @@ export const CATALOG_UTILS = {
   },
 
   // Получить все категории определенного уровня
-  getCategoriesByLevel: function(level = 1) {
+  getCategoriesByLevel: function (level = 1) {
     const categories = [];
 
     if (level === 1) {
@@ -713,14 +713,14 @@ export const CATALOG_UTILS = {
   },
 
   // Построить полный путь навигации
-  buildNavigationPath: function(categorySlug) {
+  buildNavigationPath: function (categorySlug) {
     // Логика построения пути на основе slug
     const pathSegments = categorySlug.split('_');
     return `/catalog/${pathSegments.join('/')}/`;
   },
 
   // Получить связанные категории
-  getRelatedCategories: function(categoryId) {
+  getRelatedCategories: function (categoryId) {
     // Логика поиска связанных категорий
     const related = [];
     // Здесь можно добавить логику поиска похожих категорий
@@ -728,7 +728,7 @@ export const CATALOG_UTILS = {
   },
 
   // 🎯 Поиск категории по ID
-  findById: function(categoryId) {
+  findById: function (categoryId) {
     const searchInObject = (obj) => {
       for (const key in obj) {
         if (obj[key] && typeof obj[key] === 'object') {
@@ -746,7 +746,7 @@ export const CATALOG_UTILS = {
   },
 
   // 📋 Получить все категории
-  getAllCategories: function() {
+  getAllCategories: function () {
     const categories = [];
 
     const collectCategories = (obj) => {
@@ -767,7 +767,7 @@ export const CATALOG_UTILS = {
   },
 
   // 🔍 Получить SEO данные для категории
-  getSEOData: function(categoryId) {
+  getSEOData: function (categoryId) {
     // Если это корневая категория
     if (categoryId === 'root') {
       return {
@@ -796,53 +796,57 @@ export const CATALOG_UTILS = {
     };
   },
 
-  // 🍞 Генерация хлебных крошек для навигации
-  generateBreadcrumbs: function(categoryPath) {
-    const breadcrumbs = [];
+  // Функция для генерации хлебных крошек
+  generateBreadcrumbs(categoryPath) {
+    const breadcrumbs = []
 
-    if (!categoryPath || categoryPath.length === 0) {
-      return breadcrumbs;
+    // СПЕЦИАЛЬНАЯ ЛОГИКА: Для основных гендерных категорий показываем только их название
+    // без промежуточного сегмента "Секс игрушки"
+    if (categoryPath.length === 2 &&
+      categoryPath[0] === 'seks-igrushki' &&
+      ['dlya-nee', 'dlya-nego', 'dlya-par'].includes(categoryPath[1])) {
+
+      // Находим только конечную категорию (например, "Для женщин")
+      const finalSegment = categoryPath[1]
+      const finalCategory = this.findByUrl(`/catalog/seks-igrushki/${finalSegment}`)
+
+      if (finalCategory) {
+        breadcrumbs.push({
+          name: finalCategory.name,
+          url: `/catalog/${finalSegment}`, // Используем прямой URL без seks-igrushki
+          isActive: true
+        })
+      }
+
+      return breadcrumbs
     }
 
-    // Добавляем корневую категорию
-    breadcrumbs.push({
-      name: 'Каталог',
-      url: '/catalog',
-      type: 'root'
-    });
-
-    // Обрабатываем каждый сегмент пути
-    let currentPath = '';
+    // СТАНДАРТНАЯ ЛОГИКА: Для всех остальных путей
+    let currentPath = ''
 
     for (let i = 0; i < categoryPath.length; i++) {
-      const segment = categoryPath[i];
-      currentPath += (currentPath ? '/' : '') + segment;
+      const segment = categoryPath[i]
+      currentPath += (i === 0 ? '' : '/') + segment
+      const fullUrl = `/catalog/${currentPath}`
 
-      // Ищем категорию по текущему пути
-      const category = this.findByUrl(`/catalog/${currentPath}`);
+      // Ищем категорию по URL
+      const category = this.findByUrl(fullUrl)
 
       if (category) {
+        const isActive = i === categoryPath.length - 1
         breadcrumbs.push({
           name: category.name,
-          url: `/catalog/${currentPath}`,
-          type: this.getCategoryType(category),
-          id: category.id
-        });
-      } else {
-        // Если категория не найдена, добавляем базовую информацию
-        breadcrumbs.push({
-          name: this.formatSegmentName(segment),
-          url: `/catalog/${currentPath}`,
-          type: 'unknown'
-        });
+          url: fullUrl,
+          isActive
+        })
       }
     }
 
-    return breadcrumbs;
+    return breadcrumbs
   },
 
   // 🏷️ Определение типа категории
-  getCategoryType: function(category) {
+  getCategoryType: function (category) {
     // Определяем тип категории по её структуре
     if (category.id === 'seks-igrushki') return 'root';
     if (['dlya-nee', 'dlya-nego', 'dlya-par'].includes(category.id)) return 'gender';
@@ -851,7 +855,7 @@ export const CATALOG_UTILS = {
   },
 
   // 📝 Форматирование названия сегмента
-  formatSegmentName: function(segment) {
+  formatSegmentName: function (segment) {
     // Расширенный словарь для перевода slug в читаемые названия
     const nameMap = {
       // Основные категории
@@ -925,29 +929,107 @@ export const CATALOG_UTILS = {
   },
 
   // 📂 Получение подкатегорий для текущей категории
-  getSubcategories: function(categoryPath) {
+  getSubcategories: function (categoryPath) {
     if (!categoryPath || categoryPath.length === 0) {
-      // Возвращаем основные категории
-      return [
-        {
-          ...DETAILED_CATALOG_MAP.forWomen,
-          url: '/catalog/dlya-zhenshchin',
-          productCount: 150,
-          type: 'main_category'
-        },
-        {
-          ...DETAILED_CATALOG_MAP.forMen,
-          url: '/catalog/dlya-muzhchin',
-          productCount: 120,
-          type: 'main_category'
-        },
-        {
-          ...DETAILED_CATALOG_MAP.forCouples,
-          url: '/catalog/dlya-par',
-          productCount: 80,
-          type: 'main_category'
-        }
-      ];
+      // ИСПРАВЛЯЕМ: Для главной страницы каталога сначала показываем основные категории, затем подкатегории
+      console.log('🏠 Главная страница каталога - показываем основные категории + подкатегории');
+
+      const mainCategories = [];
+      const allSubcategories = [];
+
+      // Добавляем основные категории в начало
+      mainCategories.push({
+        id: 'dlya-nee',
+        name: 'Для женщин',
+        slug: 'dlya-nee',
+        description: 'Интимные товары для женщин',
+        productCount: 45,
+        url: '/catalog/dlya-nee',
+        type: 'main-category',
+        image: '/images/categories/dlya-nee.jpg',
+        icon: 'Heart', // Иконка для женщин
+        parentCategory: null
+      });
+
+      mainCategories.push({
+        id: 'dlya-nego',
+        name: 'Для мужчин',
+        slug: 'dlya-nego',
+        description: 'Интимные товары для мужчин',
+        productCount: 32,
+        url: '/catalog/dlya-nego',
+        type: 'main-category',
+        image: '/images/categories/dlya-nego.jpg',
+        icon: 'User', // Иконка для мужчин
+        parentCategory: null
+      });
+
+      mainCategories.push({
+        id: 'dlya-par',
+        name: 'Для двоих',
+        slug: 'dlya-par',
+        description: 'Интимные товары для пар',
+        productCount: 28,
+        url: '/catalog/dlya-par',
+        type: 'main-category',
+        image: '/images/categories/dlya-par.jpg',
+        icon: 'Users', // Иконка для пар
+        parentCategory: null
+      });
+
+      // Собираем подкатегории из категории "Для женщин"
+      if (DETAILED_CATALOG_MAP.forWomen.subcategories) {
+        Object.values(DETAILED_CATALOG_MAP.forWomen.subcategories).forEach(subcat => {
+          allSubcategories.push({
+            ...subcat,
+            productCount: subcat.productCount || Math.floor(Math.random() * 50) + 20,
+            url: subcat.url || `/catalog/seks-igrushki/dlya-nee/${subcat.slug}`,
+            type: 'subcategory',
+            parentPath: 'seks-igrushki/dlya-nee',
+            image: subcat.image || `/images/categories/${subcat.slug}.jpg`,
+            parentCategory: 'Для женщин'
+          });
+        });
+      }
+
+      // Собираем подкатегории из категории "Для мужчин"
+      if (DETAILED_CATALOG_MAP.forMen.subcategories) {
+        Object.values(DETAILED_CATALOG_MAP.forMen.subcategories).forEach(subcat => {
+          allSubcategories.push({
+            ...subcat,
+            productCount: subcat.productCount || Math.floor(Math.random() * 50) + 15,
+            url: subcat.url || `/catalog/seks-igrushki/dlya-nego/${subcat.slug}`,
+            type: 'subcategory',
+            parentPath: 'seks-igrushki/dlya-nego',
+            image: subcat.image || `/images/categories/${subcat.slug}.jpg`,
+            parentCategory: 'Для мужчин'
+          });
+        });
+      }
+
+      // Собираем подкатегории из категории "Для двоих"
+      if (DETAILED_CATALOG_MAP.forCouples.subcategories) {
+        Object.values(DETAILED_CATALOG_MAP.forCouples.subcategories).forEach(subcat => {
+          allSubcategories.push({
+            ...subcat,
+            productCount: subcat.productCount || Math.floor(Math.random() * 30) + 10,
+            url: subcat.url || `/catalog/seks-igrushki/dlya-par/${subcat.slug}`,
+            type: 'subcategory',
+            parentPath: 'seks-igrushki/dlya-par',
+            image: subcat.image || `/images/categories/${subcat.slug}.jpg`,
+            parentCategory: 'Для двоих'
+          });
+        });
+      }
+
+      // Объединяем основные категории и подкатегории
+      const allCategories = [...mainCategories, ...allSubcategories];
+
+      console.log('📦 Основных категорий:', mainCategories.length);
+      console.log('📦 Подкатегорий:', allSubcategories.length);
+      console.log('📦 Всего категорий для главной страницы:', allCategories.length);
+
+      return allCategories;
     }
 
     // Очищаем путь от пустых элементов
