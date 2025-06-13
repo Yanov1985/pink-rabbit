@@ -58,20 +58,27 @@ export const useCatalog = () => {
   // Функция для получения всех товаров категории
   const getCategoryProducts = async (categoryPath, filters = {}, sort = 'popular') => {
     try {
+      console.log('🛍️ Загружаем товары для категории:', categoryPath);
+
       // Получаем данные категории
       const fullPath = `/catalog/${categoryPath.join('/')}`
       const categoryData = CATALOG_UTILS.findByUrl(fullPath)
 
+      // ИСПРАВЛЯЕМ: Создаем fallback данные категории для тестирования
+      const fallbackCategoryData = {
+        id: categoryPath.join('-'),
+        name: categoryPath[categoryPath.length - 1] || 'Товары',
+        slug: categoryPath[categoryPath.length - 1] || 'products',
+        description: `Товары категории ${categoryPath.join(' / ')}`,
+        productCount: 24 // Генерируем 24 тестовых товара
+      };
+
+      const finalCategoryData = categoryData || fallbackCategoryData;
+
+      console.log('📦 Данные категории:', finalCategoryData);
+
       if (!categoryData) {
-        console.warn(`Категория не найдена: ${fullPath}`)
-        // Возвращаем пустой результат вместо ошибки
-        return {
-          products: [],
-          totalCount: 0,
-          currentPage: 1,
-          totalPages: 0,
-          categoryData: null
-        }
+        console.warn(`⚠️ Категория не найдена в карте: ${fullPath}, используем fallback данные`)
       }
 
       // Здесь будет API вызов к Django бэкенду
@@ -82,47 +89,147 @@ export const useCatalog = () => {
       })
 
       // Пока что возвращаем моковые данные с учетом реальной структуры
-      const mockProducts = await getMockProducts(categoryData, filters)
+      const mockProducts = await getMockProducts(finalCategoryData, filters)
+
+      console.log('✅ Сгенерировано товаров:', mockProducts.length);
 
       return {
         products: mockProducts,
-        totalCount: categoryData.productCount || 150,
+        totalCount: finalCategoryData.productCount || 24,
         currentPage: 1,
-        totalPages: Math.ceil((categoryData.productCount || 150) / 12),
-        categoryData
+        totalPages: Math.ceil((finalCategoryData.productCount || 24) / 12),
+        categoryData: finalCategoryData
       }
     } catch (error) {
-      console.error('Ошибка загрузки товаров:', error)
+      console.error('❌ Ошибка загрузки товаров:', error)
+
+      // ДОБАВЛЯЕМ: Возвращаем базовые тестовые товары даже при ошибке
+      const emergencyProducts = await getEmergencyMockProducts(categoryPath);
+
       return {
-        products: [],
-        totalCount: 0,
+        products: emergencyProducts,
+        totalCount: emergencyProducts.length,
         currentPage: 1,
-        totalPages: 0,
-        categoryData: null
+        totalPages: Math.ceil(emergencyProducts.length / 12),
+        categoryData: {
+          id: 'emergency',
+          name: 'Тестовые товары',
+          slug: 'test-products',
+          description: 'Тестовые товары для демонстрации'
+        }
       }
     }
   }
 
+  // ДОБАВЛЯЕМ: Красивые заглушки изображений из Unsplash (как на главной странице)
+  const placeholderImages = [
+    "https://images.unsplash.com/photo-1581833971358-2c8b550f87b3?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+    "https://images.unsplash.com/photo-1559056199-641a0ac8b55e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+    "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+    "https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+    "https://images.unsplash.com/photo-1586953208448-b95a79798f07?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+    "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+    "https://images.unsplash.com/photo-1619252584172-a83a949e6efd?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+    "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+    "https://images.unsplash.com/photo-1563298723-dcfebaa392e3?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+    "https://images.unsplash.com/photo-1581833971358-2c8b550f87b3?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+    "https://images.unsplash.com/photo-1559056199-641a0ac8b55e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+    "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+    "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+    "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+    "https://images.unsplash.com/photo-1563298723-dcfebaa392e3?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+    "https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+    "https://images.unsplash.com/photo-1586953208448-b95a79798f07?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+    "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+    "https://images.unsplash.com/photo-1619252584172-a83a949e6efd?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+    "https://images.unsplash.com/photo-1581833971358-2c8b550f87b3?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+  ];
+
+  // ДОБАВЛЯЕМ: Функция для получения случайного изображения из массива
+  const getRandomPlaceholderImage = () => {
+    return placeholderImages[Math.floor(Math.random() * placeholderImages.length)];
+  };
+
+  // ДОБАВЛЯЕМ: Функция для получения набора изображений для товара
+  const getProductImages = (productIndex) => {
+    const images = [];
+    const startIndex = (productIndex * 4) % placeholderImages.length;
+
+    for (let i = 0; i < 4; i++) {
+      const imageIndex = (startIndex + i) % placeholderImages.length;
+      images.push(placeholderImages[imageIndex]);
+    }
+
+    return images;
+  };
+
+  // ДОБАВЛЯЕМ: Функция для создания экстренных тестовых товаров
+  const getEmergencyMockProducts = async (categoryPath) => {
+    console.log('🚨 Создаем экстренные тестовые товары для:', categoryPath);
+
+    const categoryName = categoryPath[categoryPath.length - 1] || 'Товар';
+    const products = [];
+
+    // Создаем 12 базовых тестовых товаров
+    for (let i = 1; i <= 12; i++) {
+      products.push({
+        id: `emergency-${categoryPath.join('-')}-${i}`,
+        name: `${categoryName} №${i}`,
+        slug: `${categoryName.toLowerCase()}-${i}`,
+        description: `Тестовый товар №${i} из категории "${categoryName}". Это демонстрационный товар для проверки работы интерфейса.`,
+        price: Math.floor(Math.random() * 3000) + 500,
+        originalPrice: Math.random() > 0.6 ? Math.floor(Math.random() * 4000) + 1000 : null,
+        image: getRandomPlaceholderImage(),
+        images: getProductImages(i),
+        rating: Math.floor(Math.random() * 2) + 4, // 4-5 звезд
+        reviews: Math.floor(Math.random() * 50) + 5,
+        inStock: Math.random() > 0.2, // 80% товаров в наличии
+        isNew: Math.random() > 0.7, // 30% новинок
+        isHit: Math.random() > 0.8, // 20% хитов
+        discount: Math.random() > 0.6 ? Math.floor(Math.random() * 25) + 5 : 0,
+        category: categoryName,
+        categorySlug: categoryPath.join('-'),
+        tags: [categoryName, 'Тестовый', 'Демо'],
+        brand: `TestBrand ${Math.floor(Math.random() * 5) + 1}`,
+        inWishlist: false,
+        inCompare: false
+      });
+    }
+
+    console.log('✅ Создано экстренных товаров:', products.length);
+    return products;
+  };
+
   // Обновленная функция для получения моковых товаров
   const getMockProducts = async (categoryData, filters = {}) => {
+    console.log('🎭 Создаем моковые товары для категории:', categoryData.name);
+
     // Генерируем товары на основе реальной категории
-    const productCount = Math.min(categoryData.productCount || 12, 50)
+    const productCount = Math.min(categoryData.productCount || 12, 24)
     const products = []
+
+    // Цветовая схема для разных категорий
+    const categoryColors = {
+      'dlya-nee': 'ec4899', // розовый для женщин
+      'dlya-nego': '3b82f6', // синий для мужчин
+      'dlya-par': '8b5cf6', // фиолетовый для пар
+      'vibratory': 'f59e0b', // оранжевый для вибраторов
+      'falloimitatory': 'ef4444', // красный для фаллоимитаторов
+      'default': 'ec4899' // розовый по умолчанию
+    };
+
+    const categoryColor = categoryColors[categoryData.slug] || categoryColors['default'];
 
     for (let i = 1; i <= productCount; i++) {
       products.push({
         id: `${categoryData.id}-product-${i}`,
-        name: `${categoryData.name} ${i}`,
+        name: `${categoryData.name} "${getProductNameVariant(categoryData.name, i)}"`,
         slug: `${categoryData.slug}-product-${i}`,
-        description: `Качественный товар из категории "${categoryData.name}". ${categoryData.description}`,
-        price: Math.floor(Math.random() * 5000) + 500,
-        originalPrice: Math.random() > 0.7 ? Math.floor(Math.random() * 7000) + 1000 : null,
-        image: `/images/products/${categoryData.slug}/${i}.jpg`,
-        images: [
-          `/images/products/${categoryData.slug}/${i}-1.jpg`,
-          `/images/products/${categoryData.slug}/${i}-2.jpg`,
-          `/images/products/${categoryData.slug}/${i}-3.jpg`
-        ],
+        description: `Качественный товар из категории "${categoryData.name}". ${categoryData.description || 'Высокое качество, безопасные материалы, дискретная доставка.'}`,
+        price: Math.floor(Math.random() * 4000) + 800,
+        originalPrice: Math.random() > 0.6 ? Math.floor(Math.random() * 6000) + 1200 : null,
+        image: getRandomPlaceholderImage(),
+        images: getProductImages(i),
         rating: Math.floor(Math.random() * 2) + 4, // 4-5 звезд
         reviews: Math.floor(Math.random() * 100) + 10,
         inStock: Math.random() > 0.1, // 90% товаров в наличии
@@ -138,8 +245,27 @@ export const useCatalog = () => {
       })
     }
 
+    console.log('✅ Создано моковых товаров:', products.length);
     return products
   }
+
+  // ДОБАВЛЯЕМ: Функция для генерации вариантов названий товаров
+  const getProductNameVariant = (categoryName, index) => {
+    const variants = [
+      'Премиум',
+      'Классик',
+      'Делюкс',
+      'Элит',
+      'Стандарт',
+      'Профи',
+      'Мастер',
+      'Эксперт',
+      'Топ',
+      'Бест'
+    ];
+
+    return variants[index % variants.length];
+  };
 
   // Функция для получения фильтров категории
   const getCategoryFilters = (categoryPath) => {
@@ -242,6 +368,10 @@ export const useCatalog = () => {
     catalogUtils: CATALOG_UTILS,
 
     // Вспомогательные функции
-    getMockProducts
+    getMockProducts,
+    getEmergencyMockProducts,
+    getProductNameVariant,
+    getRandomPlaceholderImage,
+    getProductImages
   }
 }

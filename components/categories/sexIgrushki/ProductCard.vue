@@ -603,9 +603,27 @@ const handleImageLoad = () => {
   imageLoading.value = false;
 };
 
-const handleImageError = () => {
+const handleImageError = (event) => {
   imageLoading.value = false;
-  console.warn("Ошибка загрузки изображения");
+  console.warn("Ошибка загрузки изображения, устанавливаем fallback");
+
+  // Устанавливаем fallback изображение из массива красивых заглушек
+  const fallbackImages = [
+    "https://images.unsplash.com/photo-1581833971358-2c8b550f87b3?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+    "https://images.unsplash.com/photo-1559056199-641a0ac8b55e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+    "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+    "https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+  ];
+
+  // Выбираем случайное fallback изображение
+  const randomFallback =
+    fallbackImages[Math.floor(Math.random() * fallbackImages.length)];
+
+  // Устанавливаем fallback изображение
+  if (event && event.target) {
+    event.target.src = randomFallback;
+    console.log("✅ Установлено fallback изображение:", randomFallback);
+  }
 };
 
 // Дополнительные методы для улучшения UX
@@ -824,7 +842,8 @@ article.product-card:hover .star.filled {
 
 /* АНИМАЦИЯ ЗВЕЗДОЧЕК - СТАБИЛЬНАЯ ВЕРСИЯ */
 @keyframes starGlow {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1) translateZ(0) !important;
   }
   50% {
@@ -844,16 +863,19 @@ article.product-card:hover .star.filled {
 /* Дополнительная защита для основных элементов */
 .product-card .product-title,
 .product-card h1 {
-  transition: color 0.25s cubic-bezier(0.4, 0, 0.2, 1), transform 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  transition: color 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 .product-card .current-price,
 .product-card [itemprop="price"] {
-  transition: color 0.25s cubic-bezier(0.4, 0, 0.2, 1), transform 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  transition: color 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 .product-card .badge {
-  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 .product-card .stars {

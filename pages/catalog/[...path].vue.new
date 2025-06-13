@@ -1,0 +1,15 @@
+// Показывать ли товары
+const showProducts = computed(() => {
+  // ИСПРАВЛЕНИЕ: Показываем товары на всех страницах категорий, кроме главной страницы каталога
+  const isMainCatalogPage = categoryPath.value.length === 0;
+
+  console.log("showProducts logic:", {
+    categoryPath: categoryPath.value,
+    catalogPath: catalogPath.value,
+    isMainCatalogPage,
+    shouldShowProducts: !isMainCatalogPage,
+  });
+
+  // Товары показываем везде, кроме главной страницы каталога
+  return !isMainCatalogPage;
+});

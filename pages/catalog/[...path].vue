@@ -121,19 +121,45 @@
 
             <!-- Пагинация -->
             <div v-if="totalPages > 1" class="mt-12 flex justify-center">
-              <nav class="flex items-center space-x-2">
+              <nav class="flex items-center gap-2">
+                <button
+                  @click="changePage(currentPage - 1)"
+                  :disabled="currentPage === 1"
+                  class="pagination-button px-3 py-2 rounded-lg text-sm font-medium"
+                  :class="
+                    currentPage === 1
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      : 'bg-white text-gray-700 hover:bg-gray-50'
+                  "
+                >
+                  <ChevronLeftIcon class="w-4 h-4" />
+                </button>
+
                 <button
                   v-for="page in displayedPages"
                   :key="page"
                   @click="changePage(page)"
-                  :class="[
-                    'px-3 py-2 rounded-md text-sm font-medium transition-colors',
+                  class="pagination-button px-3 py-2 rounded-lg text-sm font-medium min-w-[40px]"
+                  :class="
                     page === currentPage
-                      ? 'bg-pink-500 text-white'
-                      : 'bg-white text-gray-700 hover:bg-pink-50 border border-gray-300',
-                  ]"
+                      ? 'active'
+                      : 'bg-white text-gray-700 hover:bg-gray-50'
+                  "
                 >
                   {{ page }}
+                </button>
+
+                <button
+                  @click="changePage(currentPage + 1)"
+                  :disabled="currentPage === totalPages"
+                  class="pagination-button px-3 py-2 rounded-lg text-sm font-medium"
+                  :class="
+                    currentPage === totalPages
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      : 'bg-white text-gray-700 hover:bg-gray-50'
+                  "
+                >
+                  <ChevronRightIcon class="w-4 h-4" />
                 </button>
               </nav>
             </div>
@@ -151,6 +177,7 @@ import UniversalCategoryGrid from "~/components/categories/sexIgrushki/Universal
 import CatalogHeader from "~/components/categories/sexIgrushki/CatalogHeader.vue";
 import ProductCard from "~/components/categories/sexIgrushki/ProductCard.vue";
 import ProductSkeleton from "~/components/categories/sexIgrushki/ProductSkeleton.vue";
+import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/vue/24/outline";
 
 // Композаблы и утилиты
 const {
@@ -185,8 +212,8 @@ const breadcrumbs = computed(() => categoryInfo.value.breadcrumbs || []);
 // Подкатегории
 const subcategories = computed(() => {
   const subs = categoryInfo.value.availableSubcategories || [];
-  console.log('Computed subcategories:', subs);
-  console.log('Subcategories length:', subs.length);
+  console.log("Computed subcategories:", subs);
+  console.log("Subcategories length:", subs.length);
   return subs;
 });
 
@@ -220,7 +247,27 @@ const showFilters = computed(() => {
 
 // Показывать ли товары
 const showProducts = computed(() => {
-  return categoryPath.value.length > 0;
+  console.log("🔍 Проверка showProducts:", {
+    categoryPathLength: categoryPath.value.length,
+    subcategoriesLength: subcategories.value.length,
+    categoryPath: categoryPath.value,
+  });
+
+  // Если нет пути - не показываем товары
+  if (categoryPath.value.length === 0) {
+    console.log("❌ Нет пути категории");
+    return false;
+  }
+
+  // Если есть подкатегории и путь короткий - показываем подкатегории
+  if (subcategories.value.length > 0 && categoryPath.value.length < 3) {
+    console.log("📁 Показываем подкатегории, товары скрыты");
+    return false;
+  }
+
+  // В остальных случаях показываем товары
+  console.log("✅ Показываем товары");
+  return true;
 });
 
 // Реактивные данные
@@ -404,7 +451,7 @@ const handleCategoryClick = (category) => {
   if (category.slug) {
     // Формируем новый путь на основе текущего пути и slug категории
     const newPathSegments = [...categoryPath.value, category.slug];
-    const newPath = newPathSegments.join('/');
+    const newPath = newPathSegments.join("/");
     console.log("Переход к:", `/catalog/${newPath}`);
     navigateTo(`/catalog/${newPath}`);
   }
@@ -481,5 +528,41 @@ const loadProducts = () => {
   right: 0;
   bottom: 0;
   left: 0;
+}
+
+/* === СТИЛИ ПАГИНАЦИИ === */
+/* Пагинация в стиле главной страницы */
+.pagination-button {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.pagination-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.pagination-button.active {
+  background: linear-gradient(135deg, #ff6b9d, #ff8fb3);
+  color: white;
+  border-color: #ff6b9d;
+  transform: scale(1.1);
+}
+
+.pagination-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Адаптивность для пагинации */
+@media (max-width: 640px) {
+  .pagination-button {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+    min-width: 32px;
+  }
 }
 </style>
