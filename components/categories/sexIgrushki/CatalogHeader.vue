@@ -1,7 +1,7 @@
 <template>
   <!-- Семантический заголовок каталога с Schema.org разметкой -->
   <header
-    class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6 catalog-header"
+    class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6"
     ref="headerRef"
     role="banner"
     aria-label="Заголовок каталога товаров"
@@ -236,7 +236,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, onMounted, onUnmounted, nextTick } from "vue";
 import { useHead, useRoute } from "#app";
 // Импорт иконок Heroicons в едином стиле с фильтрами
 import {
@@ -517,6 +517,151 @@ defineExpose({
 </script>
 
 <style scoped>
+/* === АНИМАЦИИ СКЕЛЕТОНА === */
+@keyframes pinkRabbitShimmer {
+  0% {
+    background-position: -200px 0;
+    opacity: 0.5;
+  }
+  50% {
+    background-position: calc(100px + 50%) 0;
+    opacity: 1;
+  }
+  100% {
+    background-position: calc(200px + 100%) 0;
+    opacity: 0.5;
+  }
+}
+
+/* === 🎯 ЛИПКИЙ ЗАГОЛОВОК КАТАЛОГА === */
+/* Основные стили для заголовка каталога */
+.catalog-header {
+  /* Плавные переходы для всех изменений */
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Базовый z-index для нормального состояния */
+  z-index: 10;
+  /* Относительное позиционирование по умолчанию */
+  position: relative;
+}
+
+/* Липкое состояние заголовка */
+.catalog-header-sticky {
+  /* Фиксированное позиционирование */
+  position: fixed !important;
+  /* Прилипает к верху страницы */
+  top: 0;
+  /* Растягивается на всю ширину */
+  left: 0;
+  right: 0;
+  /* Высокий z-index чтобы быть поверх всего контента */
+  z-index: 1000;
+  /* Убираем нижний отступ в липком состоянии */
+  margin-bottom: 0;
+  /* Добавляем тень для визуального отделения */
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(236, 72, 153, 0.15);
+  /* Слегка уменьшаем padding для компактности */
+  padding: 12px 16px;
+  /* Добавляем розовый акцент на границе */
+  border-bottom: 2px solid rgba(236, 72, 153, 0.2);
+  /* Белый фон с небольшой прозрачностью */
+  background-color: rgba(255, 255, 255, 0.98);
+  /* Размытие фона для эффекта стекла */
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* Placeholder для предотвращения скачков контента */
+.catalog-header-placeholder {
+  /* Невидимый блок той же высоты что и заголовок */
+  visibility: hidden;
+  /* Сохраняем место в потоке документа */
+  position: static;
+  /* Плавное появление */
+  opacity: 0;
+  /* Анимация появления */
+  animation: placeholderFadeIn 0.3s ease-out;
+}
+
+/* Анимация появления placeholder */
+@keyframes placeholderFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 0; /* Остается невидимым, но занимает место */
+    transform: translateY(0);
+  }
+}
+
+/* Адаптивные стили для липкого заголовка */
+@media (max-width: 640px) {
+  .catalog-header-sticky {
+    /* На мобильных устройствах еще более компактный padding */
+    padding: 8px 12px;
+  }
+
+  .catalog-header-sticky .catalog-title {
+    /* Уменьшаем размер заголовка на мобильных */
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+  }
+
+  .catalog-header-sticky .catalog-count {
+    /* Уменьшаем размер счетчика на мобильных */
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+  }
+}
+
+/* Улучшенная анимация для элементов управления в липком состоянии */
+.catalog-header-sticky .catalog-controls {
+  /* Слегка уменьшаем размер элементов управления */
+  transform: scale(0.95);
+}
+
+.catalog-header-sticky .view-toggle-button,
+.catalog-header-sticky .sort-select {
+  /* Более компактные элементы управления */
+  padding: 6px 12px;
+}
+
+/* Эффект при наведении на липкий заголовок */
+.catalog-header-sticky:hover {
+  /* Усиливаем тень при наведении */
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.15),
+    0 3px 12px rgba(236, 72, 153, 0.25);
+  /* Слегка увеличиваем розовый акцент */
+  border-bottom-color: rgba(236, 72, 153, 0.3);
+}
+
+/* Плавная анимация появления липкого заголовка */
+.catalog-header-sticky {
+  animation: stickyHeaderSlideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes stickyHeaderSlideDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Стили для якоря липкого заголовка */
+.sticky-header-anchor {
+  /* Полностью невидимый элемент для отслеживания */
+  position: absolute !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  z-index: -1 !important;
+  width: 1px !important;
+  height: 1px !important;
+}
+
 /* Основные стили для заголовка каталога */
 .catalog-header {
   background: rgba(255, 255, 255, 0.95);
@@ -1079,21 +1224,5 @@ defineExpose({
   border-radius: 10px;
   animation: pinkRabbitShimmer 3.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
   animation-delay: 1s;
-}
-
-/* === АНИМАЦИИ СКЕЛЕТОНА === */
-@keyframes pinkRabbitShimmer {
-  0% {
-    background-position: -200px 0;
-    opacity: 0.5;
-  }
-  50% {
-    background-position: calc(100px + 50%) 0;
-    opacity: 1;
-  }
-  100% {
-    background-position: calc(200px + 100%) 0;
-    opacity: 0.5;
-  }
 }
 </style>

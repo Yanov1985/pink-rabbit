@@ -231,8 +231,8 @@ export const DETAILED_CATALOG_MAP = {
       attachments: {
         id: 'kolca-dlya-chlena',
         name: 'Кольца для члена',
-        slug: 'kolca_dlya_chlena',
-        url: '/catalog/seks-igrushki/kolca_dlya_chlena/',
+        slug: 'kolca-dlya-chlena',
+        url: '/catalog/seks-igrushki/kolca-dlya-chlena/',
         parentPath: 'seks-igrushki/dlya-nego',
         description: 'Насадки и удлинители для мужчин',
         icon: '🔧'
@@ -549,8 +549,8 @@ export const SEPARATE_CATEGORIES = {
   penisAttachments: {
     id: 'kolca-dlya-chlena',
     name: 'Кольца для члена',
-    slug: 'kolca_dlya_chlena',
-    url: '/catalog/seks-igrushki/kolca_dlya_chlena/',
+    slug: 'kolca-dlya-chlena',
+    url: '/catalog/seks-igrushki/kolca-dlya-chlena/',
     description: 'Насадки и удлинители',
     icon: '🔧'
   },
@@ -659,6 +659,11 @@ export const CATALOG_UTILS = {
           if (currentSegment && (
             obj[key].slug === currentSegment ||
             obj[key].id === currentSegment ||
+            // ИСПРАВЛЕНИЕ: Добавляем поддержку конвертации между дефисами и подчеркиваниями
+            obj[key].slug === currentSegment.replace(/_/g, '-') ||
+            obj[key].id === currentSegment.replace(/_/g, '-') ||
+            obj[key].slug === currentSegment.replace(/-/g, '_') ||
+            obj[key].id === currentSegment.replace(/-/g, '_') ||
             // Дополнительные проверки для альтернативных названий
             (currentSegment === 'dlya-zhenshchin' && obj[key].id === 'dlya-nee') ||
             (currentSegment === 'dlya-muzhchin' && obj[key].id === 'dlya-nego') ||
@@ -798,51 +803,159 @@ export const CATALOG_UTILS = {
 
   // Функция для генерации хлебных крошек
   generateBreadcrumbs(categoryPath) {
+    console.log('🍞 generateBreadcrumbs вызвана с путем:', categoryPath);
+
     const breadcrumbs = []
 
-    // СПЕЦИАЛЬНАЯ ЛОГИКА: Для основных гендерных категорий показываем только их название
-    // без промежуточного сегмента "Секс игрушки"
-    if (categoryPath.length === 2 &&
-      categoryPath[0] === 'seks-igrushki' &&
-      ['dlya-nee', 'dlya-nego', 'dlya-par'].includes(categoryPath[1])) {
-
-      // Находим только конечную категорию (например, "Для женщин")
-      const finalSegment = categoryPath[1]
-      const finalCategory = this.findByUrl(`/catalog/seks-igrushki/${finalSegment}`)
-
-      if (finalCategory) {
-        breadcrumbs.push({
-          name: finalCategory.name,
-          url: `/catalog/${finalSegment}`, // Используем прямой URL без seks-igrushki
-          isActive: true
-        })
-      }
-
-      return breadcrumbs
+    // Если путь пустой, возвращаем пустой массив (главная страница каталога)
+    if (!categoryPath || categoryPath.length === 0) {
+      console.log('🏠 Главная страница каталога - хлебные крошки пустые');
+      return breadcrumbs;
     }
 
-    // СТАНДАРТНАЯ ЛОГИКА: Для всех остальных путей
-    let currentPath = ''
+    // Очищаем путь от пустых элементов
+    const cleanPath = categoryPath.filter(segment => segment && segment.trim() !== '');
+    console.log('🧹 Очищенный путь:', cleanPath);
 
-    for (let i = 0; i < categoryPath.length; i++) {
-      const segment = categoryPath[i]
-      currentPath += (i === 0 ? '' : '/') + segment
-      const fullUrl = `/catalog/${currentPath}`
+    // НОВАЯ ЛОГИКА: Определяем логическую структуру на основе конечной категории
+    const lastSegment = cleanPath[cleanPath.length - 1];
+    console.log('🎯 Последний сегмент пути:', lastSegment);
 
-      // Ищем категорию по URL
-      const category = this.findByUrl(fullUrl)
+    // Словарь для определения родительских категорий товаров
+    const categoryParentMap = {
+      // Товары для мужчин
+      'kolca-dlya-chlena': { parent: 'dlya-nego', parentName: 'Мужчинам' },
+      'kolca_dlya_chlena': { parent: 'dlya-nego', parentName: 'Мужчинам' },
+      'masturbatory': { parent: 'dlya-nego', parentName: 'Мужчинам' },
+      'vaginy_i_masturbatory': { parent: 'dlya-nego', parentName: 'Мужчинам' },
+      'pompy-dlya-chlena': { parent: 'dlya-nego', parentName: 'Мужчинам' },
+      'stimulyatory-prostaty': { parent: 'dlya-nego', parentName: 'Мужчинам' },
+      'stimulyatory_prostaty': { parent: 'dlya-nego', parentName: 'Мужчинам' },
+      'vibriruyushchie-kolca': { parent: 'dlya-nego', parentName: 'Мужчинам' },
+      'vibriruyushchie_kolca': { parent: 'dlya-nego', parentName: 'Мужчинам' },
 
-      if (category) {
-        const isActive = i === categoryPath.length - 1
-        breadcrumbs.push({
-          name: category.name,
-          url: fullUrl,
-          isActive
-        })
-      }
+      // Товары для женщин
+      'vibratory': { parent: 'dlya-nee', parentName: 'Женщинам' },
+      'falloimitatory': { parent: 'dlya-nee', parentName: 'Женщинам' },
+      'stimulyatory-klitora': { parent: 'dlya-nee', parentName: 'Женщинам' },
+      'klitoralnye_stimulatory': { parent: 'dlya-nee', parentName: 'Женщинам' },
+      'analnye-igrushki': { parent: 'dlya-nee', parentName: 'Женщинам' },
+      'analnye_igrushki': { parent: 'dlya-nee', parentName: 'Женщинам' },
+      'vaginalnaie_stimulatory': { parent: 'dlya-nee', parentName: 'Женщинам' },
+      'vibroyaica': { parent: 'dlya-nee', parentName: 'Женщинам' },
+
+      // Товары для пар
+      'strapony': { parent: 'dlya-par', parentName: 'Для двоих' },
+      'strapony_k_trusikam': { parent: 'dlya-par', parentName: 'Для двоих' },
+      'analnaya-stimulacia': { parent: 'dlya-par', parentName: 'Для двоих' },
+      'bdsm_i_fetish': { parent: 'dlya-par', parentName: 'Для двоих' },
+      'afrodiziaki': { parent: 'dlya-par', parentName: 'Для двоих' }
+    };
+
+    // Проверяем, есть ли у последнего сегмента определенная родительская категория
+    const parentInfo = categoryParentMap[lastSegment] || categoryParentMap[lastSegment.replace(/_/g, '-')] || categoryParentMap[lastSegment.replace(/-/g, '_')];
+
+    if (parentInfo) {
+      console.log('🎯 Найдена родительская категория:', parentInfo);
+
+      // Добавляем родительскую категорию
+      breadcrumbs.push({
+        name: parentInfo.parentName,
+        url: `/catalog/${parentInfo.parent}`,
+        isActive: false,
+        segment: parentInfo.parent,
+        categoryId: parentInfo.parent
+      });
+
+      // Добавляем текущую категорию
+      const categoryName = this.formatSegmentName(lastSegment);
+      breadcrumbs.push({
+        name: categoryName,
+        url: `/catalog/${cleanPath.join('/')}`,
+        isActive: true,
+        segment: lastSegment,
+        categoryId: lastSegment
+      });
+
+      console.log('🍞 Сгенерированные логические хлебные крошки:', breadcrumbs.map(b => ({
+        name: b.name,
+        url: b.url,
+        isActive: b.isActive
+      })));
+
+      return breadcrumbs;
     }
 
-    return breadcrumbs
+    // СТАРАЯ ЛОГИКА: Если не нашли в карте родителей, строим по пути (но пропускаем seks-igrushki)
+    let currentPath = '';
+
+    for (let i = 0; i < cleanPath.length; i++) {
+      const segment = cleanPath[i];
+
+      // Пропускаем техническую категорию "seks-igrushki"
+      if (segment === 'seks-igrushki') {
+        console.log('⏭️ Пропускаем техническую категорию "seks-igrushki"');
+        continue;
+      }
+
+      currentPath += (currentPath === '' ? '' : '/') + segment;
+
+      // Формируем полный URL для поиска
+      const fullUrl = `/catalog/${currentPath}`;
+      const fullUrlWithSlash = `/catalog/${currentPath}/`;
+
+      console.log(`🔍 Ищем категорию для сегмента "${segment}":`, {
+        currentPath,
+        fullUrl,
+        fullUrlWithSlash
+      });
+
+      // Ищем категорию по URL (с слешем и без)
+      let category = this.findByUrl(fullUrl) || this.findByUrl(fullUrlWithSlash);
+
+      // Если не нашли по URL, пытаемся найти по ID
+      if (!category) {
+        category = this.findById(segment);
+      }
+
+      // Если всё ещё не нашли, создаем fallback название
+      if (!category) {
+        console.warn(`⚠️ Категория не найдена для сегмента "${segment}", используем fallback`);
+
+        // Используем функцию форматирования названий
+        const fallbackName = this.formatSegmentName(segment);
+
+        category = {
+          id: segment,
+          name: fallbackName,
+          slug: segment,
+          url: fullUrl
+        };
+      }
+
+      console.log(`✅ Найдена категория для "${segment}":`, {
+        name: category.name,
+        url: category.url || fullUrl
+      });
+
+      // Добавляем в хлебные крошки
+      const isActive = i === cleanPath.length - 1;
+      breadcrumbs.push({
+        name: category.name,
+        url: category.url || fullUrl,
+        isActive,
+        segment: segment,
+        categoryId: category.id
+      });
+    }
+
+    console.log('🍞 Сгенерированные хлебные крошки:', breadcrumbs.map(b => ({
+      name: b.name,
+      url: b.url,
+      isActive: b.isActive
+    })));
+
+    return breadcrumbs;
   },
 
   // 🏷️ Определение типа категории
@@ -856,6 +969,8 @@ export const CATALOG_UTILS = {
 
   // 📝 Форматирование названия сегмента
   formatSegmentName: function (segment) {
+    console.log('formatSegmentName - входной сегмент:', segment);
+
     // Расширенный словарь для перевода slug в читаемые названия
     const nameMap = {
       // Основные категории
@@ -878,54 +993,84 @@ export const CATALOG_UTILS = {
       // Подкатегории для мужчин
       'masturbatory': 'Мастурбаторы',
       'kolca-dlya-chlena': 'Кольца для члена',
+      'kolca_dlya_chlena': 'Кольца для члена', // Версия с подчеркиваниями
       'analnye-stimulyatory': 'Анальные стимуляторы',
       'analnaya-stimulacia': 'Анальные стимуляторы',
       'pompy-dlya-chlena': 'Помпы для члена',
       'stimulyatory-prostaty': 'Стимуляторы простаты',
+      'vaginy_i_masturbatory': 'Мастурбаторы', // ДОБАВЛЯЕМ недостающую запись
+      'vaginy-i-masturbatory': 'Мастурбаторы', // Версия с дефисами
 
       // Подкатегории для пар
       'vibriruyushchie-kolca': 'Вибрирующие кольца',
+      'vibriruyushchie_kolca': 'Вибрирующие кольца', // Версия с подчеркиваниями
       'pary-igrushki': 'Игрушки для пар',
       'distancionnoe-upravlenie': 'Дистанционное управление',
 
-      // Дополнительные категории
-      'seks-igrushki': 'Секс игрушки',
-      'kosmetika': 'Косметика',
-      'belye': 'Белье',
-      'aksessuary': 'Аксессуары',
-      'afrodiziaki': 'Афродизиаки',
-      'smazki': 'Смазки',
-      'prezervativy': 'Презервативы',
-
       // Бренды
-      'lovense': 'Lovense',
-      'lelo': 'LELO',
       'satisfyer': 'Satisfyer',
       'we-vibe': 'We-Vibe',
+      'lelo': 'LELO',
+      'lovense': 'Lovense',
       'tenga': 'TENGA',
+      'fleshlight': 'Fleshlight',
 
       // Материалы
       'silikonovy': 'Силиконовые',
       'steklyannye': 'Стеклянные',
       'metallicheskie': 'Металлические',
+      'tpe': 'TPE',
+      'abs-plastik': 'ABS пластик',
 
       // Цвета
-      'rozovye': 'Розовые',
-      'chernye': 'Черные',
-      'belye': 'Белые',
-      'krasnye': 'Красные',
-      'fioletovye': 'Фиолетовые'
+      'rozovyy': 'Розовый',
+      'fioletovyy': 'Фиолетовый',
+      'chernyy': 'Черный',
+      'belyy': 'Белый',
+      'krasnyy': 'Красный',
+      'siniy': 'Синий',
+      'prozrachnyy': 'Прозрачный',
+
+      // Дополнительные категории
+      'seks-igrushki': 'Секс игрушки',
+      'eroticheskoe-bele': 'Эротическое белье',
+      'kosmetika': 'Косметика',
+      'prezervativy': 'Презервативы',
+      'smazki': 'Смазки',
+      'afrodiziaki': 'Афродизиаки',
+      'bdsm': 'БДСМ',
+      'fetish': 'Фетиш',
+      'roleplay': 'Ролевые игры'
     };
 
-    // Если есть точное соответствие в словаре
+    // Проверяем точное соответствие в словаре
     if (nameMap[segment]) {
+      console.log('formatSegmentName - найдено точное соответствие:', nameMap[segment]);
       return nameMap[segment];
     }
 
-    // Если нет точного соответствия, преобразуем автоматически
-    return segment
-      .replace(/-/g, ' ')
-      .replace(/\b\w/g, l => l.toUpperCase());
+    // Пробуем заменить подчеркивания на дефисы и найти соответствие
+    const segmentWithDashes = segment.replace(/_/g, '-');
+    if (nameMap[segmentWithDashes]) {
+      console.log('formatSegmentName - найдено соответствие после замены _ на -:', nameMap[segmentWithDashes]);
+      return nameMap[segmentWithDashes];
+    }
+
+    // Пробуем заменить дефисы на подчеркивания и найти соответствие
+    const segmentWithUnderscores = segment.replace(/-/g, '_');
+    if (nameMap[segmentWithUnderscores]) {
+      console.log('formatSegmentName - найдено соответствие после замены - на _:', nameMap[segmentWithUnderscores]);
+      return nameMap[segmentWithUnderscores];
+    }
+
+    // Если нет соответствия в словаре, форматируем автоматически
+    console.log('formatSegmentName - автоматическое форматирование для:', segment);
+    const formatted = segment
+      .replace(/[-_]/g, ' ') // Заменяем и дефисы, и подчеркивания на пробелы
+      .replace(/\b\w/g, l => l.toUpperCase()); // Делаем первую букву каждого слова заглавной
+
+    console.log('formatSegmentName - результат автоматического форматирования:', formatted);
+    return formatted;
   },
 
   // 📂 Получение подкатегорий для текущей категории
