@@ -274,6 +274,11 @@ const categories = ref([]);
 // Функция для получения иконки по slug категории
 const getIconForCategory = (slug) => {
   const iconMap = {
+    // ГЛАВНЫЕ КАТЕГОРИИ (первый уровень)
+    "dlya-nego": User, // Для него
+    "dlya-nee": Heart, // Для нее
+    "dlya-par": Users, // Для пар
+    // ПОДКАТЕГОРИИ (второй уровень)
     "dlya-zhenshchin": Heart,
     "dlya-muzhchin": User,
     "dlya-dvoikh": Users,
@@ -299,15 +304,23 @@ const getIconForCategory = (slug) => {
 // Функция для загрузки категорий из карты каталога
 const loadCategories = () => {
   try {
-    console.log("Загружаем категории из детальной карты каталога...");
+    console.log("🏠 Загружаем категории из детальной карты каталога...");
+
+    // ДОБАВЛЯЕМ: Сначала получаем три главные категории первого уровня
+    const mainCategories = getCategoriesByLevel(1);
+    console.log("🎯 Найдено главных категорий:", mainCategories.length);
 
     // Получаем основные категории второго уровня (подкатегории секс-игрушек)
-    const mainCategories = getCategoriesByLevel(2);
+    const subCategories = getCategoriesByLevel(2);
+    console.log("📋 Найдено подкатегорий:", subCategories.length);
 
-    console.log("Найдено категорий:", mainCategories.length);
+    // НОВАЯ ЛОГИКА: Объединяем главные категории с подкатегориями
+    const allCategories = [...mainCategories, ...subCategories];
+
+    console.log("🔄 Общее количество категорий:", allCategories.length);
 
     // Преобразуем в формат, совместимый с существующим компонентом
-    categories.value = mainCategories.map((category, index) => ({
+    categories.value = allCategories.map((category, index) => ({
       id: category.id,
       name: category.name,
       slug: category.slug,
@@ -315,14 +328,18 @@ const loadCategories = () => {
       description: category.description,
       url: category.url,
       productCount: category.productCount,
+      // ДОБАВЛЯЕМ: Помечаем главные категории для особого стиля
+      isMainCategory: index < mainCategories.length,
     }));
 
     console.log(
-      "Загружены категории из карты каталога:",
-      categories.value.length
+      "✅ Загружены категории из карты каталога:",
+      categories.value.length,
+      "из них главных:",
+      mainCategories.length
     );
   } catch (error) {
-    console.error("Ошибка загрузки категорий:", error);
+    console.error("❌ Ошибка загрузки категорий:", error);
     // Fallback на статические данные в случае ошибки
     categories.value = getStaticCategories();
   }
@@ -330,107 +347,147 @@ const loadCategories = () => {
 
 // Fallback статические данные (на случай ошибки)
 const getStaticCategories = () => [
+  // ГЛАВНЫЕ КАТЕГОРИИ (показываем в начале)
+  {
+    id: "main-1",
+    name: "Для него",
+    slug: "dlya-nego",
+    icon: User,
+    isMainCategory: true,
+  },
+  {
+    id: "main-2",
+    name: "Для нее",
+    slug: "dlya-nee",
+    icon: Heart,
+    isMainCategory: true,
+  },
+  {
+    id: "main-3",
+    name: "Для пар",
+    slug: "dlya-par",
+    icon: Users,
+    isMainCategory: true,
+  },
+  // ПОДКАТЕГОРИИ
   {
     id: 1,
     name: "Для женщин",
     slug: "dlya-zhenshchin",
     icon: Heart,
+    isMainCategory: false,
   },
   {
     id: 2,
     name: "Для мужчин",
     slug: "dlya-muzhchin",
     icon: User,
+    isMainCategory: false,
   },
   {
     id: 3,
     name: "Для двоих",
     slug: "dlya-dvoikh",
     icon: Users,
+    isMainCategory: false,
   },
   {
     id: 4,
     name: "Вибраторы",
     slug: "vibratory",
     icon: Zap,
+    isMainCategory: false,
   },
   {
     id: 5,
     name: "Фаллоимитаторы",
     slug: "falloimitatory",
     icon: Target,
+    isMainCategory: false,
   },
   {
     id: 6,
     name: "Анальные стимуляторы",
     slug: "analnye-stimulyatory",
     icon: Target,
+    isMainCategory: false,
   },
   {
     id: 7,
     name: "Вагинальные тренажеры",
     slug: "vaginalnye-trenazhery",
     icon: Sparkles,
+    isMainCategory: false,
   },
   {
     id: 8,
     name: "Клиторные стимуляторы",
     slug: "klitornye-stimulyatory",
     icon: Heart,
+    isMainCategory: false,
   },
   {
     id: 9,
     name: "Страпоны",
     slug: "strapony",
     icon: ArrowUp,
+    isMainCategory: false,
   },
   {
     id: 10,
     name: "Вакуумные помпы",
     slug: "vakuumnye-pompy",
     icon: Gauge,
+    isMainCategory: false,
   },
   {
     id: 11,
     name: "Эрекционные кольца",
     slug: "ereksionnye-koltsa",
     icon: Circle,
+    isMainCategory: false,
   },
   {
     id: 12,
     name: "Мастурбаторы",
     slug: "masturbatory",
     icon: Hand,
+    isMainCategory: false,
   },
   {
     id: 13,
     name: "Насадки на член",
     slug: "nasadki-na-chlen",
     icon: Shield,
+    isMainCategory: false,
   },
   {
     id: 14,
     name: "Увеличение пениса",
     slug: "uvelichenie-penisa",
     icon: TrendingUp,
+    isMainCategory: false,
   },
   {
     id: 15,
     name: "Секс куклы",
     slug: "seks-kukly",
     icon: UserX,
+    isMainCategory: false,
   },
   {
     id: 16,
     name: "Секс-машины",
     slug: "seks-mashiny",
     icon: Settings,
+    isMainCategory: false,
   },
   {
     id: 17,
     name: "Сопутствующие товары",
     slug: "soputstvuyushchie-tovary",
     icon: Package,
+    isMainCategory: false,
   },
 ];
 
