@@ -35,17 +35,6 @@
       </div>
     </nav>
 
-    <!-- Заголовок каталога -->
-    <CatalogHeader
-      :category-title="pageTitle"
-      :total-count="totalProducts"
-      :view-mode="viewMode"
-      :sort-by="sortBy"
-      :is-loading="isLoading"
-      @change-view-mode="handleViewModeChange"
-      @change-sorting="handleSortChange"
-    />
-
     <!-- Основной контент -->
     <div class="container mx-auto px-4 py-6">
       <!-- Основная сетка с фильтрами и контентом -->
@@ -63,6 +52,18 @@
 
         <!-- Основной контент -->
         <main :class="showFilters ? 'lg:col-span-3' : 'lg:col-span-4'">
+          <!-- Заголовок каталога с компонентом (как на главной странице) -->
+          <CatalogHeader
+            v-if="showProducts"
+            :category-title="currentCategoryName"
+            :total-count="totalProducts"
+            :view-mode="4"
+            :sort-by="currentSort"
+            :is-loading="isLoading"
+            @change-view-mode="handleViewModeChange"
+            @change-sorting="handleSortChange"
+          />
+
           <!-- Подкатегории (если есть) - используем UniversalCategoryGrid -->
           <UniversalCategoryGrid
             v-if="subcategories.length > 0"
@@ -271,17 +272,27 @@ const showProducts = computed(() => {
 });
 
 // Реактивные данные
-const isLoading = ref(true);
+const isLoading = ref(false);
 const products = ref([]);
 const totalProducts = ref(0);
 const currentPage = ref(1);
 const totalPages = ref(1);
-const availableFilters = ref({});
 const appliedFilters = ref({});
-
-// Новые реактивные данные для компонентов
-const viewMode = ref("grid"); // 'grid' или 'list'
+const availableFilters = ref({});
 const sortBy = ref("popular");
+
+// ДОБАВЛЯЕМ: Переменные для CatalogHeader
+const currentSort = ref("popular");
+const viewMode = ref(4); // По умолчанию 4 колонки
+
+// Синхронизируем sortBy и currentSort
+watch(sortBy, (newSort) => {
+  currentSort.value = newSort;
+});
+
+watch(currentSort, (newSort) => {
+  sortBy.value = newSort;
+});
 
 // Функция загрузки данных категории
 const loadCategoryData = async () => {
