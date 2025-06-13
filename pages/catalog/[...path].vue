@@ -35,6 +35,15 @@
       </div>
     </nav>
 
+    <!-- Подкатегории (если есть) - размещаем перед основным контентом, как на главной странице -->
+    <ProductCategoriesCards
+      v-if="subcategories.length > 0"
+      :categories="subcategories"
+      :categoryPath="categoryPath"
+      :isLoading="isLoading"
+      @navigate-to-category="handleCategoryClick"
+    />
+
     <!-- Основной контент -->
     <div class="container mx-auto px-4 py-6">
       <!-- Основная сетка с фильтрами и контентом -->
@@ -62,17 +71,6 @@
             :is-loading="isLoading"
             @change-view-mode="handleViewModeChange"
             @change-sorting="handleSortChange"
-          />
-
-          <!-- Подкатегории (если есть) - используем UniversalCategoryGrid -->
-          <UniversalCategoryGrid
-            v-if="subcategories.length > 0"
-            :categories="subcategories"
-            :section-title="getSubcategoryTitle()"
-            :section-description="getSubcategoryDescription()"
-            :is-loading="isLoading"
-            @category-click="handleCategoryClick"
-            @category-hover="handleCategoryHover"
           />
 
           <!-- Товары -->
@@ -174,7 +172,7 @@
 <script setup>
 // Импорт компонентов
 import AdultToysFilters from "~/components/categories/sexIgrushki/AdultToysFilters.vue";
-import UniversalCategoryGrid from "~/components/categories/sexIgrushki/UniversalCategoryGrid.vue";
+import ProductCategoriesCards from "~/components/categories/sexIgrushki/ProductCategoriesCards.vue";
 import CatalogHeader from "~/components/categories/sexIgrushki/CatalogHeader.vue";
 import ProductCard from "~/components/categories/sexIgrushki/ProductCard.vue";
 import ProductSkeleton from "~/components/categories/sexIgrushki/ProductSkeleton.vue";
@@ -254,20 +252,15 @@ const showProducts = computed(() => {
     categoryPath: categoryPath.value,
   });
 
-  // Если нет пути - не показываем товары
+  // Если нет пути - не показываем товары (показываем главные категории)
   if (categoryPath.value.length === 0) {
-    console.log("❌ Нет пути категории");
+    console.log("❌ Нет пути категории - показываем главные категории");
     return false;
   }
 
-  // Если есть подкатегории и путь короткий - показываем подкатегории
-  if (subcategories.value.length > 0 && categoryPath.value.length < 3) {
-    console.log("📁 Показываем подкатегории, товары скрыты");
-    return false;
-  }
-
-  // В остальных случаях показываем товары
-  console.log("✅ Показываем товары");
+  // ИСПРАВЛЯЕМ: Показываем товары всегда, когда есть путь категории
+  // Это позволит показывать и подкатегории, и товары одновременно
+  console.log("✅ Показываем товары для категории");
   return true;
 });
 

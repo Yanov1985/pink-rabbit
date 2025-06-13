@@ -28,7 +28,7 @@ export const DETAILED_CATALOG_MAP = {
     id: 'dlya-nee',
     name: 'Для женщин',
     slug: 'dlya-nee',
-    url: '/catalog/seks-igrushki/dlya_nee/',
+    url: '/catalog/seks-igrushki/dlya-nee/',
     parentSlug: 'seks-igrushki',
     description: 'Интимные товары для женщин',
     icon: '👩',
@@ -38,7 +38,7 @@ export const DETAILED_CATALOG_MAP = {
         id: 'vibratory',
         name: 'Вибраторы',
         slug: 'vibratory',
-        url: '/catalog/seks-igrushki/vibratory/',
+        url: '/catalog/seks-igrushki/dlya-nee/vibratory/',
         parentPath: 'seks-igrushki/dlya-nee',
         description: 'Все виды вибраторов для женщин',
         icon: '📳',
@@ -66,7 +66,7 @@ export const DETAILED_CATALOG_MAP = {
         id: 'falloimitatory',
         name: 'Фаллоимитаторы',
         slug: 'falloimitatory',
-        url: '/catalog/seks-igrushki/falloimitatory/',
+        url: '/catalog/seks-igrushki/dlya-nee/falloimitatory/',
         parentPath: 'seks-igrushki/dlya-nee',
         description: 'Реалистичные и дизайнерские фаллоимитаторы',
         icon: '🍆',
@@ -87,7 +87,7 @@ export const DETAILED_CATALOG_MAP = {
         id: 'vaginalnye-trenazhery',
         name: 'Вагинальные тренажеры',
         slug: 'vaginalnaie_stimulatory',
-        url: '/catalog/seks-igrushki/vaginalnaie_stimulatory/',
+        url: '/catalog/seks-igrushki/dlya-nee/vaginalnaie_stimulatory/',
         parentPath: 'seks-igrushki/dlya-nee',
         description: 'Тренажеры для укрепления мышц тазового дна',
         icon: '💪',
@@ -102,7 +102,7 @@ export const DETAILED_CATALOG_MAP = {
         id: 'stimulyatory-klitora',
         name: 'Стимуляторы клитора',
         slug: 'klitoralnye_stimulatory',
-        url: '/catalog/seks-igrushki/klitoralnye_stimulatory/',
+        url: '/catalog/seks-igrushki/dlya-nee/klitoralnye_stimulatory/',
         parentPath: 'seks-igrushki/dlya-nee',
         description: 'Специализированные стимуляторы для клитора',
         icon: '💎',
@@ -465,7 +465,7 @@ export const SEPARATE_CATEGORIES = {
     id: 'falloimitatory',
     name: 'Фаллоимитаторы',
     slug: 'falloimitatory',
-    url: '/catalog/seks-igrushki/falloimitatory/',
+    url: '/catalog/seks-igrushki/dlya-nee/falloimitatory/',
     description: 'Полный ассортимент фаллоимитаторов',
     icon: '🍆'
   },
@@ -485,7 +485,7 @@ export const SEPARATE_CATEGORIES = {
     id: 'vaginalnye-trenazhery',
     name: 'Вагинальные тренажеры',
     slug: 'vaginalnaie_stimulatory',
-    url: '/catalog/seks-igrushki/vaginalnaie_stimulatory/',
+    url: '/catalog/seks-igrushki/dlya-nee/vaginalnaie_stimulatory/',
     description: 'Тренажеры для женского здоровья',
     icon: '💪'
   },
@@ -495,7 +495,7 @@ export const SEPARATE_CATEGORIES = {
     id: 'stimulyatory-klitora',
     name: 'Клиторальные стимуляторы',
     slug: 'stimulyatory-klitora',
-    url: '/catalog/seks-igrushki/stimulyatory-klitora/',
+    url: '/catalog/seks-igrushki/dlya-nee/klitoralnye_stimulatory/',
     description: 'Специализированные стимуляторы',
     icon: '💎'
   },
@@ -633,6 +633,21 @@ export const CATALOG_UTILS = {
       if (categorySlug === 'dlya-par') {
         return DETAILED_CATALOG_MAP.forCouples;
       }
+    }
+
+    // Специальная обработка для пути seks-igrushki/dlya-nee
+    if (urlParts.length === 2 && urlParts[0] === 'seks-igrushki' && urlParts[1] === 'dlya-nee') {
+      return DETAILED_CATALOG_MAP.forWomen;
+    }
+
+    // Специальная обработка для пути seks-igrushki/dlya-nego
+    if (urlParts.length === 2 && urlParts[0] === 'seks-igrushki' && urlParts[1] === 'dlya-nego') {
+      return DETAILED_CATALOG_MAP.forMen;
+    }
+
+    // Специальная обработка для пути seks-igrushki/dlya-par
+    if (urlParts.length === 2 && urlParts[0] === 'seks-igrushki' && urlParts[1] === 'dlya-par') {
+      return DETAILED_CATALOG_MAP.forCouples;
     }
 
     // Рекурсивный поиск по всей структуре
@@ -935,11 +950,15 @@ export const CATALOG_UTILS = {
       ];
     }
 
-    // Ищем текущую категорию по полному пути
-    const fullPath = `/catalog/${categoryPath.join('/')}`;
+    // Очищаем путь от пустых элементов
+    const cleanPath = categoryPath.filter(segment => segment && segment.trim() !== '');
+
+    // Ищем текущую категорию по очищенному пути
+    const fullPath = `/catalog/${cleanPath.join('/')}`;
     const currentCategory = this.findByUrl(fullPath);
 
     console.log('getSubcategories - categoryPath:', categoryPath);
+    console.log('getSubcategories - cleanPath:', cleanPath);
     console.log('getSubcategories - fullPath:', fullPath);
     console.log('getSubcategories - currentCategory:', currentCategory);
 
@@ -950,11 +969,11 @@ export const CATALOG_UTILS = {
         // Добавляем недостающие поля для корректного отображения
         productCount: subcat.productCount || Math.floor(Math.random() * 50) + 10,
         // Формируем правильный URL для подкатегории на основе текущего пути
-        url: `/catalog/${categoryPath.join('/')}/${subcat.slug}`,
+        url: subcat.url || `/catalog/${cleanPath.join('/')}/${subcat.slug}`,
         // Добавляем тип категории
         type: 'subcategory',
         // Добавляем родительский путь
-        parentPath: categoryPath.join('/'),
+        parentPath: cleanPath.join('/'),
         // Добавляем изображение по умолчанию если его нет
         image: subcat.image || `/images/categories/${subcat.slug}.jpg`
       }));
