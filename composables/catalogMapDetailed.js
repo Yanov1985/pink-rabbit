@@ -1035,14 +1035,28 @@ export const CATALOG_UTILS = {
     // Очищаем путь от пустых элементов
     const cleanPath = categoryPath.filter(segment => segment && segment.trim() !== '');
 
-    // Ищем текущую категорию по очищенному пути
-    const fullPath = `/catalog/${cleanPath.join('/')}`;
-    const currentCategory = this.findByUrl(fullPath);
+    // ИСПРАВЛЯЕМ: Ищем текущую категорию по очищенному пути
+    // Пробуем найти как с слешем, так и без слеша в конце
+    const fullPathWithoutSlash = `/catalog/${cleanPath.join('/')}`;
+    const fullPathWithSlash = `/catalog/${cleanPath.join('/')}/`;
+
+    let currentCategory = this.findByUrl(fullPathWithoutSlash) || this.findByUrl(fullPathWithSlash);
+
+    // Если не нашли по URL, пробуем найти по ID последнего сегмента
+    if (!currentCategory && cleanPath.length > 0) {
+      const lastSegment = cleanPath[cleanPath.length - 1];
+      currentCategory = this.findById(lastSegment);
+    }
 
     console.log('getSubcategories - categoryPath:', categoryPath);
     console.log('getSubcategories - cleanPath:', cleanPath);
-    console.log('getSubcategories - fullPath:', fullPath);
-    console.log('getSubcategories - currentCategory:', currentCategory);
+    console.log('getSubcategories - fullPathWithoutSlash:', fullPathWithoutSlash);
+    console.log('getSubcategories - fullPathWithSlash:', fullPathWithSlash);
+    console.log('getSubcategories - currentCategory found:', !!currentCategory);
+    if (currentCategory) {
+      console.log('getSubcategories - category name:', currentCategory.name);
+      console.log('getSubcategories - has subcategories:', !!currentCategory.subcategories);
+    }
 
     if (currentCategory && currentCategory.subcategories) {
       // Преобразуем объект подкатегорий в массив
