@@ -7,22 +7,23 @@
       :is-loading="isLoading"
     />
 
-    <!-- Подкатегории (если есть) - размещаем перед основным контентом, как на главной странице -->
-    <ProductCategoriesCards
-      v-if="subcategories.length > 0"
-      :categories="subcategories"
-      :categoryPath="categoryPath"
-      :isLoading="isLoading"
-      @navigate-to-category="handleCategoryClick"
-    />
+    <!-- Основной контейнер каталога (как на главной странице) -->
+    <div class="container mx-auto px-4 py-6 mt-16">
+      <!-- Подкатегории (если есть) - размещаем как на главной странице -->
+      <ProductCategoriesCards
+        v-if="subcategories.length > 0"
+        :categories="subcategories"
+        :categoryPath="categoryPath"
+        :isLoading="isLoading"
+        @navigate-to-category="handleCategoryClick"
+        class="mb-8"
+      />
 
-    <!-- Основной контент -->
-    <div class="container mx-auto px-4 py-6">
       <!-- Основная сетка с фильтрами и контентом -->
       <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
         <!-- Боковая панель с фильтрами (только если есть товары) -->
         <aside v-if="showFilters" class="lg:col-span-1">
-          <div class="sticky top-4">
+          <div class="filters-sticky-container">
             <AdultToysFilters
               :category-path="categoryPath"
               :filters="availableFilters"
@@ -575,5 +576,51 @@ const loadProducts = () => {
   .catalog-products-content {
     margin-top: 0.75rem; /* 12px отступ на очень маленьких экранах */
   }
+}
+
+/* 🎯 Умное позиционирование фильтров с учетом хлебных крошек */
+.filters-sticky-container {
+  position: sticky;
+  /* Динамический отступ: высота хлебных крошек + дополнительный отступ */
+  top: calc(var(--breadcrumbs-height, 80px) + 1rem);
+  z-index: 10;
+  transition: top 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Fallback для браузеров без поддержки CSS переменных */
+@supports not (top: calc(var(--breadcrumbs-height) + 1rem)) {
+  .filters-sticky-container {
+    top: 6rem; /* 80px + 16px */
+  }
+}
+
+/* Адаптивное поведение для мобильных устройств */
+@media (max-width: 1024px) {
+  .filters-sticky-container {
+    position: static;
+    top: auto;
+  }
+}
+
+/* Дополнительные стили для плавного взаимодействия */
+.filters-sticky-container:hover {
+  transform: translateY(-2px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Анимация появления фильтров */
+@keyframes filtersSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.filters-sticky-container {
+  animation: filtersSlideIn 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 </style>

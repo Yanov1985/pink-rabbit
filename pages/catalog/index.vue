@@ -1,15 +1,15 @@
 <template>
   <div class="catalog-page">
     <!-- Хлебные крошки -->
-    <Breadcrumbs 
+    <Breadcrumbs
       :breadcrumbs="[]"
       :is-main-catalog="true"
-      :is-loading="false"
+      :is-loading="isInitialLoading"
       :show-catalog="false"
     />
 
     <!-- Основной контейнер каталога -->
-    <div class="container mx-auto px-4 py-6">
+    <div class="container mx-auto px-4 py-6 mt-16">
       <!-- Карточки категорий товаров -->
       <ProductCategoriesCards class="mb-8" />
 
@@ -17,7 +17,7 @@
       <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
         <!-- Боковая панель с фильтрами -->
         <aside class="lg:col-span-1">
-          <div class="sticky top-4">
+          <div class="filters-sticky-container">
             <AdultToysFilters
               @update-filters="applyFilters"
               :is-loading="isFilterLoading"
@@ -2575,5 +2575,51 @@ input[type="range"]::-webkit-slider-thumb:hover {
     grid-template-columns: 1fr;
     gap: 1rem;
   }
+}
+
+/* 🎯 Умное позиционирование фильтров с учетом хлебных крошек */
+.filters-sticky-container {
+  position: sticky;
+  /* Динамический отступ: высота хлебных крошек + дополнительный отступ */
+  top: calc(var(--breadcrumbs-height, 80px) + 1rem);
+  z-index: 10;
+  transition: top 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Fallback для браузеров без поддержки CSS переменных */
+@supports not (top: calc(var(--breadcrumbs-height) + 1rem)) {
+  .filters-sticky-container {
+    top: 6rem; /* 80px + 16px */
+  }
+}
+
+/* Адаптивное поведение для мобильных устройств */
+@media (max-width: 1024px) {
+  .filters-sticky-container {
+    position: static;
+    top: auto;
+  }
+}
+
+/* Дополнительные стили для плавного взаимодействия */
+.filters-sticky-container:hover {
+  transform: translateY(-2px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Анимация появления фильтров */
+@keyframes filtersSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.filters-sticky-container {
+  animation: filtersSlideIn 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 </style>

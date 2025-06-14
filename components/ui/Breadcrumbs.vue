@@ -111,12 +111,13 @@
 </template>
 
 <script setup>
-import { computed, ref, onMounted, nextTick } from "vue";
+import { computed, ref, onMounted, nextTick, onUnmounted, watch } from "vue";
 import { HomeIcon, ChevronRightIcon } from "@heroicons/vue/24/outline";
 import BreadcrumbsSkeleton from "./BreadcrumbsSkeleton.vue";
 import { useSticky } from "~/composables/useSticky";
+import { useRoute } from "#app";
 
-// 📋 Пропсы компонента
+//  Пропсы компонента
 const props = defineProps({
   // Массив хлебных крошек
   breadcrumbs: {
@@ -145,20 +146,149 @@ const props = defineProps({
   },
 });
 
-// 🎯 Sticky поведение с улучшенными настройками
+// 🎯 Используем композабл для sticky поведения
 const breadcrumbsRef = ref(null);
-const { isSticky, initSticky } = useSticky({
-  offset: 0, // Прилипает сразу к верху
-  zIndex: 1002, // Выше фильтров (у них z-index: 1000)
-  threshold: 50, // Более чувствительный порог
+const { isSticky, initSticky, handleScroll } = useSticky({
+  offset: 0, // Без отступа от верха
+  zIndex: 1002, // Высокий z-index для навигации
+  alwaysSticky: true, // Всегда липкий режим для хлебных крошек
+  immediateSticky: true, // Немедленная активация при инициализации
 });
 
-// 🔄 Инициализация sticky поведения после монтирования
-onMounted(async () => {
-  await nextTick();
-  if (breadcrumbsRef.value) {
-    initSticky(breadcrumbsRef.value);
+// 🎯 Nuxt композаблы для навигации
+const route = useRoute();
+
+// 🎯 Инициализация sticky поведения для хлебных крошек
+const initializeStickyBehavior = () => {
+  // 🔍 Проверяем клиентскую среду
+  if (typeof window === "undefined") {
+    console.log("🚫 SSR режим - пропускаем инициализацию sticky");
+    return;
   }
+
+  console.log("🍞 Монтирование компонента хлебных крошек");
+
+  // 🕐 Ждем рендеринга с небольшой задержкой
+  setTimeout(() => {
+    const breadcrumbsEl = breadcrumbsRef.value;
+    if (breadcrumbsEl) {
+      console.log("🎯 Инициализируем sticky поведение для хлебных крошек");
+
+      // 🎨 Добавляем класс для анимации при загрузке
+      breadcrumbsEl.classList.add("initial-load");
+
+      // 🎯 Инициализируем sticky с режимом "всегда липкий"
+      initSticky(breadcrumbsEl);
+
+      // 🧹 Убираем класс initial-load через время анимации
+      setTimeout(() => {
+        breadcrumbsEl.classList.remove("initial-load");
+      }, 600);
+    } else {
+      console.warn("⚠️ Элемент хлебных крошек не найден");
+    }
+  }, 100);
+
+  // 🔄 Обработчик изменения размера окна с дебаунсом
+  let resizeTimeout;
+  const handleResize = () => {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+      const breadcrumbsEl = breadcrumbsRef.value;
+      if (breadcrumbsEl) {
+        console.log("📱 Обновляем высоту хлебных крошек при ресайзе");
+        // Принудительно обновляем sticky поведение
+        handleScroll();
+      }
+    }, 250);
+  };
+
+  window.addEventListener("resize", handleResize);
+
+  // 🧹 Очистка при размонтировании
+  onUnmounted(() => {
+    console.log("🧹 Размонтирование компонента хлебных крошек");
+    window.removeEventListener("resize", handleResize);
+    clearTimeout(resizeTimeout);
+  });
+};
+
+// 🎯 НОВАЯ ФУНКЦИЯ: Принудительная инициализация sticky независимо от состояния
+const forceInitializeSticky = () => {
+  console.log("🚀 Принудительная инициализация sticky поведения");
+
+  nextTick(() => {
+    const breadcrumbsEl = breadcrumbsRef.value;
+    if (breadcrumbsEl) {
+      console.log("✅ Элемент найден, инициализируем sticky");
+      initSticky(breadcrumbsEl);
+    } else {
+      console.warn("⚠️ Элемент не найден, повторяем через 100мс");
+      setTimeout(forceInitializeSticky, 100);
+    }
+  });
+};
+
+// 🔄 Инициализация при монтировании
+onMounted(() => {
+  console.log("🚀 Компонент хлебных крошек смонтирован");
+  initializeStickyBehavior();
+
+  // 🎯 ДОБАВЛЯЕМ: Принудительная инициализация через небольшую задержку
+  // Это гарантирует, что sticky будет работать даже если breadcrumbs загружаются асинхронно
+  setTimeout(() => {
+    forceInitializeSticky();
+  }, 200);
+});
+
+// 🔄 Переинициализация при изменении breadcrumbs (для SPA переходов)
+watch(
+  () => props.breadcrumbs,
+  (newBreadcrumbs, oldBreadcrumbs) => {
+    console.log("🔄 Breadcrumbs изменились:", {
+      old: oldBreadcrumbs?.length || 0,
+      new: newBreadcrumbs?.length || 0,
+    });
+
+    // 🎯 ИСПРАВЛЯЕМ: Всегда переинициализируем sticky при изменении breadcrumbs
+    nextTick(() => {
+      forceInitializeSticky();
+    });
+  },
+  { deep: true }
+);
+
+// 🔄 Следим за изменениями маршрута для переинициализации
+watch(
+  () => route.path,
+  (newPath, oldPath) => {
+    console.log("🔄 Изменился маршрут:", { from: oldPath, to: newPath });
+    nextTick(() => {
+      forceInitializeSticky();
+    });
+  }
+);
+
+// 🎯 ДОБАВЛЯЕМ: Следим за изменением isLoading для переинициализации
+watch(
+  () => props.isLoading,
+  (newLoading, oldLoading) => {
+    // Когда загрузка завершается, переинициализируем sticky
+    if (oldLoading && !newLoading) {
+      console.log("🔄 Загрузка завершена, переинициализируем sticky");
+      setTimeout(() => {
+        forceInitializeSticky();
+      }, 100);
+    }
+  }
+);
+
+// 🔍 Отслеживаем изменения sticky состояния для отладки
+watch(isSticky, (newValue) => {
+  console.log(
+    "🎯 Sticky состояние изменилось:",
+    newValue ? "АКТИВНО" : "НЕАКТИВНО"
+  );
 });
 
 // 🎭 Логика показа скелетона
@@ -172,25 +302,40 @@ const shouldShowSkeleton = computed(() => {
     showCatalog: props.showCatalog,
   });
 
-  // 1. Если явно указано isLoading
+  // 1. Если явно указано isLoading - показываем скелетон
   if (props.isLoading) {
     console.log("🔄 Показываем скелетон: isLoading = true");
     return true;
   }
 
-  // 2. Если это не главный каталог и breadcrumbs пустой или не определен
+  // 2. ИСПРАВЛЯЕМ ЛОГИКУ: Для страниц категорий показываем скелетон только в самом начале
+  // Если это не главный каталог, но breadcrumbs уже есть - показываем основной компонент
   if (!props.isMainCatalog) {
-    // Проверяем, что breadcrumbs действительно пустой (не просто пустой массив)
     const hasBreadcrumbs = props.breadcrumbs && props.breadcrumbs.length > 0;
-    if (!hasBreadcrumbs) {
-      console.log(
-        "🔄 Показываем скелетон: не главный каталог и нет breadcrumbs"
-      );
-      return true;
+
+    // Если есть breadcrumbs - всегда показываем основной компонент
+    if (hasBreadcrumbs) {
+      console.log("✅ Показываем основной компонент: есть breadcrumbs");
+      return false;
     }
+
+    // Если нет breadcrumbs, но и не загружается - тоже показываем основной компонент
+    // Это позволит sticky работать даже с пустыми breadcrumbs
+    if (!props.isLoading) {
+      console.log(
+        "✅ Показываем основной компонент: не загружается, пусть sticky работает"
+      );
+      return false;
+    }
+
+    // Только если нет breadcrumbs И идет загрузка - показываем скелетон
+    console.log(
+      "🔄 Показываем скелетон: не главный каталог, нет breadcrumbs и идет загрузка"
+    );
+    return true;
   }
 
-  console.log("✅ Показываем основной компонент");
+  console.log("✅ Показываем основной компонент: главный каталог");
   return false;
 });
 
@@ -244,35 +389,43 @@ const processedBreadcrumbs = computed(() => {
   opacity: 1;
 }
 
-/* 🎯 Sticky состояние - как в современных приложениях */
+/* 🎯 Стили для sticky состояния */
 .breadcrumbs-container.is-sticky {
   position: fixed !important;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 1002;
-  background: rgba(255, 255, 255, 0.98);
-  backdrop-filter: blur(24px);
-  box-shadow: 0 8px 32px rgba(236, 72, 153, 0.12),
-    0 4px 16px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(236, 72, 153, 0.06),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
-  border-bottom: 2px solid rgba(236, 72, 153, 0.15);
-  border-radius: 0 0 20px 20px;
-  animation: stickySlideDown 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  height: 80px !important; /* Фиксированная высота для предсказуемости */
+  z-index: 1002 !important;
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08) !important;
+  border-bottom: 1px solid rgba(229, 231, 235, 0.8) !important;
+  animation: slideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  transform: translateZ(0) !important; /* Аппаратное ускорение */
+
+  /* Центрирование контента по вертикали */
+  display: flex !important;
+  align-items: center !important;
 }
 
-/* 🎬 Анимация появления sticky - плавная как в Tinder */
-@keyframes stickySlideDown {
+/* Обеспечиваем правильное отображение контента в sticky режиме */
+.breadcrumbs-container.is-sticky .container {
+  margin: 0 auto !important;
+  padding: 0 1rem !important;
+}
+
+/* 🎬 Анимация появления sticky */
+@keyframes slideDown {
   from {
     transform: translateY(-100%);
     opacity: 0;
-    box-shadow: none;
   }
   to {
     transform: translateY(0);
     opacity: 1;
-    box-shadow: 0 8px 32px rgba(236, 72, 153, 0.12),
-      0 4px 16px rgba(0, 0, 0, 0.08);
   }
 }
 

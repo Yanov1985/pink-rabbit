@@ -871,6 +871,14 @@ watch(
   z-index: 1;
   /* НОВОЕ: Убираем list-style для семантического li */
   list-style: none;
+  /* НОВОЕ: Добавляем минимальную высоту для предотвращения layout shift */
+  min-height: 140px;
+  /* НОВОЕ: Используем flexbox для центрирования контента */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  justify-content: center;
 }
 
 .category-card::before {
@@ -1750,7 +1758,7 @@ html {
 /* === СКЕЛЕТОН ЗАГРУЗКИ === */
 .skeleton-container {
   @apply animate-pulse;
-  padding: 1rem 1rem 2rem 1rem;
+  padding: 1rem 1rem 1.5rem 1rem; /* Изменено с 2rem на 1.5rem для соответствия реальному контенту */
   max-width: 100%;
   overflow: hidden;
   box-sizing: border-box;
@@ -1779,7 +1787,8 @@ html {
   align-items: center;
   text-align: center;
   gap: 1rem;
-  min-height: 160px;
+  /* Устанавливаем такую же минимальную высоту как у реального контента */
+  min-height: 140px;
   opacity: 0;
   animation: fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
