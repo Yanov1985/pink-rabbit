@@ -3,8 +3,8 @@
     <!-- Хлебные крошки с новым компонентом -->
     <Breadcrumbs
       :breadcrumbs="breadcrumbs"
-      :isMainCatalog="false"
-      :isLoading="isLoading"
+      :is-main-catalog="false"
+      :is-loading="isLoading"
     />
 
     <!-- Подкатегории (если есть) - размещаем перед основным контентом, как на главной странице -->

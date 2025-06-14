@@ -1,7 +1,12 @@
 <template>
   <div class="catalog-page">
     <!-- Хлебные крошки -->
-    <Breadcrumbs />
+    <Breadcrumbs 
+      :breadcrumbs="[]"
+      :is-main-catalog="true"
+      :is-loading="false"
+      :show-catalog="false"
+    />
 
     <!-- Основной контейнер каталога -->
     <div class="container mx-auto px-4 py-6">

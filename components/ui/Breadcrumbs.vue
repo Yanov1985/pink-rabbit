@@ -13,7 +13,11 @@
     itemscope
     itemtype="https://schema.org/BreadcrumbList"
   >
-    <div class="container mx-auto px-4 py-3">
+    <!-- Декоративный градиентный фон -->
+    <div class="breadcrumbs-background"></div>
+
+    <!-- Основной контент -->
+    <div class="container mx-auto px-4 py-4">
       <ol class="flex items-center space-x-2 text-sm">
         <!-- Главная страница -->
         <li
@@ -43,7 +47,7 @@
           itemtype="https://schema.org/ListItem"
         >
           <ChevronRightIcon
-            class="w-4 h-4 text-gray-400 mx-2"
+            class="w-4 h-4 text-gray-400 mx-2 breadcrumb-separator"
             aria-hidden="true"
           />
           <NuxtLink
@@ -69,7 +73,7 @@
             itemtype="https://schema.org/ListItem"
           >
             <ChevronRightIcon
-              class="w-4 h-4 text-gray-400 mx-2"
+              class="w-4 h-4 text-gray-400 mx-2 breadcrumb-separator"
               aria-hidden="true"
             />
 
@@ -100,6 +104,9 @@
         </template>
       </ol>
     </div>
+
+    <!-- Индикатор прокрутки -->
+    <div class="scroll-indicator" :class="{ visible: isSticky }"></div>
   </nav>
 </template>
 
@@ -138,11 +145,12 @@ const props = defineProps({
   },
 });
 
-// 🎯 Sticky поведение
+// 🎯 Sticky поведение с улучшенными настройками
 const breadcrumbsRef = ref(null);
 const { isSticky, initSticky } = useSticky({
   offset: 0, // Прилипает сразу к верху
-  zIndex: 1001, // Выше чем CatalogHeader
+  zIndex: 1002, // Выше фильтров (у них z-index: 1000)
+  threshold: 50, // Более чувствительный порог
 });
 
 // 🔄 Инициализация sticky поведения после монтирования
@@ -155,16 +163,34 @@ onMounted(async () => {
 
 // 🎭 Логика показа скелетона
 const shouldShowSkeleton = computed(() => {
+  // Отладочная информация
+  console.log("🔍 Breadcrumbs Debug:", {
+    isLoading: props.isLoading,
+    isMainCatalog: props.isMainCatalog,
+    breadcrumbs: props.breadcrumbs,
+    breadcrumbsLength: props.breadcrumbs?.length || 0,
+    showCatalog: props.showCatalog,
+  });
+
   // 1. Если явно указано isLoading
-  if (props.isLoading) return true;
+  if (props.isLoading) {
+    console.log("🔄 Показываем скелетон: isLoading = true");
+    return true;
+  }
 
   // 2. Если это не главный каталог и breadcrumbs пустой или не определен
   if (!props.isMainCatalog) {
     // Проверяем, что breadcrumbs действительно пустой (не просто пустой массив)
     const hasBreadcrumbs = props.breadcrumbs && props.breadcrumbs.length > 0;
-    if (!hasBreadcrumbs) return true;
+    if (!hasBreadcrumbs) {
+      console.log(
+        "🔄 Показываем скелетон: не главный каталог и нет breadcrumbs"
+      );
+      return true;
+    }
   }
 
+  console.log("✅ Показываем основной компонент");
   return false;
 });
 
@@ -183,58 +209,115 @@ const processedBreadcrumbs = computed(() => {
 </script>
 
 <style scoped>
-/* 🎨 Основные стили контейнера */
+/* 🎨 Основные стили контейнера - как в премиальных интернет-магазинах */
 .breadcrumbs-container {
+  position: relative;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(236, 72, 153, 0.1);
-  box-shadow: 0 4px 20px rgba(236, 72, 153, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
+  border: 1px solid rgba(236, 72, 153, 0.08);
+  box-shadow: 0 4px 20px rgba(236, 72, 153, 0.06), 0 2px 8px rgba(0, 0, 0, 0.03),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 100;
-  border-bottom: 1px solid rgba(236, 72, 153, 0.15);
+  border-radius: 0 0 16px 16px;
+  overflow: hidden;
 }
 
-/* 🎯 Sticky состояние */
+/* 🌈 Декоративный градиентный фон */
+.breadcrumbs-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(236, 72, 153, 0.02) 0%,
+    rgba(139, 92, 246, 0.02) 50%,
+    rgba(59, 130, 246, 0.02) 100%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.breadcrumbs-container:hover .breadcrumbs-background {
+  opacity: 1;
+}
+
+/* 🎯 Sticky состояние - как в современных приложениях */
 .breadcrumbs-container.is-sticky {
   position: fixed !important;
   top: 0;
   left: 0;
   right: 0;
-  z-index: 1001;
+  z-index: 1002;
   background: rgba(255, 255, 255, 0.98);
-  backdrop-filter: blur(12px);
-  box-shadow: 0 8px 32px rgba(236, 72, 153, 0.15), 0 4px 16px rgba(0, 0, 0, 0.1);
-  border-bottom: 2px solid rgba(236, 72, 153, 0.2);
-  animation: stickySlideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(24px);
+  box-shadow: 0 8px 32px rgba(236, 72, 153, 0.12),
+    0 4px 16px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(236, 72, 153, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  border-bottom: 2px solid rgba(236, 72, 153, 0.15);
+  border-radius: 0 0 20px 20px;
+  animation: stickySlideDown 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* 🎬 Анимация появления sticky */
+/* 🎬 Анимация появления sticky - плавная как в Tinder */
 @keyframes stickySlideDown {
   from {
     transform: translateY(-100%);
     opacity: 0;
+    box-shadow: none;
   }
   to {
     transform: translateY(0);
     opacity: 1;
+    box-shadow: 0 8px 32px rgba(236, 72, 153, 0.12),
+      0 4px 16px rgba(0, 0, 0, 0.08);
   }
 }
 
-/* ✨ Эффекты при наведении */
+/* 📊 Индикатор прокрутки */
+.scroll-indicator {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #ec4899, #f472b6, #8b5cf6);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s ease;
+}
+
+.scroll-indicator.visible {
+  transform: scaleX(1);
+  animation: scrollIndicatorPulse 2s ease-in-out infinite;
+}
+
+@keyframes scrollIndicatorPulse {
+  0%,
+  100% {
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* ✨ Эффекты при наведении - интерактивность как в социальных сетях */
 .breadcrumbs-container:hover {
-  box-shadow: 0 8px 32px rgba(236, 72, 153, 0.12),
-    0 4px 16px rgba(0, 0, 0, 0.08);
-  border-color: rgba(236, 72, 153, 0.2);
+  box-shadow: 0 8px 32px rgba(236, 72, 153, 0.1), 0 4px 16px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  border-color: rgba(236, 72, 153, 0.15);
+  transform: translateY(-1px);
 }
 
 .breadcrumbs-container.is-sticky:hover {
-  box-shadow: 0 12px 40px rgba(236, 72, 153, 0.2),
-    0 6px 20px rgba(0, 0, 0, 0.12);
-  border-bottom-color: rgba(236, 72, 153, 0.3);
+  box-shadow: 0 12px 40px rgba(236, 72, 153, 0.15),
+    0 6px 20px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(236, 72, 153, 0.08);
+  border-bottom-color: rgba(236, 72, 153, 0.25);
 }
 
-/* 🍞 Стили хлебных крошек */
+/* 🍞 Стили хлебных крошек - элегантные как в премиальных магазинах */
 .breadcrumb-item {
   display: flex;
   align-items: center;
@@ -243,107 +326,165 @@ const processedBreadcrumbs = computed(() => {
 .breadcrumb-link {
   display: inline-flex;
   align-items: center;
-  padding: 6px 12px;
-  border-radius: 8px;
-  transition: all 0.2s ease;
+  padding: 8px 14px;
+  border-radius: 12px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   text-decoration: none;
-  background: rgba(255, 255, 255, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.4);
   color: #6b7280;
   font-weight: 500;
   font-size: 14px;
+  position: relative;
+  overflow: hidden;
+}
+
+.breadcrumb-link::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.4),
+    transparent
+  );
+  transition: left 0.5s ease;
+}
+
+.breadcrumb-link:hover::before {
+  left: 100%;
 }
 
 .breadcrumb-link:hover {
-  background: rgba(236, 72, 153, 0.1);
+  background: rgba(236, 72, 153, 0.08);
   border-color: rgba(236, 72, 153, 0.2);
   color: #ec4899;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(236, 72, 153, 0.15);
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 6px 20px rgba(236, 72, 153, 0.15),
+    0 2px 8px rgba(236, 72, 153, 0.1);
 }
 
 /* 🏠 Специальные стили для главной страницы */
 .home-link {
   background: linear-gradient(
     135deg,
-    rgba(236, 72, 153, 0.1),
-    rgba(139, 92, 246, 0.1)
+    rgba(236, 72, 153, 0.08),
+    rgba(139, 92, 246, 0.08)
   );
-  border-color: rgba(236, 72, 153, 0.2);
+  border-color: rgba(236, 72, 153, 0.15);
+  color: #ec4899;
 }
 
 .home-link:hover {
   background: linear-gradient(
     135deg,
-    rgba(236, 72, 153, 0.2),
-    rgba(139, 92, 246, 0.2)
+    rgba(236, 72, 153, 0.15),
+    rgba(139, 92, 246, 0.15)
   );
   color: #ec4899;
+  box-shadow: 0 8px 25px rgba(236, 72, 153, 0.2),
+    0 3px 10px rgba(139, 92, 246, 0.1);
 }
 
 /* 📚 Стили для ссылки каталога */
 .catalog-link {
-  background: rgba(59, 130, 246, 0.1);
-  border-color: rgba(59, 130, 246, 0.2);
+  background: rgba(59, 130, 246, 0.08);
+  border-color: rgba(59, 130, 246, 0.15);
   color: #3b82f6;
 }
 
 .catalog-link:hover {
-  background: rgba(59, 130, 246, 0.2);
+  background: rgba(59, 130, 246, 0.15);
   color: #2563eb;
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.2),
+    0 2px 8px rgba(59, 130, 246, 0.1);
 }
 
-/* 📍 Текущая страница */
+/* 📍 Текущая страница - выделяется как активный элемент */
 .breadcrumb-current {
-  padding: 6px 12px;
-  border-radius: 8px;
+  padding: 8px 16px;
+  border-radius: 12px;
   background: linear-gradient(135deg, #ec4899, #f472b6);
   color: white;
   font-weight: 600;
   font-size: 14px;
-  box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);
-  animation: currentPageGlow 2s ease-in-out infinite alternate;
+  box-shadow: 0 6px 20px rgba(236, 72, 153, 0.3),
+    0 2px 8px rgba(236, 72, 153, 0.2);
+  position: relative;
+  overflow: hidden;
 }
 
-@keyframes currentPageGlow {
+.breadcrumb-current::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    45deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.2) 50%,
+    transparent 70%
+  );
+  animation: currentPageShimmer 3s ease-in-out infinite;
+}
+
+@keyframes currentPageShimmer {
   0% {
-    box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);
+    transform: translateX(-100%);
   }
   100% {
-    box-shadow: 0 6px 20px rgba(236, 72, 153, 0.5);
+    transform: translateX(100%);
   }
 }
 
-/* 📱 Адаптивность */
+/* 🔗 Разделители между крошками */
+.breadcrumb-separator {
+  transition: all 0.2s ease;
+}
+
+.breadcrumb-item:hover .breadcrumb-separator {
+  color: #ec4899;
+  transform: scale(1.1);
+}
+
+/* 📱 Адаптивность - удобство на всех устройствах */
 @media (max-width: 640px) {
   .breadcrumbs-container {
-    padding: 0;
+    border-radius: 0 0 12px 12px;
   }
 
   .breadcrumbs-container .container {
-    padding: 8px 12px;
+    padding: 10px 12px;
   }
 
   .breadcrumb-link,
   .breadcrumb-current {
-    padding: 4px 8px;
-    font-size: 12px;
+    padding: 6px 10px;
+    font-size: 13px;
   }
 
   /* Скрываем иконки на очень маленьких экранах */
   .breadcrumb-link .w-4 {
-    display: none;
+    width: 14px;
+    height: 14px;
+    margin-right: 4px;
   }
 }
 
 /* 🎯 Улучшенная адаптивность для sticky состояния */
 @media (max-width: 768px) {
   .breadcrumbs-container.is-sticky {
-    padding: 0;
+    border-radius: 0 0 16px 16px;
   }
 
   .breadcrumbs-container.is-sticky .container {
-    padding: 6px 10px;
+    padding: 8px 12px;
   }
 }
 
@@ -362,12 +503,39 @@ const processedBreadcrumbs = computed(() => {
 
 /* 🎨 Дополнительные эффекты для sticky состояния */
 .breadcrumbs-container.is-sticky .breadcrumb-link {
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(4px);
 }
 
 .breadcrumbs-container.is-sticky .breadcrumb-current {
   background: linear-gradient(135deg, #ec4899, #f472b6);
-  box-shadow: 0 2px 8px rgba(236, 72, 153, 0.4);
+  box-shadow: 0 4px 16px rgba(236, 72, 153, 0.4),
+    0 2px 8px rgba(236, 72, 153, 0.2);
+}
+
+.breadcrumbs-container.is-sticky .breadcrumbs-background {
+  opacity: 0.5;
+}
+
+/* 🌟 Дополнительные эффекты для премиального вида */
+.breadcrumbs-container::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(236, 72, 153, 0.3),
+    transparent
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.breadcrumbs-container.is-sticky::after {
+  opacity: 1;
 }
 </style>
