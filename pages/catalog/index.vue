@@ -1,28 +1,19 @@
 <template>
-  <div class="min-h-screen bg-gray-50">
-    <!-- Хлебные крошки с новым компонентом -->
-    <Breadcrumbs
-      :breadcrumbs="[]"
-      :isMainCatalog="true"
-      :isLoading="isInitialLoading"
-    />
+  <div class="catalog-page">
+    <!-- Хлебные крошки -->
+    <Breadcrumbs />
 
-    <!-- Секция категорий товаров -->
-    <ProductCategoriesCards
-      :categories="mainCategories"
-      :categoryPath="[]"
-      :isLoading="isInitialLoading"
-      @navigate-to-category="handleCategoryNavigation"
-    />
-
+    <!-- Основной контейнер каталога -->
     <div class="container mx-auto px-4 py-6">
-      <div class="flex flex-col lg:flex-row gap-6">
-        <!-- Липкий sidebar только с фильтрами -->
-        <div class="sticky-sidebar">
-          <aside class="lg:w-1/4 space-y-6" ref="filtersRef">
-            <!-- Фильтры для товаров для взрослых -->
+      <!-- Карточки категорий товаров -->
+      <ProductCategoriesCards class="mb-8" />
+
+      <!-- Сетка с фильтрами и товарами -->
+      <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <!-- Боковая панель с фильтрами -->
+        <aside class="lg:col-span-1">
+          <div class="sticky top-4">
             <AdultToysFilters
-              class="filters-sidebar"
               @update-filters="applyFilters"
               :is-loading="isFilterLoading"
               :initial-filters="{
@@ -45,11 +36,11 @@
               }"
               @reset-filters="resetFilters"
             />
-          </aside>
-        </div>
+          </div>
+        </aside>
 
         <!-- Основной контент -->
-        <main class="lg:w-3/4 catalog-main">
+        <main class="lg:col-span-3">
           <!-- Заголовок каталога с компонентом -->
           <CatalogHeader
             category-title="Секс игрушки"
@@ -273,7 +264,6 @@ const imageLoadingStates = ref({});
 const imageErrorStates = ref({});
 
 // Ссылки на DOM элементы
-const filtersRef = ref(null);
 const productsGridRef = ref(null);
 const paginationRef = ref(null);
 const productCardRefs = ref([]);
@@ -2558,6 +2548,27 @@ input[type="range"]::-webkit-slider-thumb:hover {
 @media (max-width: 768px) {
   .sticky-sidebar aside {
     width: 100% !important;
+  }
+}
+
+/* Адаптивные стили для сетки товаров */
+@media (max-width: 1024px) {
+  .product-grid-4 {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+
+  .product-grid-3 {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .product-grid-4,
+  .product-grid-3 {
+    grid-template-columns: 1fr;
+    gap: 1rem;
   }
 }
 </style>

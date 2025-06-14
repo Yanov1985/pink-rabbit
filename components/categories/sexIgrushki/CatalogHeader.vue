@@ -2,7 +2,7 @@
   <!-- Семантический заголовок каталога с Schema.org разметкой -->
   <header
     ref="headerRef"
-    class="catalog-header catalog-header-sticky"
+    class="catalog-header"
     role="banner"
     aria-label="Заголовок каталога товаров"
     itemscope
@@ -476,10 +476,15 @@ defineExpose({
 /* === 🎯 ОСНОВНЫЕ СТИЛИ ЗАГОЛОВКА КАТАЛОГА === */
 .catalog-header {
   @apply bg-white border-b border-gray-200 p-4 rounded-lg shadow-sm;
-  /* Добавляем sticky поведение как в AdultToysFilters */
-  position: sticky;
-  top: 1rem;
-  z-index: 20;
+
+  /* 📍 Статичное позиционирование вместо липкого */
+  position: relative;
+  /* Убираем sticky свойства */
+  /* position: sticky; */
+  /* top: 1rem; */
+  /* z-index: 20; */
+
+  /* 🎨 Красивая стилизация */
   backdrop-filter: blur(10px);
   background: linear-gradient(
     135deg,
@@ -487,8 +492,11 @@ defineExpose({
     rgba(248, 250, 252, 0.98)
   );
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border-radius: 0 0 12px 12px;
+  border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+
+  /* 📐 Отступы для лучшего внешнего вида */
+  margin-bottom: 1.5rem;
 }
 
 /* Эффект при прокрутке - усиливаем тень */
