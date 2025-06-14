@@ -1,8 +1,8 @@
 <template>
   <!-- Семантический заголовок каталога с Schema.org разметкой -->
   <header
-    class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6"
     ref="headerRef"
+    class="catalog-header catalog-header-sticky"
     role="banner"
     aria-label="Заголовок каталога товаров"
     itemscope
@@ -252,47 +252,35 @@ import {
   CurrencyDollarIcon, // Дополнительная иконка для цены
 } from "@heroicons/vue/24/solid";
 
-// Пропсы компонента
+// 📋 Пропсы компонента
 const props = defineProps({
-  // Заголовок категории (например "Товары для взрослых")
   categoryTitle: {
     type: String,
     required: true,
-    default: "Каталог товаров",
   },
-  // Общее количество найденных товаров
   totalCount: {
     type: Number,
-    required: true,
     default: 0,
   },
-  // Текущий режим отображения (3 или 4 колонки)
   viewMode: {
     type: Number,
-    required: true,
     default: 4,
     validator: (value) => [3, 4].includes(value),
   },
-  // Текущий способ сортировки
   sortBy: {
     type: String,
-    required: true,
     default: "popularity",
   },
-  // Состояние загрузки
   isLoading: {
     type: Boolean,
     default: false,
   },
 });
 
-// События которые компонент может отправлять
-const emit = defineEmits([
-  "changeViewMode", // Изменение режима отображения (3/4 колонки)
-  "changeSorting", // Изменение сортировки
-]);
+// 🎯 События
+const emit = defineEmits(["changeViewMode", "changeSorting"]);
 
-// Ссылки на DOM элементы
+// 📊 Ссылки на элементы для возможного использования родительским компонентом
 const headerRef = ref(null);
 const viewToggleRef = ref(null);
 const sortRef = ref(null);
@@ -300,20 +288,24 @@ const sortRef = ref(null);
 // Получаем текущий маршрут в setup контексте
 const route = useRoute();
 
-/**
- * Функция склонения слова "товар" в зависимости от количества
- * Как в магазине: 1 товар, 2-4 товара, 5+ товаров
- */
+// 🔤 Функция для правильного склонения слова "товар"
 const getProductsWord = (count) => {
-  if (count % 10 === 1 && count % 100 !== 11) {
-    return "товар";
-  } else if (
-    [2, 3, 4].includes(count % 10) &&
-    ![12, 13, 14].includes(count % 100)
-  ) {
-    return "товара";
-  } else {
+  const lastDigit = count % 10;
+  const lastTwoDigits = count % 100;
+
+  if (lastTwoDigits >= 11 && lastTwoDigits <= 19) {
     return "товаров";
+  }
+
+  switch (lastDigit) {
+    case 1:
+      return "товар";
+    case 2:
+    case 3:
+    case 4:
+      return "товара";
+    default:
+      return "товаров";
   }
 };
 
@@ -380,7 +372,7 @@ const getSortIconDescription = (sortType) => {
   }
 };
 
-// SEO оптимизация через useHead
+// 🎯 SEO и метаданные для поисковых систем
 useHead({
   title: computed(() => `${props.categoryTitle} - Pink Rabbit`),
   meta: [
@@ -388,75 +380,23 @@ useHead({
       name: "description",
       content: computed(
         () =>
-          `Каталог ${props.categoryTitle.toLowerCase()} с удобной сортировкой и фильтрацией. Найдено ${
+          `Каталог ${props.categoryTitle.toLowerCase()} с системой сортировки и фильтрации. Найдено ${
             props.totalCount
-          } товаров. Интернет-магазин Pink Rabbit - качественные товары для взрослых.`
+          } товаров.`
       ),
     },
-    {
-      name: "keywords",
-      content: computed(
-        () =>
-          `${props.categoryTitle}, интимные товары, сортировка, каталог, Pink Rabbit, ${props.sortBy}`
-      ),
-    },
-    // Open Graph для социальных сетей
     {
       property: "og:title",
-      content: computed(
-        () =>
-          `${props.categoryTitle} - ${props.totalCount} товаров | Pink Rabbit`
-      ),
+      content: computed(() => `${props.categoryTitle} - Pink Rabbit`),
     },
     {
       property: "og:description",
       content: computed(
         () =>
-          `Каталог ${props.categoryTitle.toLowerCase()} с ${
-            props.totalCount
-          } товарами. Удобная сортировка и переключение видов отображения.`
+          `Каталог ${props.categoryTitle.toLowerCase()} с системой сортировки и фильтрации`
       ),
-    },
-    {
-      property: "og:type",
-      content: "website",
-    },
-    // Twitter Cards
-    {
-      name: "twitter:card",
-      content: "summary",
-    },
-    {
-      name: "twitter:title",
-      content: computed(() => `${props.categoryTitle} - Pink Rabbit`),
-    },
-    {
-      name: "twitter:description",
-      content: computed(
-        () =>
-          `${props.totalCount} товаров в категории ${props.categoryTitle}. Удобная навигация и сортировка.`
-      ),
-    },
-    // Дополнительные SEO метатеги
-    {
-      name: "robots",
-      content: "index, follow, max-image-preview:large",
-    },
-    {
-      name: "googlebot",
-      content: "index, follow",
-    },
-    {
-      name: "format-detection",
-      content: "telephone=no",
-    },
-    // Языковые метатеги
-    {
-      httpEquiv: "content-language",
-      content: "ru-RU",
     },
   ],
-  // Структурированные данные для поисковых систем
   script: [
     {
       type: "application/ld+json",
@@ -533,180 +473,50 @@ defineExpose({
   }
 }
 
-/* === 🎯 ЛИПКИЙ ЗАГОЛОВОК КАТАЛОГА === */
-/* Основные стили для заголовка каталога */
+/* === 🎯 ОСНОВНЫЕ СТИЛИ ЗАГОЛОВКА КАТАЛОГА === */
 .catalog-header {
-  /* Плавные переходы для всех изменений */
+  @apply bg-white border-b border-gray-200 p-4 rounded-lg shadow-sm;
+  /* Добавляем sticky поведение как в AdultToysFilters */
+  position: sticky;
+  top: 1rem;
+  z-index: 20;
+  backdrop-filter: blur(10px);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.98),
+    rgba(248, 250, 252, 0.98)
+  );
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  /* Базовый z-index для нормального состояния */
-  z-index: 10;
-  /* Относительное позиционирование по умолчанию */
-  position: relative;
+  border-radius: 0 0 12px 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
-/* Липкое состояние заголовка */
+/* Эффект при прокрутке - усиливаем тень */
 .catalog-header-sticky {
-  /* Фиксированное позиционирование */
-  position: fixed !important;
-  /* Прилипает к верху страницы */
-  top: 0;
-  /* Растягивается на всю ширину */
-  left: 0;
-  right: 0;
-  /* Высокий z-index чтобы быть поверх всего контента */
-  z-index: 1000;
-  /* Убираем нижний отступ в липком состоянии */
-  margin-bottom: 0;
-  /* Добавляем тень для визуального отделения */
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(236, 72, 153, 0.15);
-  /* Слегка уменьшаем padding для компактности */
-  padding: 12px 16px;
-  /* Добавляем розовый акцент на границе */
-  border-bottom: 2px solid rgba(236, 72, 153, 0.2);
-  /* Белый фон с небольшой прозрачностью */
-  background-color: rgba(255, 255, 255, 0.98);
-  /* Размытие фона для эффекта стекла */
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border-bottom: 1px solid rgba(236, 72, 153, 0.1);
 }
 
-/* Placeholder для предотвращения скачков контента */
-.catalog-header-placeholder {
-  /* Невидимый блок той же высоты что и заголовок */
-  visibility: hidden;
-  /* Сохраняем место в потоке документа */
-  position: static;
-  /* Плавное появление */
-  opacity: 0;
-  /* Анимация появления */
-  animation: placeholderFadeIn 0.3s ease-out;
+.catalog-header:hover {
+  box-shadow: 0 6px 25px rgba(236, 72, 153, 0.08);
+  border-color: rgba(236, 72, 153, 0.15);
+  transform: translateY(-1px);
 }
 
-/* Анимация появления placeholder */
-@keyframes placeholderFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 0; /* Остается невидимым, но занимает место */
-    transform: translateY(0);
-  }
-}
-
-/* Адаптивные стили для липкого заголовка */
-@media (max-width: 640px) {
-  .catalog-header-sticky {
-    /* На мобильных устройствах еще более компактный padding */
-    padding: 8px 12px;
-  }
-
-  .catalog-header-sticky .catalog-title {
-    /* Уменьшаем размер заголовка на мобильных */
-    font-size: 1.25rem;
-    line-height: 1.75rem;
-  }
-
-  .catalog-header-sticky .catalog-count {
-    /* Уменьшаем размер счетчика на мобильных */
-    font-size: 0.875rem;
-    margin-top: 0.25rem;
-  }
-}
-
-/* Улучшенная анимация для элементов управления в липком состоянии */
-.catalog-header-sticky .catalog-controls {
-  /* Слегка уменьшаем размер элементов управления */
-  transform: scale(0.95);
-}
-
-.catalog-header-sticky .view-toggle-button,
-.catalog-header-sticky .sort-select {
-  /* Более компактные элементы управления */
-  padding: 6px 12px;
-}
-
-/* Эффект при наведении на липкий заголовок */
-.catalog-header-sticky:hover {
-  /* Усиливаем тень при наведении */
-  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.15),
-    0 3px 12px rgba(236, 72, 153, 0.25);
-  /* Слегка увеличиваем розовый акцент */
-  border-bottom-color: rgba(236, 72, 153, 0.3);
-}
-
-/* Плавная анимация появления липкого заголовка */
-.catalog-header-sticky {
-  animation: stickyHeaderSlideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-@keyframes stickyHeaderSlideDown {
-  from {
-    transform: translateY(-100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-/* Стили для якоря липкого заголовка */
-.sticky-header-anchor {
-  /* Полностью невидимый элемент для отслеживания */
-  position: absolute !important;
-  opacity: 0 !important;
-  pointer-events: none !important;
-  z-index: -1 !important;
-  width: 1px !important;
-  height: 1px !important;
-}
-
-/* Основные стили для заголовка каталога */
-.catalog-header {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 16px;
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-}
-
-.catalog-header::before {
+/* Декоративная линия сверху при sticky состоянии */
+.catalog-header-sticky::before {
   content: "";
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
-  bottom: 0;
+  height: 2px;
   background: linear-gradient(
-    45deg,
-    rgba(255, 107, 157, 0.05),
-    rgba(139, 92, 246, 0.05),
-    rgba(6, 182, 212, 0.05)
+    90deg,
+    transparent,
+    rgba(236, 72, 153, 0.3),
+    transparent
   );
-  background-size: 300% 300%;
-  animation: backgroundShift 8s ease-in-out infinite;
-  z-index: -1;
-}
-
-@keyframes backgroundShift {
-  0%,
-  100% {
-    background-position: 0% 50%;
-  }
-  33% {
-    background-position: 100% 0%;
-  }
-  66% {
-    background-position: 0% 100%;
-  }
-}
-
-.catalog-header:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(255, 107, 157, 0.15);
 }
 
 /* Заголовок категории */
@@ -854,6 +664,21 @@ defineExpose({
   }
 }
 
+.view-active .w-5 {
+  animation: iconPulse 2s ease-in-out infinite alternate;
+}
+
+@keyframes iconPulse {
+  0% {
+    transform: scale(1);
+    filter: drop-shadow(0 2px 4px rgba(255, 255, 255, 0.3));
+  }
+  100% {
+    transform: scale(1.05);
+    filter: drop-shadow(0 4px 8px rgba(255, 255, 255, 0.5));
+  }
+}
+
 /* Обертка для сортировки */
 .sort-wrapper {
   position: relative;
@@ -885,6 +710,111 @@ defineExpose({
 .sort-select:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+/* Стили для иконок сортировки */
+.sort-wrapper .w-4 {
+  transition: all 0.3s ease;
+}
+
+/* Анимация для динамических иконок сортировки */
+.sort-wrapper [title="Иконка текущей сортировки"] {
+  animation: sortIconActive 2s ease-in-out infinite alternate;
+}
+
+@keyframes sortIconActive {
+  0% {
+    transform: scale(1) rotate(0deg);
+    filter: drop-shadow(0 0 2px currentColor);
+  }
+  100% {
+    transform: scale(1.1) rotate(2deg);
+    filter: drop-shadow(0 0 6px currentColor);
+  }
+}
+
+/* Специальные анимации для разных типов сортировки */
+.text-orange-500 {
+  animation: fireGlow 1.5s ease-in-out infinite alternate;
+}
+
+.text-green-500 {
+  animation: upArrowGlow 2s ease-in-out infinite;
+}
+
+.text-red-500 {
+  animation: downArrowGlow 2s ease-in-out infinite;
+}
+
+.text-yellow-500 {
+  animation: starTwinkle 1.8s ease-in-out infinite;
+}
+
+.text-purple-500 {
+  animation: sparkleShimmer 2.2s ease-in-out infinite;
+}
+
+/* Анимация огня для популярности */
+@keyframes fireGlow {
+  0% {
+    filter: drop-shadow(0 0 3px #f97316) brightness(1);
+  }
+  100% {
+    filter: drop-shadow(0 0 8px #f97316) brightness(1.2);
+  }
+}
+
+/* Анимация для стрелки вверх */
+@keyframes upArrowGlow {
+  0%,
+  100% {
+    transform: translateY(0);
+    filter: drop-shadow(0 0 2px #10b981);
+  }
+  50% {
+    transform: translateY(-2px);
+    filter: drop-shadow(0 0 6px #10b981);
+  }
+}
+
+/* Анимация для стрелки вниз */
+@keyframes downArrowGlow {
+  0%,
+  100% {
+    transform: translateY(0);
+    filter: drop-shadow(0 0 2px #ef4444);
+  }
+  50% {
+    transform: translateY(2px);
+    filter: drop-shadow(0 0 6px #ef4444);
+  }
+}
+
+/* Анимация мерцания звезды */
+@keyframes starTwinkle {
+  0%,
+  100% {
+    transform: scale(1) rotate(0deg);
+    filter: drop-shadow(0 0 3px #eab308) brightness(1);
+  }
+  25% {
+    transform: scale(1.1) rotate(18deg);
+    filter: drop-shadow(0 0 6px #eab308) brightness(1.3);
+  }
+  75% {
+    transform: scale(1.05) rotate(-18deg);
+    filter: drop-shadow(0 0 4px #eab308) brightness(1.1);
+  }
+}
+
+.sort-select:focus + div .w-4,
+.sort-select:hover + div .w-4 {
+  transform: scale(1.2);
+  filter: brightness(1.3) !important;
+}
+
+.sort-select:focus ~ div .w-4 {
+  animation-duration: 1s !important;
 }
 
 /* Кастомные цвета для фокуса */
@@ -1016,127 +946,7 @@ defineExpose({
   filter: drop-shadow(0 2px 4px rgba(255, 107, 157, 0.3));
 }
 
-.view-active .w-5 {
-  animation: iconPulse 2s ease-in-out infinite alternate;
-}
-
-@keyframes iconPulse {
-  0% {
-    transform: scale(1);
-    filter: drop-shadow(0 2px 4px rgba(255, 255, 255, 0.3));
-  }
-  100% {
-    transform: scale(1.05);
-    filter: drop-shadow(0 4px 8px rgba(255, 255, 255, 0.5));
-  }
-}
-
-/* Стили для иконок сортировки */
-.sort-wrapper .w-4 {
-  transition: all 0.3s ease;
-}
-
-/* Анимация для динамических иконок сортировки */
-.sort-wrapper [title="Иконка текущей сортировки"] {
-  animation: sortIconActive 2s ease-in-out infinite alternate;
-}
-
-@keyframes sortIconActive {
-  0% {
-    transform: scale(1) rotate(0deg);
-    filter: drop-shadow(0 0 2px currentColor);
-  }
-  100% {
-    transform: scale(1.1) rotate(2deg);
-    filter: drop-shadow(0 0 6px currentColor);
-  }
-}
-
-/* Специальные анимации для разных типов сортировки */
-.text-orange-500 {
-  animation: fireGlow 1.5s ease-in-out infinite alternate;
-}
-
-.text-green-500 {
-  animation: upArrowGlow 2s ease-in-out infinite;
-}
-
-.text-red-500 {
-  animation: downArrowGlow 2s ease-in-out infinite;
-}
-
-.text-yellow-500 {
-  animation: starTwinkle 1.8s ease-in-out infinite;
-}
-
-.text-purple-500 {
-  animation: sparkleShimmer 2.2s ease-in-out infinite;
-}
-
-/* Анимация огня для популярности */
-@keyframes fireGlow {
-  0% {
-    filter: drop-shadow(0 0 3px #f97316) brightness(1);
-  }
-  100% {
-    filter: drop-shadow(0 0 8px #f97316) brightness(1.2);
-  }
-}
-
-/* Анимация для стрелки вверх */
-@keyframes upArrowGlow {
-  0%,
-  100% {
-    transform: translateY(0);
-    filter: drop-shadow(0 0 2px #10b981);
-  }
-  50% {
-    transform: translateY(-2px);
-    filter: drop-shadow(0 0 6px #10b981);
-  }
-}
-
-/* Анимация для стрелки вниз */
-@keyframes downArrowGlow {
-  0%,
-  100% {
-    transform: translateY(0);
-    filter: drop-shadow(0 0 2px #ef4444);
-  }
-  50% {
-    transform: translateY(2px);
-    filter: drop-shadow(0 0 6px #ef4444);
-  }
-}
-
-/* Анимация мерцания звезды */
-@keyframes starTwinkle {
-  0%,
-  100% {
-    transform: scale(1) rotate(0deg);
-    filter: drop-shadow(0 0 3px #eab308) brightness(1);
-  }
-  25% {
-    transform: scale(1.1) rotate(18deg);
-    filter: drop-shadow(0 0 6px #eab308) brightness(1.3);
-  }
-  75% {
-    transform: scale(1.05) rotate(-18deg);
-    filter: drop-shadow(0 0 4px #eab308) brightness(1.1);
-  }
-}
-
-.sort-select:focus + div .w-4,
-.sort-select:hover + div .w-4 {
-  transform: scale(1.2);
-  filter: brightness(1.3) !important;
-}
-
-.sort-select:focus ~ div .w-4 {
-  animation-duration: 1s !important;
-}
-
-/* === СТИЛИ СКЕЛЕТОНА ЗАГОЛОВКА В СТИЛЕ PINK RABBIT === */
+/* === SKELETON СТИЛИ === */
 .pink-rabbit-header-skeleton {
   @apply flex justify-between items-center p-4 mb-6 bg-white rounded-xl shadow-sm border border-gray-100;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);

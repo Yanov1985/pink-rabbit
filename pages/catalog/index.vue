@@ -1,7 +1,11 @@
 <template>
   <div class="min-h-screen bg-gray-50">
     <!-- Хлебные крошки с новым компонентом -->
-    <Breadcrumbs :breadcrumbs="[]" :isMainCatalog="true" />
+    <Breadcrumbs
+      :breadcrumbs="[]"
+      :isMainCatalog="true"
+      :isLoading="isInitialLoading"
+    />
 
     <!-- Секция категорий товаров -->
     <ProductCategoriesCards

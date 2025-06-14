@@ -1,7 +1,11 @@
 <template>
   <div class="min-h-screen bg-gray-50">
     <!-- Хлебные крошки с новым компонентом -->
-    <Breadcrumbs :breadcrumbs="breadcrumbs" :isMainCatalog="false" />
+    <Breadcrumbs
+      :breadcrumbs="breadcrumbs"
+      :isMainCatalog="false"
+      :isLoading="isLoading"
+    />
 
     <!-- Подкатегории (если есть) - размещаем перед основным контентом, как на главной странице -->
     <ProductCategoriesCards
@@ -42,7 +46,7 @@
           />
 
           <!-- Товары -->
-          <div v-if="showProducts">
+          <div v-if="showProducts" class="catalog-products-content">
             <!-- Загрузка товаров -->
             <div
               v-if="isLoading"
@@ -234,7 +238,7 @@ const showProducts = computed(() => {
 });
 
 // Реактивные данные
-const isLoading = ref(false);
+const isLoading = ref(true);
 const products = ref([]);
 const totalProducts = ref(0);
 const currentPage = ref(1);
@@ -261,6 +265,10 @@ const loadCategoryData = async () => {
   isLoading.value = true;
 
   try {
+    // Минимальная задержка для демонстрации скелетона (500мс)
+    // В реальном приложении это время займет загрузка с сервера
+    const startTime = Date.now();
+
     // Загружаем фильтры
     availableFilters.value = getCategoryFilters(categoryPath.value);
 
@@ -276,6 +284,15 @@ const loadCategoryData = async () => {
       totalProducts.value = result.totalCount;
       currentPage.value = result.currentPage;
       totalPages.value = result.totalPages;
+    }
+
+    // Обеспечиваем минимальное время показа скелетона
+    const elapsedTime = Date.now() - startTime;
+    const minLoadingTime = 500; // 500мс минимум
+    if (elapsedTime < minLoadingTime) {
+      await new Promise((resolve) =>
+        setTimeout(resolve, minLoadingTime - elapsedTime)
+      );
     }
   } catch (error) {
     console.error("Ошибка загрузки данных категории:", error);
@@ -536,6 +553,27 @@ const loadProducts = () => {
     padding: 0.5rem 0.75rem;
     font-size: 0.75rem;
     min-width: 32px;
+  }
+}
+
+/* === ОТСТУП ДЛЯ STICKY ЗАГОЛОВКА === */
+/* Добавляем отступ сверху для контента товаров, чтобы sticky заголовок не перекрывал их */
+.catalog-products-content {
+  margin-top: 1.5rem; /* 24px отступ сверху */
+  transition: margin-top 0.3s ease;
+}
+
+/* На мобильных устройствах делаем отступ меньше */
+@media (max-width: 768px) {
+  .catalog-products-content {
+    margin-top: 1rem; /* 16px отступ на мобильных */
+  }
+}
+
+/* На очень маленьких экранах еще меньше */
+@media (max-width: 480px) {
+  .catalog-products-content {
+    margin-top: 0.75rem; /* 12px отступ на очень маленьких экранах */
   }
 }
 </style>
